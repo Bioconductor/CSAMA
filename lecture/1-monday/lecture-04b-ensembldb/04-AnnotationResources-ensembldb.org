@@ -6,9 +6,11 @@
 
 * Annotation resources - =ensembldb=
 
-CSAMA2017, Brixen.
+*CSAMA2017*
+
 *Johannes Rainer* (Eurac Research, Italy)
-twitter/github: /jotsetung/
+johannes.rainer@eurac.edu
+github/twitter: /jotsetung/
 
 ** Annotation of genomic regions
 
@@ -99,6 +101,7 @@ twitter/github: /jotsetung/
     supportedFilters(edb)
   #+END_SRC
 + Filters speed up queries.
+
 ** Getting annotation resources
 
 + Dedicated packages:

@@ -4,7 +4,7 @@
 #+PROPERTY: header-args :noweb yes
 #+PROPERTY: header-args :results output verbatim
 #+PROPERTY: header-args :tangle yes
-#+PROPERTY: header-args:R :session *R_CSAMA*
+#+PROPERTY: header-args:R :session *CSAMA_ensembldb*
 
 # LaTeX stuff
 #+LATEX_HEADER: \usepackage[backend=bibtex,style=chem-rsc,hyperref=true]{biblatex}
