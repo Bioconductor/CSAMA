@@ -1,0 +1,21 @@
+---
+title: "Mass spectrometry and proteomics using Bioconductor"
+author: "Laurent Gatto"
+output:
+  rmdshower::shower_presentation:
+    theme: material
+    self_contained: true
+    ratio: 16x10
+---
+
+
+## Mass spectrometry and proteomics using Bioconductor
+
+```
+Laurent Gatto                      Computational Proteomics Unit
+https://lgatto.github.io           University of Cambridge
+lg390@cam.ac.uk                    @lgatt0
+```
+
+Link to slides/source.
+
