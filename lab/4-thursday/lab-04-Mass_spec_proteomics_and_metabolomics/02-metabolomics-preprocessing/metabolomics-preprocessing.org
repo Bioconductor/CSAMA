@@ -42,8 +42,9 @@ by exporting the metabolomics-preprocessing.org file.
 This workflow requires R version >= 3.4 and the following packages:
 
 + =xcms=: for pre-processing of metabolomics data. A package version >= 2.99.0 is
-  required. The package depends on =mzR= for data import and uses classes from the
-  =MSnbase= package.
+  required which, if not yet in Bioconductor, can be installed from github using
+  =devtools::install_github("sneumann/xcms", ref = "xcms3")=. The package depends
+  on =mzR= for data import and uses classes from the =MSnbase= package.
 + =faahKO=: provides the data set processed here.
 + =RColorBrewer=: for color definitions.
 + =doParallel=: to set-up parallel processing. =xcms= uses parallel processing with
@@ -919,3 +920,32 @@ This section contains one possible solution for each exercise.
 #+END_SRC
 
 ** References
+
+** Notes and TODOs                                                 :noexport:
+
+*** Semitransparency not supported on Linux
+
+Semi-transparency in R plots might not be supported on all systems. The fix on
+linux is to use =x11= with the option to use the =cairo= device. To enable that put
+the following into your =~./Rprofile= file.
+
+#+BEGIN_EXAMPLE
+  setHook(packageEvent("grDevices", "onLoad"),
+  function(...) grDevices::X11.options(type='cairo'))
+  options(device='x11')
+
+#+END_EXAMPLE
+
+*** Installing =xcms= from github
+
+The required =xcms= package version might not yet be in Bioconductor. In this case
+it can be installed from the /xcms3/ branch from /github/.
+
+#+BEGIN_SRC R :eval never
+  ## Make sure we have devtools installed
+  install.packages("devtools")
+
+  devtools::install_github("sneumann/xcms", ref = "xcms3")
+
+#+END_SRC
+
