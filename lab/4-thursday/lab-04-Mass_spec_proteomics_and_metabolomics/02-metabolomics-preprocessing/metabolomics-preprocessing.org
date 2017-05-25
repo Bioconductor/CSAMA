@@ -637,12 +637,12 @@ for an mz slice with multiple chromatographic peaks within each sample.
   plotChromatogram(chrs, col = paste0(cols, 80), xaxt = "n", xlab = "")
   ## Highlight the detected peaks in that region.
   highlightChromPeaks(faahKO, mz = mzr, col = paste0(cols, "05"),
-                      border = paste0(cols, 20))
+		      border = paste0(cols, 20))
   ## Define the parameters for the peak density method
   pdp <- PeakDensityParam(bw = 30)
   par(mar = c(4, 4, 1, 0.5))
   plotChromPeakDensity(faahKO, mz = mzr, col = paste0(cols, "60"), param = pdp,
-                       pch = 16, xlim = c(2500, 4000))
+		       pch = 16, xlim = c(2500, 4000))
 
 #+END_SRC
 
@@ -756,9 +756,9 @@ normalization hence the grouping might also be influenced by technical biases.
   pcSummary <- summary(pc)
   plot(pc$x[, 1], pc$x[,2], pch = 21, main = "", 
        xlab = paste0("PC1: ", format(pcSummary$importance[2, 1] * 100, digits = 3),
-                     " % variance"),
+		     " % variance"),
        ylab = paste0("PC2: ", format(pcSummary$importance[2, 2] * 100, digits = 3),
-                     " % variance"), col = "#00000080",
+		     " % variance"), col = "#00000080",
        bg = paste0(cols, 80), cex = 2)
   text(pc$x[, 1], pc$x[,2], labels = pData(faahKO)$sample_name, col = "#00000080",
        pos = 3)
