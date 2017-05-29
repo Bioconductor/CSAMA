@@ -1,0 +1,323 @@
+---
+title: "Lab 1.2: Introduction to _Bioconductor_"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  % \VignetteIndexEntry{Lab 1.2: Introduction to Bioconductor}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+options(width=100, max.print=1000)
+```
+
+```{r setup, echo=FALSE, messages=FALSE, warnings=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+suppressPackageStartupMessages({
+    library(Biostrings)
+    library(GenomicRanges)
+})
+```
+
+Original Authors: Martin Morgan, Sonali Arora<br />
+Presenting Author: Martin Morgan (<a
+  href="mailto:martin.morgan@roswellpark.org">martin.morgan@roswellpark.org</a>)<br />
+Date: 11 July, 2016
+
+Back: [Monday labs](lab-1-intro-to-r-bioc.html)
+
+**Objective**: An overview of software available in _Bioconductor_.
+
+**Lessons learned**: 
+
+- How to discover _Bioconductor_ packages and their documentation.
+- Essentials of working with S4 objects -- the `DNAStringSet`.
+- Identification of important packages in select _Bioconductor_ domains.
+
+# _Bioconductor_
+
+Analysis and comprehension of high-throughput genomic data
+
+- Statistical analysis: large data, technological artifacts, designed
+  experiments; rigorous
+- Comprehension: biological context, visualization, reproducibility
+- High-throughput
+    - Sequencing: RNASeq, ChIPSeq, variants, copy number, ...
+    - Microarrays: expression, SNP, ...
+    - Flow cytometry, proteomics, images, ...
+  
+## Packages, vignettes, work flows
+
+![Alt Sequencing Ecosystem](our_figures/SequencingEcosystem.png)
+
+- 1211 packages
+- Discover and navigate via [biocViews][]
+- Package 'landing page', e.g., `r Biocpkg("Gviz")`
+    - Title, author / maintainer, short description, citation,
+      installation instructions, ..., download statistics
+- All user-visible functions have help pages, most with runnable
+  examples
+- 'Vignettes' an important feature in _Bioconductor_ -- narrative
+  documents illustrating how to use the package, with integrated code
+    - Example: `AnnotationHub` [landing
+      page](http://bioconductor.org/packages/devel/AnnotationHub)
+      references [HOW-TO vignette]() illustrating some fun use cases.
+    - Some are extensive; check out [Gviz][], [limma][], [edgeR][],
+      [DESeq2][]!
+- 'Release' (every six months) and 'devel' branches
+
+## Objects
+
+Load the [Biostrings][] and [GenomicRanges][] package
+```{r setup-objects}
+library(Biostrings)
+library(GenomicRanges)
+```
+
+- _Bioconductor_ makes extensive use of classes to represent
+  complicated data types
+- Classes foster interoperability -- many different packages can work
+  on the same data -- but can be a bit intimidating for the user.
+- Formal 'S4' object system
+    - Often a class is described on a particular home page, e.g.,
+      `?GRanges`, and in vignettes, e.g.,
+      `vignette(package="GenomicRanges")`,
+      `vignette("GenomicRangesIntroduction")`
+    - Many methods and classes can be discovered interactively , e.g.,
+      `methods(class="GRanges")` to find out what one can do with a
+      `GRanges` instance, and `methods(findOverlaps)` for classes that
+      the `findOverlaps()` function operates on.
+    - In more advanced cases, one can look at the actual definition of
+      a class or method using `getClass()`, `getMethod()`
+- Interactive help
+    - `?findOverlaps,<tab>` to select help on a specific method,
+      `?GRanges-class` for help on a class.
+
+## Example: _Biostrings_ for DNA sequences
+
+```{r Biostrings, message=FALSE}
+library(Biostrings)                     # Biological sequences
+data(phiX174Phage)                      # sample data, see ?phiX174Phage
+phiX174Phage
+m <- consensusMatrix(phiX174Phage)[1:4,] # nucl. x position counts
+polymorphic <- which(colSums(m != 0) > 1)
+m[, polymorphic]
+```
+```{r methods, eval=FALSE}
+methods(class=class(phiX174Phage))      # 'DNAStringSet' methods
+```
+
+## Exercises
+
+1. Load the [Biostrings][] package and phiX174Phage data set. What class
+   is phiX174Phage? Find the help page for the class, and identify
+   interesting functions that apply to it.
+2. Discover vignettes in the Biostrings package with
+   `vignette(package="Biostrings")`. Add another argument to the
+   `vignette` function to view the 'BiostringsQuickOverview' vignette.
+3. If the internet is available, navigate to the Biostrings landing
+   page on http://bioconductor.org. Do this by visiting the
+   [biocViews][] page. Can you find the BiostringsQuickOverview
+   vignette on the web site?
+4. The following code loads some sample data, 6 versions of the
+   phiX174Phage genome as a DNAStringSet object.
+    ```{r phiX}
+    library(Biostrings)
+    data(phiX174Phage)
+    ```
+   Explain what the following code does, and how it works
+    ```{r consensusMatrix}
+    m <- consensusMatrix(phiX174Phage)[1:4,]
+    polymorphic <- which(colSums(m != 0) > 1)
+    mapply(substr, polymorphic, polymorphic, MoreArgs=list(x=phiX174Phage))
+    ```
+
+# A sequence analysis package tour
+
+This very open-ended topic points to some of the most prominent
+_Bioconductor_ packages for sequence analysis. Use the opportunity in
+this lab to explore the package vignettes and help pages highlighted
+below; many of the material will be covered in greater detail in
+subsequent labs and lectures.
+
+Basics 
+
+- _Bioconductor_ packages are listed on the [biocViews][] page. Each
+  package has 'biocViews' (tags from a controlled vocabulary)
+  associated with it; these can be searched to identify appropriately
+  tagged packages, as can the package title and author.
+- Each package has a 'landing page', e.g., for
+  [GenomicRanges][]. Visit this landing page, and note the
+  description, authors, and installation instructions. Packages are
+  often written up in the scientific literature, and if available the
+  corresponding citation is present on the landing page. Also on the
+  landing page are links to the vignettes and reference manual and, at
+  the bottom, an indication of cross-platform availability and
+  download statistics.
+- A package needs to be installed once, using the instructions on the
+  landing page. Once installed, the package can be loaded into an R
+  session and the help system queried interactively, as outlined
+  above:
+
+```{r require}
+library(GenomicRanges)
+```
+
+```{r help, eval=FALSE}
+help(package="GenomicRanges")
+vignette(package="GenomicRanges")
+vignette(package="GenomicRanges", "GenomicRangesHOWTOs")
+?GRanges
+```
+
+Domain-specific analysis -- explore the landing pages, vignettes, and
+reference manuals of two or three of the following packages.
+
+- Important packages for analysis of differential expression include
+  [edgeR][] and [DESeq2][]; both have excellent vignettes for
+  exploration. Additional research methods embodied in _Bioconductor_
+  packages can be discovered by visiting the [biocViews][] web page,
+  searching for the 'DifferentialExpression' view term, and narrowing
+  the selection by searching for 'RNA seq' and similar.
+- Popular ChIP-seq packages include [DiffBind][] and [csaw][] for
+  comparison of peaks across samples, [ChIPQC][] for quality
+  assessment, and [ChIPpeakAnno][] and [ChIPseeker][] for annotating
+  results (e.g., discovering nearby genes). What other ChIP-seq
+  packages are listed on the [biocViews][] page?
+- Working with called variants (VCF files) is facilitated by packages
+  such as [VariantAnnotation][], [VariantFiltering][], and
+  [ensemblVEP][]; packages for calling variants include, e.g.,
+  [h5vc][] and [VariantTools][].
+- Single-cell 'omics are increasingly important. From the
+  [biocViews][] page, enter 'single cell' in the 'search table' field.
+- Several packages identify copy number variants from sequence data,
+  including [cn.mops][]; from the [biocViews][] page, what other copy
+  number packages are available? The [CNTools][] package provides some
+  useful facilities for comparison of segments across samples.
+- Microbiome and metagenomic analysis is facilitated by packages such
+  as [phyloseq][] and [metagenomeSeq][].
+- Metabolomics, chemoinformatics, image analysis, and many other
+  high-throughput analysis domains are also represented in
+  _Bioconductor_; explore these via biocViews and title searches.
+  
+Working with sequences, alignments, common web file formats, and raw
+data; these packages rely very heavily on the [IRanges][] /
+[GenomicRanges][] infrastructure that we will encounter later in the
+course.
+
+- The [Biostrings][] package is used to represent DNA and other
+  sequences, with many convenient sequence-related functions. Check
+  out the functions documented on the help page `?consensusMatrix`,
+  for instance. Also check out the [BSgenome][] package for working
+  with whole genome sequences, e.g., `?"getSeq,BSgenome-method"`
+- The [GenomicAlignments][] package is used to input reads aligned to
+  a reference genome. See for instance the `?readGAlignments` help
+  page and `vigentte(package="GenomicAlignments",
+  "summarizeOverlaps")`
+- The [rtracklayer][] `import` and `export` functions can read in many
+  common file types, e.g., BED, WIG, GTF, ..., in addition to querying
+  and navigating the UCSC genome browser. Check out the `?import` page
+  for basic usage.
+- The [ShortRead][] and [Rsamtools][] packages can be used for
+  lower-level access to FASTQ and BAM files, respectively.
+- Many genomics data files are very large. We'll explore strategies of
+  _restriction_ (only input some of the data in the file) and
+  _iteration_ (read the file in chunks, rather than its entirety) for
+  processing large data in other labs.
+
+Annotation: _Bioconductor_ provides extensive access to 'annotation'
+resources (see the [AnnotationData][] biocViews hierarchy); these are
+covered in greater detail in Thursday's lab, but some interesting
+examples to explore during this lab include:
+
+- [biomaRt][], [PSICQUIC][], [KEGGREST][] and other packages for
+  querying on-line resources; each of these have informative vignettes.
+- [AnnotationDbi][] is a cornerstone of the
+  [Annotation Data][AnnotationData] packages provided by _Bioconductor_.
+  - **org** packages (e.g., [org.Hs.eg.db][]) contain maps between
+    different gene identifiers, e.g., ENTREZ and SYMBOL. The basic
+    interface to these packages is described on the help page `?select`
+  - **TxDb** packages (e.g., [TxDb.Hsapiens.UCSC.hg19.knownGene][])
+    contain gene models (exon coordinates, exon / transcript
+    relationships, etc) derived from common sources such as the hg19
+    knownGene track of the UCSC genome browser. These packages can be
+    queried, e.g., as described on the `?exonsBy` page to retrieve all
+    exons grouped by gene or transcript.
+  - **BSgenome** packages (e.g., [BSgenome.Hsapiens.UCSC.hg19][])
+    contain whole genomes of model organisms.
+- [VariantAnnotation][] and [ensemblVEP][] provide access to sequence
+  annotation facilities, e.g., to identify coding variants; see the
+  [Introduction to VariantAnnotation](http://bioconductor.org/packages/release/bioc/vignettes/ShortRead/inst/doc/Overview.pdf)
+  vignette for a brief introduction; we'll re-visit this during the
+  Thursday lab.
+- Take a quick look (there are more activites in other labs) at the
+  [annotation work flow](http://bioconductor.org/help/workflows/annotation/annotation/)
+  on the _Bioconductor_ web site.
+  
+A number of _Bioconductor_ packages help with visualization and
+reporting, in addition to functions provided by indiidual packages.
+
+- [Gviz][] provides a track-like visualization of genomic regions;
+  it's got an amazing vignette.
+- [ComplexHeatmap][] does an amazing job of all sorts of heatmaps,
+  including OncoPrint-style summaries.
+- [ReportingTools][] provides a flexible way to generate static and
+  dynamic HTML-based reports.
+
+# Summary
+
+_Bioconductor_ is a large collection of R packages for the analysis
+and comprehension of high-throughput genomic data. _Bioconductor_
+relies on formal classes to represent genomic data, so it is important
+to develop a rudimentary comfort with classes, including seeking help
+for classes and methods. _Bioconductor_ uses vignettes to augment
+traditional help pages; these can be very valuable in illustrating
+overall package use.
+
+[biocViews]: http://bioconductor.org/packages/BiocViews.html#___Software
+[AnnotationData]: http://bioconductor.org/packages/BiocViews.html#___AnnotationData
+
+[aprof]: http://cran.r-project.org/web/packages/aprof/index.html
+[hexbin]: http://cran.r-project.org/web/packages/hexbin/index.html
+[lineprof]: https://github.com/hadley/lineprof
+[microbenchmark]: http://cran.r-project.org/web/packages/microbenchmark/index.html
+
+[AnnotationDbi]: http://bioconductor.org/packages/AnnotationDbi
+[BSgenome]: http://bioconductor.org/packages/BSgenome
+[Biostrings]: http://bioconductor.org/packages/Biostrings
+[CNTools]: http://bioconductor.org/packages/CNTools
+[ChIPQC]: http://bioconductor.org/packages/ChIPQC
+[ChIPpeakAnno]: http://bioconductor.org/packages/ChIPpeakAnno
+[ChIPseeker]: http://bioconductor.org/packages/ChIPseeker
+[ComplexHeatmap]: http://bioconductor.org/packages/ComplexHeatmap
+[csaw]: http://bioconductor.org/packages/csaw
+[DESeq2]: http://bioconductor.org/packages/DESeq2
+[DiffBind]: http://bioconductor.org/packages/DiffBind
+[GenomicAlignments]: http://bioconductor.org/packages/GenomicAlignments
+[GenomicRanges]: http://bioconductor.org/packages/GenomicRanges
+[Gviz]: http://bioconductor.org/packages/Gviz
+[IRanges]: http://bioconductor.org/packages/IRanges
+[KEGGREST]: http://bioconductor.org/packages/KEGGREST
+[PSICQUIC]: http://bioconductor.org/packages/PSICQUIC
+[rtracklayer]: http://bioconductor.org/packages/rtracklayer
+[Rsamtools]: http://bioconductor.org/packages/Rsamtools
+[ReportingTools]: http://bioconductor.org/packages/ReportingTools
+[ShortRead]: http://bioconductor.org/packages/ShortRead
+[VariantAnnotation]: http://bioconductor.org/packages/VariantAnnotation
+[VariantFiltering]: http://bioconductor.org/packages/VariantFiltering
+[VariantTools]: http://bioconductor.org/packages/VariantTools
+[biomaRt]: http://bioconductor.org/packages/biomaRt
+[cn.mops]: http://bioconductor.org/packages/cn.mops
+[h5vc]: http://bioconductor.org/packages/h5vc
+[edgeR]: http://bioconductor.org/packages/edgeR
+[ensemblVEP]: http://bioconductor.org/packages/ensemblVEP
+[limma]: http://bioconductor.org/packages/limma
+[metagenomeSeq]: http://bioconductor.org/packages/metagenomeSeq
+[phyloseq]: http://bioconductor.org/packages/phyloseq
+[snpStats]: http://bioconductor.org/packages/snpStats
+
+[org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
+[TxDb.Hsapiens.UCSC.hg19.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg19.knownGene
+[BSgenome.Hsapiens.UCSC.hg19]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg19

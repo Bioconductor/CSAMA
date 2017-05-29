@@ -1,0 +1,658 @@
+---
+title: "Lab 1.3: Data Representations"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  % \VignetteIndexEntry{Lab 1.3: Data Represenations}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+suppressPackageStartupMessages({
+    library(GenomicRanges)
+})
+```
+
+Original Authors: Martin Morgan, Sonali Arora<br />
+Presenting Author: Martin Morgan (<a
+  href="mailto:martin.morgan@roswellpark.org">martin.morgan@roswellpark.org</a>)<br />
+Date: 11 July, 2016
+Back: [Monday labs](lab-1-intro-to-r-bioc.html)
+
+**Objective**: Learn the essentials of _Bioconductor_ data structures
+
+**Lessons learned**: 
+
+- Review of common bioinformatic file formats: FASTA, FASTQ, SAM /
+  BAM, VCF, BED / WIG / GTF
+- How to work with _Bioconductor_ objects for DNA sequences, genomic
+  ranges, aligned reads, and called variants.
+
+# Classes, methods, and packages
+
+This section focuses on classes, methods, and packages, with the goal
+being to learn to navigate the help system and interactive discovery
+facilities.
+
+## Motivation
+
+Sequence analysis is specialized
+
+- Large data needs to be processed in a memory- and time-efficient manner
+- Specific algorithms have been developed for the unique
+  characteristics of sequence data
+
+Additional considerations
+
+- Re-use of existing, tested code is easier to do and less error-prone
+  than re-inventing the wheel.
+- Interoperability between packages is easier when the packages share
+  similar data structures.
+
+Solution: use well-defined _classes_ to represent complex data;
+_methods_ operate on the classes to perform useful functions.  Classes
+and methods are placed together and distributed as _packages_ so that
+we can all benefit from the hard work and tested code of others.
+
+# Case study: _IRanges_ and _GRanges_
+
+The [IRanges][] package defines an important class for specifying
+integer ranges, e.g.,
+```{r iranges}
+library(IRanges)
+ir <- IRanges(start=c(10, 20, 30), width=5)
+ir
+```
+
+There are many interesting operations to be performed on ranges, e.g,
+`flank()` identifies adjacent ranges
+```{r iranges-flank}
+flank(ir, 3)
+```
+
+The `IRanges` class is part of a class hierarchy. To see this, ask R for
+the class of `ir`, and for the class definition of the `IRanges` class
+```{r iranges-class}
+class(ir)
+getClass(class(ir))
+```
+
+Notice that `IRanges` extends the `Ranges` class. Now try entering
+`?flank` (`?"flank,<tab>"` if not using _RStudio_, where `<tab>` means
+to press the tab key to ask for tab completion). You can see that
+there are help pages for `flank` operating on several different
+classes. Select the completion
+
+```{r iranges-flank-method, eval=FALSE}
+?"flank,Ranges-method" 
+```
+
+and verify that you're at the page that describes the method relevant
+to an `IRanges` instance.  Explore other range-based operations.
+
+The [GenomicRanges][] package extends the notion of ranges to include
+features relevant to application of ranges in sequence analysis,
+particularly the ability to associate a range with a sequence name
+(e.g., chromosome) and a strand. Create a `GRanges` instance based on
+our `IRanges` instance, as follows
+```{r granges}
+library(GenomicRanges)
+gr <- GRanges(c("chr1", "chr1", "chr2"), ir, strand=c("+", "-", "+"))
+gr
+```
+
+The notion of flanking sequence has a more nuanced meaning in
+biology. In particular we might expect that flanking sequence on the
+`+` strand would precede the range, but on the minus strand would
+follow it. Verify that `flank` applied to a `GRanges` object has this
+behavior.
+```{r granges-flank}
+flank(gr, 3)
+```
+
+Discover what classes `GRanges` extends, find the help page
+documenting the behavior of `flank` when applied to a `GRanges` object,
+and verify that the help page documents the behavior we just observed.
+```{r granges-class}
+class(gr)
+getClass(class(gr))
+```
+```{r granges-flank-method, eval=FALSE}
+?"flank,GenomicRanges-method"
+```
+Notice that the available `flank()` methods have been augmented by the
+methods defined in the _GenomicRanges_ package.
+
+It seems like there might be a number of helpful methods available for
+working with genomic ranges; we can discover some of these from the
+command line, indicating that the methods should be on the current
+`search()` path
+
+```{r granges-methods, eval=FALSE}
+showMethods(class="GRanges", where=search())
+```
+
+Use `help()` to list the help pages in the `GenomicRanges` package,
+and `vignettes()` to view and access available vignettes; these are
+also available in the RStudio 'Help' tab.
+
+```{r granges-man-and-vignettes, eval=FALSE}
+help(package="GenomicRanges")
+vignette(package="GenomicRanges")
+vignette(package="GenomicRanges", "GenomicRangesHOWTOs")
+```
+
+# High-throughput sequence data
+
+The following sections briefly summarize some of the most important
+file types in high-throughput sequence analysis. _Briefly_ review
+these, or those that are most relevant to your research, before
+starting on the section [Data Representation in _R_ /
+_Bioconductor_](#data-representation-in-r-bioconductor)
+
+![Alt Files and the Bioconductor packages that input them](our_figures/FilesToPackages.png)
+
+## DNA / amino acid sequences: FASTA files
+
+Input & manipulation: [Biostrings][]
+
+    >NM_078863_up_2000_chr2L_16764737_f chr2L:16764737-16766736
+    gttggtggcccaccagtgccaaaatacacaagaagaagaaacagcatctt
+    gacactaaaatgcaaaaattgctttgcgtcaatgactcaaaacgaaaatg
+    ...
+    atgggtatcaagttgccccgtataaaaggcaagtttaccggttgcacggt
+    >NM_001201794_up_2000_chr2L_8382455_f chr2L:8382455-8384454
+    ttatttatgtaggcgcccgttcccgcagccaaagcactcagaattccggg
+    cgtgtagcgcaacgaccatctacaaggcaatattttgatcgcttgttagg
+    ...
+
+
+## Reads: FASTQ files
+
+Input & manipulation: [ShortRead][] `readFastq()`, `FastqStreamer()`,
+`FastqSampler()`
+
+    @ERR127302.1703 HWI-EAS350_0441:1:1:1460:19184#0/1
+    CCTGAGTGAAGCTGATCTTGATCTACGAAGAGAGATAGATCTTGATCGTCGAGGAGATGCTGACCTTGACCT
+    +
+    HHGHHGHHHHHHHHDGG<GDGGE@GDGGD<?B8??ADAD<BE@EE8EGDGA3CB85*,77@>>CE?=896=:
+    @ERR127302.1704 HWI-EAS350_0441:1:1:1460:16861#0/1
+    GCGGTATGCTGGAAGGTGCTCGAATGGAGAGCGCCAGCGCCCCGGCGCTGAGCCGCAGCCTCAGGTCCGCCC
+    +
+    DE?DD>ED4>EEE>DE8EEEDE8B?EB<@3;BA79?,881B?@73;1?########################
+        
+- Quality scores: 'phred-like', encoded. See
+  [wikipedia](http://en.wikipedia.org/wiki/FASTQ_format#Encoding)
+
+## Aligned reads: BAM files (e.g., ERR127306_chr14.bam)
+
+Input & manipulation: 'low-level' [Rsamtools][], `scanBam()`,
+`BamFile()`; 'high-level' [GenomicAlignments][]
+
+- Header
+
+        @HD     VN:1.0  SO:coordinate
+        @SQ     SN:chr1 LN:249250621
+        @SQ     SN:chr10        LN:135534747
+        @SQ     SN:chr11        LN:135006516
+        ...
+        @SQ     SN:chrY LN:59373566
+        @PG     ID:TopHat       VN:2.0.8b       CL:/home/hpages/tophat-2.0.8b.Linux_x86_64/tophat --mate-inner-dist 150 --solexa-quals --max-multihits 5 --no-discordant --no-mixed --coverage-search --microexon-search --library-type fr-unstranded --num-threads 2 --output-dir tophat2_out/ERR127306 /home/hpages/bowtie2-2.1.0/indexes/hg19 fastq/ERR127306_1.fastq fastq/ERR127306_2.fastq
+  
+- Alignments: ID, flag, alignment and mate
+  
+        ERR127306.7941162       403     chr14   19653689        3       72M             =       19652348        -1413  ...
+        ERR127306.22648137      145     chr14   19653692        1       72M             =       19650044        -3720  ...
+        ERR127306.933914        339     chr14   19653707        1       66M120N6M       =       19653686        -213   ...
+        ERR127306.11052450      83      chr14   19653707        3       66M120N6M       =       19652348        -1551  ...
+        ERR127306.24611331      147     chr14   19653708        1       65M120N7M       =       19653675        -225   ...
+        ERR127306.2698854       419     chr14   19653717        0       56M120N16M      =       19653935        290    ...
+        ERR127306.2698854       163     chr14   19653717        0       56M120N16M      =       19653935        2019   ...
+            
+- Alignments: sequence and quality
+        
+        ... GAATTGATCAGTCTCATCTGAGAGTAACTTTGTACCCATCACTGATTCCTTCTGAGACTGCCTCCACTTCCC        *'%%%%%#&&%''#'&%%%)&&%%$%%'%%'&*****$))$)'')'%)))&)%%%%$'%%%%&"))'')%))
+        ... TTGATCAGTCTCATCTGAGAGTAACTTTGTACCCATCACTGATTCCTTCTGAGACTGCCTCCACTTCCCCAG        '**)****)*'*&*********('&)****&***(**')))())%)))&)))*')&***********)****
+        ... TGAGAGTAACTTTGTACCCATCACTGATTCCTTCTGAGACTGCCTCCACTTCCCCAGCAGCCTCTGGTTTCT        '******&%)&)))&")')'')'*((******&)&'')'))$))'')&))$)**&&****************
+        ... TGAGAGTAACTTTGTACCCATCACTGATTCCTTCTGAGACTGCCTCCACTTCCCCAGCAGCCTCTGGTTTCT        ##&&(#')$')'%&&#)%$#$%"%###&!%))'%%''%'))&))#)&%((%())))%)%)))%*********
+        ... GAGAGTAACTTTGTACCCATCACTGATTCCTTCTGAGACTGCCTCCACTTCCCCAGCAGCCTCTGGTTTCTT        )&$'$'$%!&&%&&#!'%'))%''&%'&))))''$""'%'%&%'#'%'"!'')#&)))))%$)%)&'"')))
+        ... TTTGTACCCATCACTGATTCCTTCTGAGACTGCCTCCACTTCCCCAGCAGCCTCTGGTTTCTTCATGTGGCT        ++++++++++++++++++++++++++++++++++++++*++++++**++++**+**''**+*+*'*)))*)#
+        ... TTTGTACCCATCACTGATTCCTTCTGAGACTGCCTCCACTTCCCCAGCAGCCTCTGGTTTCTTCATGTGGCT        ++++++++++++++++++++++++++++++++++++++*++++++**++++**+**''**+*+*'*)))*)#
+        
+- Alignments: Tags
+
+        ... AS:i:0  XN:i:0  XM:i:0  XO:i:0  XG:i:0  NM:i:0  MD:Z:72 YT:Z:UU NH:i:2  CC:Z:chr22      CP:i:16189276   HI:i:0
+        ... AS:i:0  XN:i:0  XM:i:0  XO:i:0  XG:i:0  NM:i:0  MD:Z:72 YT:Z:UU NH:i:3  CC:Z:=  CP:i:19921600   HI:i:0
+        ... AS:i:0  XN:i:0  XM:i:0  XO:i:0  XG:i:0  NM:i:4  MD:Z:72 YT:Z:UU XS:A:+  NH:i:3  CC:Z:=  CP:i:19921465   HI:i:0
+        ... AS:i:0  XN:i:0  XM:i:0  XO:i:0  XG:i:0  NM:i:4  MD:Z:72 YT:Z:UU XS:A:+  NH:i:2  CC:Z:chr22      CP:i:16189138   HI:i:0
+        ... AS:i:0  XN:i:0  XM:i:0  XO:i:0  XG:i:0  NM:i:5  MD:Z:72 YT:Z:UU XS:A:+  NH:i:3  CC:Z:=  CP:i:19921464   HI:i:0
+        ... AS:i:0  XM:i:0  XO:i:0  XG:i:0  MD:Z:72 NM:i:0  XS:A:+  NH:i:5  CC:Z:=  CP:i:19653717   HI:i:0
+        ... AS:i:0  XM:i:0  XO:i:0  XG:i:0  MD:Z:72 NM:i:0  XS:A:+  NH:i:5  CC:Z:=  CP:i:19921455   HI:i:1
+
+## Called variants: VCF files
+
+Input and manipulation: [VariantAnnotation][] `readVcf()`,
+`readInfo()`, `readGeno()` selectively with `ScanVcfParam()`.
+
+- Header
+
+          ##fileformat=VCFv4.2
+          ##fileDate=20090805
+          ##source=myImputationProgramV3.1
+          ##reference=file:///seq/references/1000GenomesPilot-NCBI36.fasta
+          ##contig=<ID=20,length=62435964,assembly=B36,md5=f126cdf8a6e0c7f379d618ff66beb2da,species="Homo sapiens",taxonomy=x>
+          ##phasing=partial
+          ##INFO=<ID=DP,Number=1,Type=Integer,Description="Total Depth">
+          ##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency">
+          ...
+          ##FILTER=<ID=q10,Description="Quality below 10">
+          ##FILTER=<ID=s50,Description="Less than 50% of samples have data">
+          ...
+          ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+          ##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+          
+- Location
+
+          #CHROM POS     ID        REF    ALT     QUAL FILTER ...
+          20     14370   rs6054257 G      A       29   PASS   ...
+          20     17330   .         T      A       3    q10    ...
+          20     1110696 rs6040355 A      G,T     67   PASS   ...
+          20     1230237 .         T      .       47   PASS   ...
+          20     1234567 microsat1 GTC    G,GTCT  50   PASS   ...
+          
+- Variant INFO
+
+          #CHROM POS     ...	INFO                              ...
+          20     14370   ...	NS=3;DP=14;AF=0.5;DB;H2           ...
+          20     17330   ...	NS=3;DP=11;AF=0.017               ...
+          20     1110696 ...	NS=2;DP=10;AF=0.333,0.667;AA=T;DB ...
+          20     1230237 ...	NS=3;DP=13;AA=T                   ...
+          20     1234567 ...	NS=3;DP=9;AA=G                    ...
+    
+- Genotype FORMAT and samples
+
+          ... POS     ...  FORMAT      NA00001        NA00002        NA00003
+          ... 14370   ...  GT:GQ:DP:HQ 0|0:48:1:51,51 1|0:48:8:51,51 1/1:43:5:.,.
+          ... 17330   ...  GT:GQ:DP:HQ 0|0:49:3:58,50 0|1:3:5:65,3   0/0:41:3
+          ... 1110696 ...  GT:GQ:DP:HQ 1|2:21:6:23,27 2|1:2:0:18,2   2/2:35:4
+          ... 1230237 ...  GT:GQ:DP:HQ 0|0:54:7:56,60 0|0:48:4:51,51 0/0:61:2
+          ... 1234567 ...  GT:GQ:DP    0/1:35:4       0/2:17:2       1/1:40:3
+            
+## Genome annotations: BED, WIG, GTF, etc. files
+
+Input: [rtracklayer][] `import()`
+
+- BED: range-based annotation (see
+  http://genome.ucsc.edu/FAQ/FAQformat.html for definition of this and
+  related formats)
+- WIG / bigWig: dense, continuous-valued data
+- GTF: gene model
+
+  - Component coordinates
+  
+              7   protein_coding  gene        27221129    27224842    .   -   . ...
+              ...
+              7   protein_coding  transcript  27221134    27224835    .   -   . ...
+              7   protein_coding  exon        27224055    27224835    .   -   . ...
+              7   protein_coding  CDS         27224055    27224763    .   -   0 ...
+              7   protein_coding  start_codon 27224761    27224763    .   -   0 ...
+              7   protein_coding  exon        27221134    27222647    .   -   . ...
+              7   protein_coding  CDS         27222418    27222647    .   -   2 ...
+              7   protein_coding  stop_codon  27222415    27222417    .   -   0 ...
+              7   protein_coding  UTR         27224764    27224835    .   -   . ...
+              7   protein_coding  UTR         27221134    27222414    .   -   . ...
+      
+  - Annotations
+
+              gene_id "ENSG00000005073"; gene_name "HOXA11"; gene_source "ensembl_havana"; gene_biotype "protein_coding";
+              ...
+              ... transcript_id "ENST00000006015"; transcript_name "HOXA11-001"; transcript_source "ensembl_havana"; tag "CCDS"; ccds_id "CCDS5411";
+              ... exon_number "1"; exon_id "ENSE00001147062";
+              ... exon_number "1"; protein_id "ENSP00000006015";
+              ... exon_number "1";
+              ... exon_number "2"; exon_id "ENSE00002099557";
+              ... exon_number "2"; protein_id "ENSP00000006015";
+              ... exon_number "2";
+              ...
+              ...
+              
+# Data representation in _R_ / _Bioconductor_
+
+This section briefly illustrates how different high-throughput
+sequence data types are represented in _R_ / _Bioconductor_. Select
+relevant data types for your area of interest, and work through the
+examples. Take time to consult help pages, understand the output of
+function calls, and the relationship between standard data formats
+(summarized in the previous section) and the corresponding _R_ /
+_Bioconductor_ representation. 
+
+## Background: Ranges
+
+![Alt Ranges Algebra](our_figures/RangeOperations.png)
+
+Ranges
+- IRanges
+  - `start()` / `end()` / `width()`
+  - List-like -- `length()`, subset, etc.
+  - 'metadata', `mcols()`
+- GRanges
+  - 'seqnames' (chromosome), 'strand'
+  - `Seqinfo`, including `seqlevels` and `seqlengths`
+
+Intra-range methods
+- Independent of other ranges in the same object
+- GRanges variants strand-aware
+- `shift()`, `narrow()`, `flank()`, `promoters()`, `resize()`,
+  `restrict()`, `trim()`
+- See `?"intra-range-methods"`
+
+Inter-range methods
+- Depends on other ranges in the same object
+- `range()`, `reduce()`, `gaps()`, `disjoin()`
+- `coverage()` (!)
+- see `?"inter-range-methods"`
+
+Between-range methods
+- Functions of two (or more) range objects
+- `findOverlaps()`, `countOverlaps()`, ..., `%over%`, `%within%`,
+  `%outside%`; `union()`, `intersect()`, `setdiff()`, `punion()`,
+  `pintersect()`, `psetdiff()`
+
+Example
+
+```{r ranges, message=FALSE}
+library(GenomicRanges)
+gr <- GRanges("A", IRanges(c(10, 20, 22), width=5), "+")
+shift(gr, 1)                            # 1-based coordinates!
+range(gr)                               # intra-range
+reduce(gr)                              # inter-range
+coverage(gr)
+setdiff(range(gr), gr)                  # 'introns'
+```
+
+IRangesList, GRangesList
+- List: all elements of the same type
+- Many *List-aware methods, but a common 'trick': apply a vectorized
+  function to the unlisted representaion, then re-list
+
+        grl <- GRangesList(...)
+        orig_gr <- unlist(grl)
+        transformed_gr <- FUN(orig)
+        transformed_grl <- relist(transformed_gr, grl)
+        
+Reference
+
+- Lawrence M, Huber W, Pag&egrave;s H, Aboyoun P, Carlson M, et al. (2013)
+  Software for Computing and Annotating Genomic Ranges. PLoS Comput
+  Biol 9(8): e1003118. doi:10.1371/journal.pcbi.1003118
+
+
+## _Biostrings_ (DNA or amino acid sequences)
+
+Classes
+
+- XString, XStringSet, e.g., DNAString (genomes),
+  DNAStringSet (reads)
+
+Methods --
+
+- [Cheat sheat](http://bioconductor.org/packages/release/bioc/vignettes/Biostrings/inst/doc/BiostringsQuickOverview.pdf)
+- Manipulation, e.g., `reverseComplement()`
+- Summary, e.g., `letterFrequency()`
+- Matching, e.g., `matchPDict()`, `matchPWM()`
+
+Related packages
+
+- [BSgenome][]
+  - Whole-genome representations
+  - Model and custom
+- [ShortRead][]
+  - FASTQ files
+
+Example 
+
+- Whole-genome sequences are distrubuted by ENSEMBL, NCBI, and others
+  as FASTA files; model organism whole genome sequences are packaged
+  into more user-friendly `BSgenome` packages. The following
+  calculates GC content across chr14.
+
+    ```{r BSgenome-require, message=FALSE}
+    library(BSgenome.Hsapiens.UCSC.hg19)
+    chr14_range = GRanges("chr14", IRanges(1, seqlengths(Hsapiens)["chr14"]))
+    chr14_dna <- getSeq(Hsapiens, chr14_range)
+    letterFrequency(chr14_dna, "GC", as.prob=TRUE)
+    ```
+    
+## _GenomicAlignments_ (Aligned reads)
+
+Classes -- GenomicRanges-like behaivor
+
+- GAlignments, GAlignmentPairs, GAlignmentsList
+- SummarizedExperiment
+  - Matrix where rows are indexed by genomic ranges, columns by a
+    DataFrame.
+
+Methods
+
+- `readGAlignments()`, `readGAlignmentsList()`
+  - Easy to restrict input, iterate in chunks
+- `summarizeOverlaps()`
+
+Example
+
+- Find reads supporting the junction identified above, at position
+  19653707 + 66M = 19653773 of chromosome 14
+
+    ```{r bam-require}
+    library(GenomicRanges)
+    library(GenomicAlignments)
+    library(Rsamtools)
+    
+    ## our 'region of interest'
+    roi <- GRanges("chr14", IRanges(19653773, width=1)) 
+    ## sample data
+    library('RNAseqData.HNRNPC.bam.chr14')
+    bf <- BamFile(RNAseqData.HNRNPC.bam.chr14_BAMFILES[[1]], asMates=TRUE)
+    ## alignments, junctions, overlapping our roi
+    paln <- readGAlignmentsList(bf)
+    j <- summarizeJunctions(paln, with.revmap=TRUE)
+    j_overlap <- j[j %over% roi]
+    
+    ## supporting reads
+    paln[j_overlap$revmap[[1]]]
+    ```
+    
+## _VariantAnnotation_ (Called variants)
+
+Classes -- GenomicRanges-like behavior
+
+- VCF -- 'wide'
+- VRanges -- 'tall'
+
+Functions and methods
+
+- I/O and filtering: `readVcf()`, `readGeno()`, `readInfo()`,
+  `readGT()`, `writeVcf()`, `filterVcf()`
+- Annotation: `locateVariants()` (variants overlapping ranges),
+  `predictCoding()`, `summarizeVariants()`
+- SNPs: `genotypeToSnpMatrix()`, `snpSummary()`
+
+Example
+
+- Read variants from a VCF file, and annotate with respect to a known
+  gene model
+  
+    ```{r vcf, message=FALSE}
+    ## input variants
+    library(VariantAnnotation)
+    fl <- system.file("extdata", "chr22.vcf.gz", package="VariantAnnotation")
+    vcf <- readVcf(fl, "hg19")
+    seqlevels(vcf) <- "chr22"
+    ## known gene model
+    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+    coding <- locateVariants(rowRanges(vcf),
+        TxDb.Hsapiens.UCSC.hg19.knownGene,
+        CodingVariants())
+    head(coding)
+    ```
+  
+Related packages
+
+- [ensemblVEP][] 
+  - Forward variants to Ensembl Variant Effect Predictor
+- [VariantTools][], [h5vc][]
+  - Call variants
+
+Reference
+
+- Obenchain, V, Lawrence, M, Carey, V, Gogarten, S, Shannon, P, and
+  Morgan, M. VariantAnnotation: a Bioconductor package for exploration
+  and annotation of genetic variants. Bioinformatics, first published
+  online March 28, 2014
+  [doi:10.1093/bioinformatics/btu168](http://bioinformatics.oxfordjournals.org/content/early/2014/04/21/bioinformatics.btu168)
+
+## _rtracklayer_ (Genome annotations)
+
+- Import BED, GTF, WIG, etc
+- Export GRanges to BED, GTF, WIG, ...
+- Access UCSC genome browser
+
+# Big data
+
+Much Bioinformatic data is very large. The discussion so far has
+assumed that the data can be read into memory. Here we mention two
+important general strategies for working with large data; we will
+explore these in greater detail in a later lab, but feel free to ask
+questions and explore this material now.
+
+Restriction
+
+- e.g., `ScanBamParam()` limits input to desired data at specific
+  genomic ranges
+
+Iteration
+
+- e.g., `yieldSize` argument of `BamFile()`, or `FastqStreamer()`
+  allows iteration through large files.
+
+Compression
+
+- Genomic vectors represented as `Rle` (run-length encoding) class
+- Lists e.g., `GRangesList` are efficiently maintain the illusion that
+  vector elements are grouped.
+
+Parallel processing
+
+- e.g., via [BiocParallel][] package
+
+Reference
+
+- Lawrence, M and Morgan, M. Scalable Genomic Computing and
+  Visualization with _R_ and _Bioconductor_. Statistical Science 29
+  (2) (2014), [214-226](http://arxiv.org/abs/1409.2864).
+
+
+# Exercises
+
+## Summarize overlaps
+
+The goal is to count the number of reads overlapping exons grouped
+into genes. This type of count data is the basic input for RNASeq
+differential expression analysis, e.g., through [DESeq2][] and
+[edgeR][]. 
+
+1. Identify the regions of interest. We use a 'TxDb' package with gene
+   models alreaddy defined
+   
+    ```{r summarizeOverlaps-roi, message=FALSE}
+    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+    exByGn <- exonsBy(TxDb.Hsapiens.UCSC.hg19.knownGene, "gene")
+    ## only chromosome 14
+    seqlevels(exByGn, force=TRUE) = "chr14"
+    ```
+     
+2. Identify the sample BAM files.
+
+    ```{r summarizeOverlaps-bam, message=FALSE}
+    library(RNAseqData.HNRNPC.bam.chr14)
+    length(RNAseqData.HNRNPC.bam.chr14_BAMFILES)
+    ```
+     
+3. Summarize overlaps, optionally in parallel
+
+    ```{r summarizeOverlaps}
+    ## next 2 lines optional; non-Windows
+    library(BiocParallel)
+    register(MulticoreParam(workers=detectCores()))
+    olaps <- summarizeOverlaps(exByGn, RNAseqData.HNRNPC.bam.chr14_BAMFILES)
+    ```
+     
+4. Explore our handiwork, e.g., library sizes (column sums),
+   relationship between gene length and number of mapped reads, etc.
+
+    ```{r summarizeOverlaps-explore}
+    olaps
+    head(assay(olaps))
+    colSums(assay(olaps))                # library sizes
+    plot(sum(width(olaps)), rowMeans(assay(olaps)), log="xy")
+    ```
+     
+5. As an advanced exercise, investigate the relationship between GC
+   content and read count
+   
+    ```{r summarizeOverlaps-gc}
+    library(BSgenome.Hsapiens.UCSC.hg19)
+    sequences <- getSeq(BSgenome.Hsapiens.UCSC.hg19, rowRanges(olaps))
+    gcPerExon <- letterFrequency(unlist(sequences), "GC")
+    gc <- relist(as.vector(gcPerExon), sequences)
+    gc_percent <- sum(gc) / sum(width(olaps))
+    plot(gc_percent, rowMeans(assay(olaps)), log="y")
+    ```
+   
+[biocViews]: http://bioconductor.org/packages/BiocViews.html#___Software
+[AnnotationData]: http://bioconductor.org/packages/BiocViews.html#___AnnotationData
+
+[aprof]: http://cran.r-project.org/web/packages/aprof/index.html
+[hexbin]: http://cran.r-project.org/web/packages/hexbin/index.html
+[lineprof]: https://github.com/hadley/lineprof
+[microbenchmark]: http://cran.r-project.org/web/packages/microbenchmark/index.html
+
+[AnnotationDbi]: http://bioconductor.org/packages/AnnotationDbi
+[BSgenome]: http://bioconductor.org/packages/BSgenome
+[BiocParallel]: http://bioconductor.org/packages/BiocParallel
+[Biostrings]: http://bioconductor.org/packages/Biostrings
+[CNTools]: http://bioconductor.org/packages/CNTools
+[ChIPQC]: http://bioconductor.org/packages/ChIPQC
+[ChIPpeakAnno]: http://bioconductor.org/packages/ChIPpeakAnno
+[DESeq2]: http://bioconductor.org/packages/DESeq2
+[DiffBind]: http://bioconductor.org/packages/DiffBind
+[GenomicAlignments]: http://bioconductor.org/packages/GenomicAlignments
+[GenomicRanges]: http://bioconductor.org/packages/GenomicRanges
+[IRanges]: http://bioconductor.org/packages/IRanges
+[KEGGREST]: http://bioconductor.org/packages/KEGGREST
+[PSICQUIC]: http://bioconductor.org/packages/PSICQUIC
+[rtracklayer]: http://bioconductor.org/packages/rtracklayer
+[Rsamtools]: http://bioconductor.org/packages/Rsamtools
+[ShortRead]: http://bioconductor.org/packages/ShortRead
+[VariantAnnotation]: http://bioconductor.org/packages/VariantAnnotation
+[VariantFiltering]: http://bioconductor.org/packages/VariantFiltering
+[VariantTools]: http://bioconductor.org/packages/VariantTools
+[biomaRt]: http://bioconductor.org/packages/biomaRt
+[cn.mops]: http://bioconductor.org/packages/cn.mops
+[h5vc]: http://bioconductor.org/packages/h5vc
+[edgeR]: http://bioconductor.org/packages/edgeR
+[ensemblVEP]: http://bioconductor.org/packages/ensemblVEP
+[limma]: http://bioconductor.org/packages/limma
+[metagenomeSeq]: http://bioconductor.org/packages/metagenomeSeq
+[phyloseq]: http://bioconductor.org/packages/phyloseq
+[snpStats]: http://bioconductor.org/packages/snpStats
+
+[org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
+[TxDb.Hsapiens.UCSC.hg19.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg19.knownGene
+[BSgenome.Hsapiens.UCSC.hg19]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg19

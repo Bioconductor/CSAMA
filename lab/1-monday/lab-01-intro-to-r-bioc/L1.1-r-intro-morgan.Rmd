@@ -1,0 +1,555 @@
+---
+title: "Lab 1.1: Introduction to _R_"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  % \VignetteIndexEntry{Lab 1.1: Introduction to R}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
+Original Authors: Martin Morgan, Sonali Arora<br />
+Presenting Author: Martin Morgan (<a
+  href="mailto:martin.morgan@roswellpark.org">martin.morgan@roswellpark.org</a>)<br />
+Date: 11 July, 2016
+
+Back: [Monday labs](lab-1-intro-to-r-bioc.html)
+
+**Objective**: Gain confidence working with base R commands and data
+  structures.
+  
+**Lessons learned**:
+
+- Basic data input
+- Working with data.frames
+- Subsetting, including working with NA values and factors
+- Summary statistics
+- Visualization using base R and [ggplot2][]
+
+# R
+
+## Language and environment for statistical computing and graphics
+
+- Full-featured programming language
+- Interactive and *interpretted* -- convenient and forgiving
+- Coherent, extensive documentation
+- Statistical, e.g. `factor()`, `NA`
+- Extensible -- CRAN, Bioconductor, github, ...
+
+## Vector, class, object
+
+- Efficient _vectorized_ calculations on 'atomic' vectors `logical`,
+  `integer`, `numeric`, `complex`, `character`, `byte`
+- Atomic vectors are building blocks for more complicated _objects_
+  - `matrix` -- atomic vector with 'dim' attribute
+  - `data.frame` -- list of equal length atomic vectors
+- Formal _classes_ represent complicated combinations of vectors,
+  e.g., the return value of `lm()`, below
+
+## Function, generic, method
+
+- Functions transform inputs to outputs, perhaps with side effects,
+  e.g., `rnorm(1000)`
+  - Argument matching first by name, then by position
+  - Functions may define (some) arguments to have default values
+- _Generic_ functions dispatch to specific _methods_ based on class of
+  argument(s), e.g., `print()`.
+- Methods are functions that implement specific generics, e.g.,
+  `print.factor`; methods are invoked _indirectly_, via the generic.
+- Many but not all functions able to manipulate a particular class are
+  methods, e.g., `abline()` used below is a plain-old-funciton.
+
+## Programming
+
+Iteration:
+
+- `lapply()`
+
+    ```{r lapply-args}
+    args(lapply)
+    ```
+
+   - Meaning: for a vector `X` (typically a `list()`), apply a
+     function `FUN` to each vector element, returning the result as
+     a **l**ist. `...` are additional arguments to `FUN`.
+   - `FUN` can be built-in, or a user-defined function
+
+    ```{r lapply-eg}
+    lst <- list(a=1:2, b=2:4)
+    lapply(lst, log)      # 'base' argument default; natural log
+    lapply(lst, log, 10)  # '10' is second argument to 'log()', i.e., log base 10
+    ```
+
+   - `sapply()` -- like `lapply()`, but simplify the result to a
+     vector, matrix, or array, if possible.
+   - `vapply()` -- like `sapply()`, but requires that the return
+     type of `FUN` is specified; this can be safer -- an error when
+     the result is of an unexpected type.
+
+- `mapply()` (also `Map()`)
+
+    ```{r}
+    args(mapply)
+    ```
+
+  - `...` are one or more vectors, recycled to be of the same
+    length. `FUN` is a function that takes as many arguments as
+    there are components of `...`. `mapply` returns the result of
+    applying `FUN` to the elements of the vectors in `...`.
+
+    ```{r mapply-eg}
+    mapply(seq, 1:3, 4:6, SIMPLIFY=FALSE) # seq(1, 4); seq(2, 5); seq(3, 6)
+    ```
+
+  - `apply()`
+
+    ```{r apply}
+    args(apply)
+    ```
+
+  - For a matrix or array `X`, apply `FUN` to each `MARGIN`
+    (dimension, e.g., `MARGIN=1` means apply `FUN` to each row,
+    `MARGIN=2` means apply `FUN` to each column)
+
+- Traditional iteration programming constructs `repeat {}`, `for () {}`
+
+  - Almost always more error-prone, less efficient, and harder to 
+    understand than `lapply()` !
+
+Conditional
+
+```{r, eval=FALSE}
+if (test) {
+    ## code if TEST == TRUE
+} else {
+    ## code if TEST == FALSE
+}
+```
+
+Functions (see table below for a few favorites)
+
+- Easy to define your own functions
+
+```{r myfun}
+fun <- function(x) {
+    length(unique(x))
+}
+## list of length 5, each containsing a sample (with replacement) of letters
+lets <- replicate(5, sample(letters, 50, TRUE), simplify=FALSE)
+sapply(lets, fun)
+```
+
+## Introspection & Help
+
+Introspection
+
+- General properties, e.g., `class()`, `str()`
+- Class-specific properties, e.g., `dim()`
+
+Help
+
+- `?"print"`: help on the generic print
+- `?"print.data.frame"`: help on print method for objects of class
+    data.frame.
+- `help(package="GenomeInfoDb")`
+- `browseVignettes("GenomicRanges")`
+- `methods("plot")`
+- `methods(class="lm")`
+
+## Examples
+
+_R_ vectors, vectorized operations, `data.frame()`, formulas,
+functions, objects, class and method discovery (introspection).
+
+```{r}
+x <- rnorm(1000)                     # atomic vectors
+y <- x + rnorm(1000, sd=.5)
+df <- data.frame(x=x, y=y)           # object of class 'data.frame'
+plot(y ~ x, df)                      # generic plot, method plot.formula
+fit <- lm(y ~x, df)                  # object of class 'lm'
+methods(class=class(fit))            # introspection
+anova(fit)
+plot(y ~ x, df)                      # methods(plot); ?plot.formula
+abline(fit, col="red", lwd=3, lty=2) # a function, not generic.method
+```
+
+Programming example -- group 1000 SYMBOLs into GO identifiers
+
+```{r lapply-setup, echo=FALSE}
+fl <- system.file(package="Lab1", "extdata", "symgo.csv")
+```
+```{r lapply-user-setup, eval=FALSE}
+## example data
+fl <- file.choose()      ## symgo.csv
+```
+```{r lapply}
+symgo <- read.csv(fl, row.names=1, stringsAsFactors=FALSE)
+head(symgo)
+dim(symgo)
+length(unique(symgo$SYMBOL))
+## split-sapply
+go2sym <- split(symgo$SYMBOL, symgo$GO)
+len1 <- sapply(go2sym, length)          # compare with lapply, vapply
+## built-in functions for common actions
+len2 <- lengths(go2sym)
+identical(len1, len2)
+## smarter built-in functions, e.g., omiting NAs
+len3 <- aggregate(SYMBOL ~ GO, symgo, length)
+head(len3)
+## more fun with aggregate()
+head(aggregate(GO ~ SYMBOL, symgo, length))
+head(aggregate(SYMBOL ~ GO, symgo, c))
+## your own function -- unique, lower-case identifiers
+uidfun  <- function(x) {
+    unique(tolower(x))
+}
+head(aggregate(SYMBOL ~ GO , symgo, uidfun))
+## as an 'anonymous' function
+head(aggregate(SYMBOL ~ GO, symgo, function(x) {
+    unique(tolower(x))
+}))
+```
+
+# Case studies
+
+These case studies serve as refreshers on _R_ input and manipulation
+of data.
+
+## ALL phenotypic data
+
+Input a file that contains ALL (acute lymphoblastic leukemia) patient
+information
+
+```{r echo=TRUE, eval=FALSE}
+fname <- file.choose()   ## "ALLphenoData.tsv"
+stopifnot(file.exists(fname))
+pdata <- read.delim(fname)
+```
+```{r echo=FALSE}
+fname <- system.file(package="Lab1", "extdata",
+    "ALLphenoData.tsv")
+stopifnot(file.exists(fname))
+pdata <- read.delim(fname)
+```
+
+Check out the help page `?read.delim` for input options, and explore
+basic properties of the object you've created, for instance...
+
+```{r ALL-properties}
+class(pdata)
+colnames(pdata)
+dim(pdata)
+head(pdata)
+summary(pdata$sex)
+summary(pdata$cyto.normal)
+```
+
+Remind yourselves about various ways to subset and access columns of a
+data.frame
+
+```{r ALL-subset}
+pdata[1:5, 3:4]
+pdata[1:5, ]
+head(pdata[, 3:5])
+tail(pdata[, 3:5], 3)
+head(pdata$age)
+head(pdata$sex)
+head(pdata[pdata$age > 21,])
+```
+
+It seems from below that there are 17 females over 40 in the data set,
+but when sub-setting `pdata` to contain just those individuals 19 rows
+are selected. Why? What can we do to correct this?
+
+```{r ALL-subset-NA}
+idx <- pdata$sex == "F" & pdata$age > 40
+table(idx)
+dim(pdata[idx,])
+```
+
+Use the `mol.biol` column to subset the data to contain just
+individuals with 'BCR/ABL' or 'NEG', e.g.,
+
+```{r ALL-BCR/ABL-subset}
+bcrabl <- pdata[pdata$mol.biol %in% c("BCR/ABL", "NEG"),]
+```
+
+The `mol.biol` column is a factor, and retains all levels even after
+subsetting. How might you drop the unused factor levels?
+
+```{r ALL-BCR/ABL-drop-unused}
+bcrabl$mol.biol <- factor(bcrabl$mol.biol)
+```
+
+The `BT` column is a factor describing B- and T-cell subtypes
+
+```{r ALL-BT}
+levels(bcrabl$BT)
+```
+
+How might one collapse B1, B2, ... to a single type B, and likewise for T1, T2, ..., so there are only two subtypes, B and T
+
+```{r ALL-BT-recode}
+table(bcrabl$BT)
+levels(bcrabl$BT) <- substring(levels(bcrabl$BT), 1, 1)
+table(bcrabl$BT)
+```
+
+Use `xtabs()` (cross-tabulation) to count the number of samples with
+B- and T-cell types in each of the BCR/ABL and NEG groups
+
+```{r ALL-BCR/ABL-BT}
+xtabs(~ BT + mol.biol, bcrabl)
+```
+
+Use `aggregate()` to calculate the average age of males and females in
+the BCR/ABL and NEG treatment groups.
+
+```{r ALL-aggregate}
+aggregate(age ~ mol.biol + sex, bcrabl, mean)
+```
+
+Use `t.test()` to compare the age of individuals in the BCR/ABL versus
+NEG groups; visualize the results using `boxplot()`. In both cases,
+use the `formula` interface. Consult the help page `?t.test` and re-do
+the test assuming that variance of ages in the two groups is
+identical. What parts of the test output change?
+
+```{r ALL-age}
+t.test(age ~ mol.biol, bcrabl)
+boxplot(age ~ mol.biol, bcrabl)
+```
+
+## Weighty matters
+
+This case study is a second walk through basic data manipulation and
+visualization skills.  We use data from the US Center for Disease
+Control's Behavioral Risk Factor Surveillance System ([BRFSS][])
+annual survey. Check out the web page for a little more
+information. We are using a small subset of this data, including a
+random sample of 10000 observations from each of 1990 and 2010.
+
+Input the data using `read.csv()`, creating a variable `brfss` to hold
+it.  Use `file.choose()` to locate the data file BRFSS-subset.csv
+
+```{r echo=TRUE, eval=FALSE}
+fname <- file.choose()   ## BRFSS-subset.csv
+stopifnot(file.exists(fname))
+brfss <- read.csv(fname)
+```
+```{r echo=FALSE}
+fname <- system.file(package="Lab1", "extdata",
+    "BRFSS-subset.csv")
+stopifnot(file.exists(fname))
+brfss <- read.csv(fname)
+```
+
+**Base plotting functions**
+
+1. Explore the data using `class()`, `dim()`, `head()`, `summary()`,
+   etc. Use `xtabs()` to summarize the number of males and females in
+   the study, in each of the two years.
+
+2. Use `aggregate()` to summarize the average weight in each sex and
+   year.
+
+3. Create a scatterplot showing the relationship between the square
+   root of weight and height, using the `plot()` function and the
+   `main` argument to annotate the plot. Note the transformed
+   Y-axis. Experiment with different plotting symbols (try the command
+   `example(points)` to view different points).
+
+    ```{r brfss-simple-plot}
+    plot(sqrt(Weight) ~ Height, brfss, main="All Years, Both Sexes")
+    ```
+
+4. Color the female and male points differently. To do this, use the
+   `col` argument to `plot()`. Provide as a value to that argument a
+   vector of colors, subset by `brfss$Sex`.
+
+5. Create a subset of the data containing only observations from
+   2010.
+
+    ```{r brfss-subset}
+    brfss2010 <- brfss[brfss$Year == "2010", ]
+    ```
+
+6. Create the figure below (two panels in a single figure). Do this by
+   using the `par()` function with the `mfcol` argument before calling
+   `plot()`. You'll need to create two more subsets of data, perhaps
+   when you are providing the data to the function `plot`.
+
+    ```{r brfss-pair-plot}
+    opar <- par(mfcol=c(1, 2))
+    plot(sqrt(Weight) ~ Height, brfss2010[brfss2010$Sex == "Female", ],
+         main="2010, Female")
+    plot(sqrt(Weight) ~ Height, brfss2010[brfss2010$Sex == "Male", ],
+         main="2010, Male")
+    par(opar)                           # reset 'par' to original value
+    ```
+
+7. Plotting large numbers of points means that they are often
+   over-plotted, potentially obscuring important patterns. Experiment
+   with arguments to `plot()` to address over-plotting, e.g.,
+   `pch='.'` or `alpha=.4`. Try using the `smoothScatter()` function
+   (the data have to be presented as `x` and `y`, rather than as a
+   formula). Try adding the [hexbin][] library to your R session
+   (using `library()`) and creating a `hexbinplot()`.
+
+**ggplot2 graphics**
+
+1. Create a scatterplot showing the relationship between the square
+   root of weight and height, using the `r CRANpkg("ggplot2")`
+   library, and the annotate the plot. Two equivalent ways to create
+   the plot are show in the solution.
+    ```{r ggplot2-brfss-simple-plot}
+    library(ggplot2)
+
+    ## 'quick' plot
+    qplot(Height, sqrt(Weight), data=brfss)
+
+    ## specify the data set and 'aesthetics', then how to plot
+    ggplot(brfss, aes(x=Height, y=sqrt(Weight))) +
+        geom_point()
+    ```
+   `qplot()` gives us a warning which states that it has removed rows
+   containing missing values. This is actually very helpful because we
+   find out that our dataset contains `NA`'s and we can take a design
+   decision here about what we'd like to do these `NA`'s. We can find
+   the indicies of the rows containing `NA` using `is.na()`, and count
+   the number of rows with `NA` values using `sum()`:
+    ```{r ggplot2-na-in-dataset}
+    sum(is.na(brfss$Height))
+    sum(is.na(brfss$Weight))
+    drop <- is.na(brfss$Height) | is.na(brfss$Weight)
+    sum(drop)
+    ```
+   Remove the rows which contain `NA`'s in Height and Weight.
+    ```{r ggplot2-remove-na}
+    brfss <- brfss[!drop,]
+    ```
+   Plot is annotated with
+    ```{r ggplot2-annotate}
+    qplot(Height, sqrt(Weight), data=brfss) +
+        ylab("Square root of Weight") + 
+            ggtitle("All Years, Both Sexes")
+    ```
+
+2. Color the female and male points differently.
+
+    ```{r ggplot2-color}
+    ggplot(brfss, aes(x=Height, y=sqrt(Weight), color=Sex)) + 
+        geom_point()
+    ```
+   One can also change the shape of the points for the female and male
+   groups
+
+    ```{r ggplot2-shape}
+    ggplot(brfss, aes(x=Height, y = sqrt(Weight), color=Sex, shape=Sex)) + 
+        geom_point()
+    ```
+   or plot Male and Female in different panels using `facet_grid()`
+    ```{r ggplot2-shape-facet}
+    ggplot(brfss, aes(x=Height, y = sqrt(Weight), color=Sex)) + 
+        geom_point() +
+            facet_grid(Sex ~ .)
+    ```
+
+3. Create a subset of the data containing only observations from 2010
+   and make density curves for male and female groups. Use the `fill`
+   aesthetic to indicate that each sex is to be calculated separately,
+   and `geom_density()` for the density plot.
+
+    ```{r ggplot2-subset-facet}
+    brfss2010 <- brfss[brfss$Year == "2010", ]
+    ggplot(brfss2010, aes(x=sqrt(Weight), fill=Sex)) +
+        geom_density(alpha=.25)
+    ```
+
+4. Plotting large numbers of points means that they are often
+   over-plotted, potentially obscuring important patterns. Make the
+   points semi-transparent using alpha. Here we make them 60%
+   transparent. The solution illustrates a nice feature of ggplot2 --
+   a partially specified plot can be assigned to a variable, and the
+   variable modified at a later point.
+
+    ```{r ggplot2-transparent}
+    sp <- ggplot(brfss, aes(x=Height, y=sqrt(Weight)))
+    sp + geom_point(alpha=.4)
+    ```
+
+5. Add a fitted regression model to the scatter plot.
+
+    ```{r ggplot2-regression}
+    sp + geom_point() + stat_smooth(method=lm)
+    ```
+   By default, `stat_smooth()` also adds a 95% confidence region for
+   the regression fit. The confidence interval can be changed by
+   setting level, or it can be disabled with `se=FALSE`.
+
+    ```{r ggplot2-regression-2, eval=FALSE}
+    sp + geom_point() + stat_smooth(method=lm + level=0.95)
+    sp + geom_point() + stat_smooth(method=lm, se=FALSE)
+    ```
+
+6. How do you fit a linear regression line for each group? First we'll
+   make the base plot object sps, then we'll add the linear regression
+   lines to it.
+
+    ```{r ggplot2-regression-bygroup}
+    sps <- ggplot(brfss, aes(x=Height, y=sqrt(Weight), colour=Sex)) +
+        geom_point() +
+            scale_colour_brewer(palette="Set1")
+    sps + geom_smooth(method="lm")
+    ```
+
+[BRFSS]: http://www.cdc.gov/brfss/
+
+[biocViews]: http://bioconductor.org/packages/BiocViews.html#___Software
+[AnnotationData]: http://bioconductor.org/packages/BiocViews.html#___AnnotationData
+
+[aprof]: http://cran.r-project.org/web/packages/aprof
+[hexbin]: http://cran.r-project.org/web/packages/hexbin
+[lineprof]: https://github.com/hadley/lineprof
+[microbenchmark]: http://cran.r-project.org/web/packages/microbenchmark
+[ggplot2]: http://cran.r-project.org/web/packages/ggplot2
+
+[AnnotationDbi]: http://bioconductor.org/packages/AnnotationDbi
+[BSgenome]: http://bioconductor.org/packages/BSgenome
+[Biostrings]: http://bioconductor.org/packages/Biostrings
+[CNTools]: http://bioconductor.org/packages/CNTools
+[ChIPQC]: http://bioconductor.org/packages/ChIPQC
+[ChIPpeakAnno]: http://bioconductor.org/packages/ChIPpeakAnno
+[DESeq2]: http://bioconductor.org/packages/DESeq2
+[DiffBind]: http://bioconductor.org/packages/DiffBind
+[GenomicAlignments]: http://bioconductor.org/packages/GenomicAlignments
+[GenomicRanges]: http://bioconductor.org/packages/GenomicRanges
+[IRanges]: http://bioconductor.org/packages/IRanges
+[KEGGREST]: http://bioconductor.org/packages/KEGGREST
+[PSICQUIC]: http://bioconductor.org/packages/PSICQUIC
+[Rsamtools]: http://bioconductor.org/packages/Rsamtools
+[ShortRead]: http://bioconductor.org/packages/ShortRead
+[VariantAnnotation]: http://bioconductor.org/packages/VariantAnnotation
+[VariantFiltering]: http://bioconductor.org/packages/VariantFiltering
+[VariantTools]: http://bioconductor.org/packages/VariantTools
+[biomaRt]: http://bioconductor.org/packages/biomaRt
+[cn.mops]: http://bioconductor.org/packages/cn.mops
+[h5vc]: http://bioconductor.org/packages/h5vc
+[edgeR]: http://bioconductor.org/packages/edgeR
+[ensemblVEP]: http://bioconductor.org/packages/ensemblVEP
+[limma]: http://bioconductor.org/packages/limma
+[metagenomeSeq]: http://bioconductor.org/packages/metagenomeSeq
+[phyloseq]: http://bioconductor.org/packages/phyloseq
+[snpStats]: http://bioconductor.org/packages/snpStats
+
+[org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
+[TxDb.Hsapiens.UCSC.hg19.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg19.knownGene
+[BSgenome.Hsapiens.UCSC.hg19]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg19

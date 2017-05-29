@@ -1,0 +1,56 @@
+---
+title: "Lab 1: Introduction to _R_ and _Bioconductor_"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  % \VignetteIndexEntry{Lab 1: Introduction to R and Bioconductor}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
+Original Authors: Martin Morgan, Sonali Arora<br />
+Presenting Author: Martin Morgan (<a
+  href="mailto:martin.morgan@roswellpark.org">martin.morgan@roswellpark.org</a>)<br />
+Date: 11 July, 2016
+
+This lab has four parts. Each part consists of informative material
+followed by short or intermediate length exercises and case
+studies. The material introduces or refreshes your knowledge of _R_,
+and walks through some of the central classes and annotation resources
+for working with high-throughput sequence data in _Bioconductor_.
+
+It's recommended that you choose two of the following sections, and
+spend about 45 minutes on each. Take time to work through the code in
+the material as well as the exercises, asking questions of your
+colleagues and the TAs as needed. If you're relatively new to _R_,
+then consider doing sections 1 and 3. If you're new to _Bioconductor_,
+then skim the second and focus on the third and fourth sections.
+
+Download these files:
+
+- [ALLphenoData.tsv](../extdata/ALLphenoData.tsv)
+- [BRFSS-subset.csv](../extdata/BRFSS-subset.csv)
+- [symgo.csv](../extdata/symgo.csv)
+
+Choose the material you'd like to cover:
+
+1.1 [Introduction to _R_](L1.1-r-intro-morgan.html) -- Gain confidence
+    working with base R commands and data structures.
+
+1.2 [Introduction to _Bioconductor_](L1.2-bioc-intro-morgan.html) --
+    An overview of software available in _Bioconductor_.
+
+1.3 [Data Representations](L1.3-bioc-data-representation-morgan.html)
+    -- Learn the essentials of _Bioconductor_ data structures
+
+1.4 [Annotation](L1.4-bioc-annotation-morgan.html) -- Learn about
+    _Bioconductor_ resources for gene and genome annotation.
+
