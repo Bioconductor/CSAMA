@@ -576,7 +576,7 @@ differential expression analysis, e.g., through [DESeq2][] and
     library(TxDb.Hsapiens.UCSC.hg19.knownGene)
     exByGn <- exonsBy(TxDb.Hsapiens.UCSC.hg19.knownGene, "gene")
     ## only chromosome 14
-    seqlevels(exByGn, force=TRUE) = "chr14"
+    seqlevels(exByGn, pruning.mode="coarse") = "chr14"
     ```
      
 2. Identify the sample BAM files.

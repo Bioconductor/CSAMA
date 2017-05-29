@@ -186,9 +186,11 @@ abline(fit, col="red", lwd=3, lty=2) # a function, not generic.method
 
 Programming example -- group 1000 SYMBOLs into GO identifiers
 
+<!--
 ```{r lapply-setup, echo=FALSE}
-fl <- system.file(package="Lab1", "extdata", "symgo.csv")
+fl <- "symgo.csv"
 ```
+-->
 ```{r lapply-user-setup, eval=FALSE}
 ## example data
 fl <- file.choose()      ## symgo.csv
@@ -236,13 +238,13 @@ fname <- file.choose()   ## "ALLphenoData.tsv"
 stopifnot(file.exists(fname))
 pdata <- read.delim(fname)
 ```
+<!--
 ```{r echo=FALSE}
-fname <- system.file(package="Lab1", "extdata",
-    "ALLphenoData.tsv")
+fname <- "ALLphenoData.tsv"
 stopifnot(file.exists(fname))
 pdata <- read.delim(fname)
 ```
-
+-->
 Check out the help page `?read.delim` for input options, and explore
 basic properties of the object you've created, for instance...
 
@@ -348,13 +350,13 @@ fname <- file.choose()   ## BRFSS-subset.csv
 stopifnot(file.exists(fname))
 brfss <- read.csv(fname)
 ```
+<!--
 ```{r echo=FALSE}
-fname <- system.file(package="Lab1", "extdata",
-    "BRFSS-subset.csv")
+fname <- "BRFSS-subset.csv"
 stopifnot(file.exists(fname))
 brfss <- read.csv(fname)
 ```
-
+-->
 **Base plotting functions**
 
 1. Explore the data using `class()`, `dim()`, `head()`, `summary()`,
