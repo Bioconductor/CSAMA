@@ -39,9 +39,9 @@ then skim the second and focus on the third and fourth sections.
 
 Download these files:
 
-- [ALLphenoData.tsv](../extdata/ALLphenoData.tsv)
-- [BRFSS-subset.csv](../extdata/BRFSS-subset.csv)
-- [symgo.csv](../extdata/symgo.csv)
+- [ALLphenoData.tsv](./ALLphenoData.tsv)
+- [BRFSS-subset.csv](./BRFSS-subset.csv)
+- [symgo.csv](./symgo.csv)
 
 Choose the material you'd like to cover:
 

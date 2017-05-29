@@ -22,7 +22,7 @@ suppressPackageStartupMessages({
 
 Original Authors: Martin Morgan, Sonali Arora<br />
 Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
-Date: 12 June, 2017
+Date: 12 June, 2017</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 [Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
