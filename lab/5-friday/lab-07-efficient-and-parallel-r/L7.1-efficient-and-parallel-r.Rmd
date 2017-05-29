@@ -19,10 +19,12 @@ library(knitr)
 opts_chunk$set(cache=TRUE, error=FALSE)
 ```
 
-Original Authors: Valerie Obenchain, Martin Morgan<br />
-Presenting Author: Martin Morgan (<a
-  href="mailto:martin.morgan@roswellpark.org">martin.morgan@roswellpark.org</a>)<br />
-Date: 15 July, 2016
+Original Authors: Martin Morgan, Sonali Arora<br />
+Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
+Date: 16 June, 2017
+
+[Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
+[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
 # Efficient _R_ code
 
