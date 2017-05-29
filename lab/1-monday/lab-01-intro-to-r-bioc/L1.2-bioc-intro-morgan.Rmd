@@ -10,7 +10,6 @@ vignette: >
 
 ```{r style, echo = FALSE, results = 'asis'}
 BiocStyle::markdown()
-options(width=100, max.print=1000)
 ```
 
 ```{r setup, echo=FALSE, messages=FALSE, warnings=FALSE}
@@ -22,11 +21,12 @@ suppressPackageStartupMessages({
 ```
 
 Original Authors: Martin Morgan, Sonali Arora<br />
-Presenting Author: Martin Morgan (<a
-  href="mailto:martin.morgan@roswellpark.org">martin.morgan@roswellpark.org</a>)<br />
-Date: 11 July, 2016
-
+Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
+Date: 12 June, 2017
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
+
+[Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
+[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
 **Objective**: An overview of software available in _Bioconductor_.
 
