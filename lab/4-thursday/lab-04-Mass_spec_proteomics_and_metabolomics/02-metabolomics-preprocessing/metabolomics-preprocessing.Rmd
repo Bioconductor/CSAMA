@@ -32,8 +32,9 @@ by exporting the metabolomics-preprocessing.org file.
 This workflow requires R version >= 3.4 and the following packages:
 
 -   `xcms`: for pre-processing of metabolomics data. A package version >= 2.99.0 is
-    required. The package depends on `mzR` for data import and uses classes from the
-    `MSnbase` package.
+    required which, if not yet in Bioconductor, can be installed from github using
+    `devtools::install_github("sneumann/xcms", ref = "xcms3")`. The package depends
+    on `mzR` for data import and uses classes from the `MSnbase` package.
 -   `faahKO`: provides the data set processed here.
 -   `RColorBrewer`: for color definitions.
 -   `doParallel`: to set-up parallel processing. `xcms` uses parallel processing with
