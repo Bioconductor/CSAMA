@@ -18,6 +18,7 @@ knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages({
     library(org.Hs.eg.db)
     library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+    library(EnsDb.Hsapiens.v75)
     library(BSgenome.Hsapiens.UCSC.hg19)
     library(GenomicRanges)
     library(biomaRt)
@@ -41,7 +42,8 @@ Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 **Lessons learned**: 
 
 - Use `org.*` packages for mapping between gene symbols.
-- Use `TxDb.*` and `ensembldb` packages for working with gene models.
+- Use `TxDb.*` and `ensembldb` (`EnsDb.*`) packages for working with gene
+  models.
 - Use `AnnotationHub` to easily obtain select consortium-level resources
 - Access `biomaRt` and other internet-based resources for highly
   flexible annotation.
@@ -181,7 +183,8 @@ statistically and biologically informative summary?
 There are a diversity of packages and classes available for
 representing large genomes. Several include:
 
-- 'TxDb.*' For transcript and other genome / coordinate annotation.
+- `TxDb.*` and `EnsDb.*` For transcript and other genome / coordinate
+  annotation.
 - [BSgenome][] For whole-genome representation. See
   `available.genomes()` for pre-packaged genomes, and the vignette
   'How to forge a BSgenome data package' in the
@@ -216,27 +219,15 @@ below illustrates some of the functionality of [rtracklayer][].
 This exercise uses annotation resources to go from a gene symbol
 'BRCA1' through to the genomic coordinates of each transcript
 associated with the gene, and finally to the DNA sequences of the
-transcripts.
+transcripts. This can be achieved using an `EnsDb` package along with
+a [BSgenome][] package, or with a combination of `TxDb`, [Homo.sapiens][]
+and [BSgenome][] packages. We will focus here on the former approach.
 
-1. Use the [org.Hs.eg.db][] package to map from the gene symbol
-   'BRCA1' to its Entrez identifier. Do this using the `select`
-   command.
-2. Use the [TxDb.Hsapiens.UCSC.hg19.knownGene][] package to retrieve
-   the transcript names (`TXNAME`) corresponding to the BRCA1 Entrez
-   identifier. (The 'org\*' packages are based on information from
-   NCBI, where Entrez identifiers are labeled ENTREZID; the 'TxDb*'
-   package we are using is from UCSC, where Entrez identifiers are
-   labelled GENEID).
-3. Use the `cdsBy()` function to retrieve the genomic coordinates of
-   all coding sequences grouped by transcript, and select the
-   transcripts corresponding to the identifiers we're interested
-   in. The coding sequences are returned as an `GRangesList`, where
-   each element of the list is a `GRanges` object representing the
-   exons in the coding sequence. As a sanity check, ensure that the
-   sum of the widths of the exons in each coding sequence is evenly
-   divisble by 3 (the R 'modulus' operator `%%` returns the remainder
-   of the division of one number by another, and might be helpful in
-   this case).
+1. Use the `cdsBy()` function to retrieve the genomic coordinates of all coding
+   sequences for the gene 'BRCA1' from the [EnsDb.Hsapiens.v75][] package. To
+   retrieve only data for the specified gene, submit either a `GenenameFilter`
+   or a filter formula/expression to the function's `filter` parameter. This
+   avoids to extract the coding region for all genes, which takes a long time.
 
 4. Visualize the transcripts in genomic coordinates using the [Gviz][]
    package to construct a `GeneRegionTrack`, and plotting it using
@@ -249,53 +240,77 @@ transcripts.
 
 **Solution**
 
-Retrieve the Entrez identifier corresponding to the BRCA1 gene symbol
+Retrieve the coding sequences grouped by transcript for the gene of interest and
+verify that each coding sequence is a multiple of 3.
 
-```{r symbol-to-entrez}
-library(org.Hs.eg.db)
-eid <- select(org.Hs.eg.db, "BRCA1", "ENTREZID", "SYMBOL")[["ENTREZID"]]
-```
+```{r edb-brca1-cds, message = FALSE}
+library(EnsDb.Hsapiens.v75)
+edb <- EnsDb.Hsapiens.v75
 
-Map from Entrez gene identifier to transcript name
+brca1cds <- cdsBy(edb, by = "tx", filter = ~ genename == "BRCA1")
 
-```{r entrez-to-tx, message=FALSE}
-library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
-txid <- select(txdb, eid, "TXNAME", "GENEID")[["TXNAME"]]
-```
-
-Retrieve all coding sequences grouped by transcript, and select those
-matching the transcript ids of interest, verifying that each coding
-sequence width is a multiple of 3
-
-```{r tx-to-cds-coords}
-cds <- cdsBy(txdb, by="tx", use.names=TRUE)
-brca1cds <- cds[names(cds) %in% txid]
 class(brca1cds)
 length(brca1cds)
 brca1cds[[1]]                           # exons in cds
 cdswidth <- width(brca1cds)             # width of each exon
 all((sum(cdswidth) %% 3) == 0)          # sum within cds, modulus 3
+
 ```
 
-Visualize the BRCA1 transcirpts using [Gviz][] (this package has an
+The CDS for some transcripts is not of the expected length, how comes? Get the
+transcript ID of the first transcript that does have a CDS of the wrong size and
+look this transcript up in the Ensembl genome browser
+(http://www.ensembl.org).
+
+```{r edb-brca1-cds-wrongsize}
+tx_cds_fail <- names(brca1cds)[(sum(cdswidth) %% 3) != 0]
+
+length(tx_cds_fail)
+tx_cds_fail[1]
+
+```
+
+In the description of the transcript it says *CDS 5' incomplete*. Thus, in
+addition to known protein coding transcripts, Ensembl provides also annotations
+for transcripts known to be targeted for nonsense mediated mRNA decay or that
+have incomplete CDS. Such transcripts would however not be listed in e.g.
+the [TxDb.Hsapiens.UCSC.hg19.knownGene][] package.
+
+Next we visualize the BRCA1 transcripts using [Gviz][] (this package has an
 excellent vignette, `vignette("Gviz")`)
 
-```{r Gviz, message=FALSE}
+```{r edb-brca1-Gviz, message=FALSE}
 library(Gviz)
-grt <- GeneRegionTrack(txdb)
-plotTracks(list(GenomeAxisTrack(), grt), chromosome="chr17",
-    from=min(start(unlist(brca1cds))),
-    to=max(end(unlist(brca1cds))))
+
+## Use the function from the ensembldb package to extract the data in the
+## format suitable for Gviz
+grt <- getGeneRegionTrackForGviz(edb, filter = ~genename == "BRCA1")
+plotTracks(list(GenomeAxisTrack(), GeneRegionTrack(grt)))
 ```
 
-Extract the coding sequences of each transcript
+Extract the coding sequences of each transcript. `EnsDb` databases provide
+annotations from Ensembl and use hence Ensembl style chromosome names (such as
+"Y") while the `BSgenome` package is based on UCSC annotations that use a naming
+style that prepends a "chr" to each chromosome name (e.g. "chrY"). Change thus
+the `seqlevelsStyle` from the default UCSC chromosome naming to Ensembl naming
+style.
 
-```{r cds-to-seq}
+```{r edb-cds-to-seq}
 library(BSgenome.Hsapiens.UCSC.hg19)
 genome <- BSgenome.Hsapiens.UCSC.hg19
+
+## Change the seqlevelsStyle from UCSC to Ensembl
+seqlevelsStyle(genome) <- "Ensembl"
 tx_seq <- extractTranscriptSeqs(genome, brca1cds)
 tx_seq
+```
+
+We can also inspect the CDS sequence for the transcripts with incomplete
+CDS. Many of them do not start with a start codon hence indicating that the CDS
+is incomplete on their 5' end.
+
+```{r edb-fail-cds}
+tx_seq[tx_cds_fail]
 ```
 
 Intron coordinates can be identified by first calculating the range of
@@ -304,7 +319,7 @@ exon) covered by each transcript, and then taking the (algebraic) set
 difference between this and the genomic coordinates covered by each
 exon
 
-```{r introns}
+```{r edb-introns}
 introns <- psetdiff(unlist(range(brca1cds)), brca1cds)
 ```
 
@@ -312,11 +327,21 @@ Retrieve the intronic sequences with `getSeq()` (these are *not*
 assembled, the way that `extractTranscriptSeqs()` assembles exon
 sequences into mature transcripts); note that introns start and end
 with the appropriate acceptor and donor site sequences.
+Unfortunately, UCSC and Ensembl do also use different names for the genome
+assembly. Change the genome name for the `introns` object to matche the one from
+the `genome` object.
 
-```{r intron-seqs}
+```{r edb-intron-seqs}
+unique(genome(genome))
+genome(introns)
+
+## Change the genome name on introns to macht the one from the
+## BSgenome package
+genome(introns) <- c(`17` = unique(genome(genome)))
+
 seq <- getSeq(genome, introns)
 names(seq)
-seq[["uc010whl.2"]]                     # 21 introns
+seq[["ENST00000352993"]]                     # 20 introns
 ```
 
 **Exercise**
@@ -419,3 +444,4 @@ and the [VariantFiltering][] vignette.
 [org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
 [org.Sc.sgd.db]: http://bioconductor.org/packages/org.Sc.sgd.db
 [rtracklayer]: http://bioconductor.org/packages/release/rtracklayer
+[EnsDb.Hsapiens.v75]: http://bioconductor.org/packages/EnsDb.Hsapiens.v75
