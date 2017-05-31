@@ -245,6 +245,13 @@ examples to explore during this lab include:
     knownGene track of the UCSC genome browser. These packages can be
     queried, e.g., as described on the `?exonsBy` page to retrieve all
     exons grouped by gene or transcript.
+  - **EnsDb** packages and databases (e.g. [EnsDb.Hsapiens.v86][]) provide,
+    similar to TxDb packages, gene models, but also protein annotations (protein
+    sequences and protein domains within these) and additional annotation
+    columns such as `"gene_biotype"` or `"tx_biotype"` defining the *biotype* of
+    the features (e.g. lincRNA, protein_coding, miRNA etc). EnsDb databases are
+    designed for [Ensembl][] annotations and contain annotations for all genes
+    (protein coding and non-coding) for a specific Ensembl release.
   - **BSgenome** packages (e.g., [BSgenome.Hsapiens.UCSC.hg19][])
     contain whole genomes of model organisms.
 - [VariantAnnotation][] and [ensemblVEP][] provide access to sequence
@@ -321,3 +328,6 @@ overall package use.
 [org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
 [TxDb.Hsapiens.UCSC.hg19.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg19.knownGene
 [BSgenome.Hsapiens.UCSC.hg19]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg19
+
+[EnsDb.Hsapiens.v86]: http://bioconductor.org/packages/EnsDb.Hsapiens.v86
+[Ensembl]: http://www.ensembl.org
