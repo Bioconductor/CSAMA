@@ -1,15 +1,38 @@
 #+TITLE: Annotation resources - ensembldb
-#+AUTHOR: Johannes Rainer
-#+EMAIL: johannes.rainer@eurac.edu
-#+SETUPFILE: orgsetup.org
+#+AUTHOR: Johannes Rainer (Eurac Research, Italy)
+#+EMAIL: email: johannes.rainer@eurac.edu, github/twitter: jotsetung
+#+DATE: June 12, 2017 @CSAMA2017
+#+LATEX_HEADER: \usepackage{parskip}
+#+LATEX_HEADER: \usepackage{inconsolata}
+#+LATEX_HEADER: \definecolor{lightgrey}{HTML}{F0F0F0}
+#+LATEX_HEADER: \definecolor{edarkgrey}{HTML}{737a80}
+#+LATEX_HEADER: \definecolor{solarizedlightbg}{HTML}{FCF4DC}
+#+LATEX_HEADER: \makeatletter
+#+LATEX_HEADER: \patchcmd{\@verbatim}
+#+LATEX_HEADER:   {\verbatim@font}
+#+LATEX_HEADER:   {\verbatim@font\scriptsize}
+#+LATEX_HEADER:   {}{}
+#+LATEX_HEADER: \makeatother
+#+LATEX_HEADER: \let\oldtexttt\texttt%
+#+LATEX_HEADER: \renewcommand{\texttt}[2][edarkgrey]{\textcolor{#1}{\ttfamily #2}}%
+#+OPTIONS: ^:{} toc:nil
+#+PROPERTY: header-args:R :exports code
+#+PROPERTY: header-args:R :results silent
+#+PROPERTY: header-args:R :session *R-lecture*
+#+STARTUP: overview
+
+#+LATEX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [presentation,smaller]
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: eurac
+#+BEAMER_INNER_THEME: circles
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+OPTIONS: toc:nil
+#+OPTIONS: H:2
+#+OPTIONS: email:t
+#+OPTIONS: author:t
 
 * Annotation resources - =ensembldb=
-
-*CSAMA2017*
-
-*Johannes Rainer* (Eurac Research, Italy)
-johannes.rainer@eurac.edu
-github/twitter: /jotsetung/
 
 ** Annotation of genomic regions
 
@@ -18,33 +41,45 @@ github/twitter: /jotsetung/
 + =EnsDb=:
   - Designed for Ensembl-based annotations.
   - One database per species and Ensembl release.
-+ Extract data using methods:
-  - =genes=
-  - =transcripts=
-  - =exons=
-  - =txBy=
-  - =exonsBy=
-  - ... 
++ Extract data using methods: =genes=, =transcripts=, =exons=,
+  =txBy=, =exonsBy=, ...
 + Results are returned as =GRanges= or =GRangesList= objects.
 + Parameter =columns= to specify which additional attributes to return.
+
+** Annotation of genomic regions
+
 + _Example_: get all gene annotations from an =EnsDb=:
-  #+BEGIN_SRC R
+  #+BEGIN_SRC R :exports both :results output
     ## Load the database for human genes, Ensembl release 86.
     library(EnsDb.Hsapiens.v86)
     edb <- EnsDb.Hsapiens.v86
-
     ## Get all human genes.
     gns <- genes(edb)
-
     gns
+  #+END_SRC
 
+** Annotation of genomic regions
+
++ _Example_: get all gene annotations from an =EnsDb= (continued):
+  #+BEGIN_SRC R :exports both :results output
     ## Access start/end coordinates
     head(start(gns))
     head(end(gns))
+  #+END_SRC
 
-    ## Metadata columns; gene biotype
+  #+BEGIN_SRC R :exports both :results output
+    ## chromosome name
+    head(seqnames(gns))
+  #+END_SRC
+
+  #+BEGIN_SRC R :exports both :results output
+    ## Metadata columns; gene name, gene biotype
+    head(gns$gene_name)
+  #+END_SRC
+  #+BEGIN_SRC R :exports both :results output
     head(gns$gene_biotype)
   #+END_SRC
+
 
 ** =AnnotationFilter=: basic classes for filtering annotation resources
 
@@ -55,22 +90,37 @@ github/twitter: /jotsetung/
   - =value=: the /value/ of the filter (e.g. /"BCL2"/).
   - =condition=: the filter condition (e.g. /==/).
   - =field=: the default database table attribute (e.g.  /"gene_id"/).
+
+** =AnnotationFilter=: basic classes for filtering annotation resources
+
 + Filter categories:
   - =CharacterFilter=: e.g. =SymbolFilter=, =GeneIdFilter=.
-    - condition ==, !=, "startsWith", "endsWith", "contains".
+    - condition: /"=="/, /"!="/, /"startsWith"/, /"endsWith"/, /"contains"/.
   - =IntegerFilter=: e.g. =GenestartFilter=.
-    - condition: ==, !=, >, >=, <, <=.
+    - condition: /"=="/, /"!="/, /">"/, /">="/, /"<"/, /"<="/.
   - =GRangesFilter=.
++ Filter classes can be created with constructor functions or using /filter
+  expressions/ written as formulas.
+
+** =AnnotationFilter=: basic classes for filtering annotation resources
+
 + _Example_: create filters
-  #+BEGIN_SRC R
+  #+BEGIN_SRC R :exports both :results output
     ## Create filter using the constructor function
     gnf <- GenenameFilter("BCL2", condition = "!=")
     gnf
+  #+END_SRC
 
+  #+BEGIN_SRC R :exports both :results output
     ## Create using a filter expression
     gnf <- AnnotationFilter(~ genename != "BCL2")
     gnf
+  #+END_SRC
 
+** =AnnotationFilter=: basic classes for filtering annotation resources
+
++ _Example_: create filters (continued)
+  #+BEGIN_SRC R :exports both :results output
     ## Combine filters
     afl <- AnnotationFilterList(GenenameFilter("BCL2"),
                                 TxBiotypeFilter("protein_coding"))
@@ -81,16 +131,17 @@ github/twitter: /jotsetung/
 
 + Pass filter(s) to =EnsDb= methods with the =filter= parameter.
 + _Example_: get all transcripts for the gene /BCL2/.
-  #+BEGIN_SRC R
-    bcl2_tx <- transcripts(edb, filter = ~ genename == "BCL2")
-    bcl2_tx
+  #+BEGIN_SRC R :exports both :results output
+    transcripts(edb, filter = ~ genename == "BCL2")
+  #+END_SRC
 
+** Filtering =EnsDb= databases
+
++ _Example_: get all transcripts for the gene /BCL2/ (continued)
+  #+BEGIN_SRC R :exports both :results output
     ## Combine filters: only protein coding tx for the gene
     transcripts(edb, filter = ~ genename == "BCL2" &
                          tx_biotype == "protein_coding")
-
-    ## Use supportedFilter to list all supported filters
-    supportedFilters(edb)
   #+END_SRC
 + Filters speed up queries.
 + /outlook/: =Filter= method for =EnsDb=.
@@ -104,21 +155,33 @@ github/twitter: /jotsetung/
   - Central repository for annotation objects.
   - Downloaded resources cached locally.
   - Use =query= to search for entries, fetch them using =[[=.
+
+** Getting annotation resources
+
   - _Example_: query =AnnotationHub= for available resources:
-    #+BEGIN_SRC R
+    #+BEGIN_SRC R :exports both :results output
       library(AnnotationHub)
       ah <- AnnotationHub()
-
-      ## List EnsDb objects
+      ## List available EnsDb objects
       query(ah, "EnsDb")
+    #+END_SRC
 
+** Getting annotation resources
+
+  - _Example_: query =AnnotationHub= for available resources (continued):
+    #+BEGIN_SRC R :exports both :results output
       ## Get one EnsDb database
       edb_acor <- query(ah, c("EnsDb", "Anolis Carolinensis", "87"))[[1]]
       edb_acor
+    #+END_SRC
 
+** Getting annotation resources
+
+  - _Example_: query =AnnotationHub= for available resources (continued):
+    #+BEGIN_SRC R :exports both :results output
       genes(edb_acor)
     #+END_SRC
-+ /Build your own/ - either from a /GTF/ file, a =GRanges= or from Ensembl (requires
++ Build your own - either from a /GTF/ file, a =GRanges= or from Ensembl (requires
   perl).
 
 ** =ensembldb=: protein annotations
@@ -127,15 +190,20 @@ github/twitter: /jotsetung/
   - Protein sequence.
   - Annotation to Uniprot ID identifiers.
   - Annotation of all protein domains within the protein sequences.
-+ =proteins= method or pass attributes to =columns= parameter.
++ To get data: =proteins= method or pass protein attributes to =columns= parameter.
+
+** =ensembldb=: protein annotations
+
 + _Example_: get all proteins for the gene /BCL2/.
-  #+BEGIN_SRC R
+  #+BEGIN_SRC R :exports both :results output
     ## Get protein annotations
     prts <- proteins(edb, filter = ~ symbol == "BCL2", return.type = "AAStringSet")
 
     ## Result is returned as an AAStringSet
     prts
+  #+END_SRC
 
+  #+BEGIN_SRC R :exports both :results output
     ## Access the metadata columns
     mcols(prts)
   #+END_SRC
@@ -146,24 +214,34 @@ github/twitter: /jotsetung/
   the analysis of protein sequence data in proteomics experiments.
 + The =Proteins= object: container for proteins and peptide ranges within the AA
   sequence.
+
+** Map coordinates within proteins to the genome
+
 + _Example_: fetch a =Proteins= object for the gene /BCL2/ from an =EnsDb=.
-  #+BEGIN_SRC R
+  #+BEGIN_SRC R :exports both :results output
     library(Pbase)
-
     bcl2 <- Proteins(edb, filter = ~ symbol == "BCL2")
-
     bcl2
+  #+END_SRC
 
+  #+BEGIN_SRC R :exports both :results output
     ## Amino acid sequence:
     aa(bcl2)
+  #+END_SRC
 
-    ## Peptide features
+** Map coordinates within proteins to the genome
+
++ _Example_: fetch a =Proteins= object for the gene /BCL2/ from an =EnsDb= (continued).
+  #+BEGIN_SRC R :exports both :results output
+    ## Peptide features: the protein domains
     pranges(bcl2)[, "ProteinDomains"]
   #+END_SRC
 
+** Map coordinates within proteins to the genome
+
 + _Example_: use =ensembldb= to map peptide features within a protein to the genome:
-  #+BEGIN_SRC R
-    ## Map all protein domains for each tx to the genome
+  #+BEGIN_SRC R :exports code :results silent
+    ## Map all protein domains from each protein/tx to the genome
     gen_map <- mapToGenome(bcl2, edb)
 
     ## Plot the results for the first protein (transcript)
@@ -176,22 +254,21 @@ github/twitter: /jotsetung/
     map_1 <- gen_map[[1]]
     map_1$id <- names(map_1)
 
-    ## Plot using Gviz
-    library(Gviz)
-    plotTracks(list(GenomeAxisTrack(),
-                    GeneRegionTrack(tx, name = "tx"),
-                    AnnotationTrack(map_1, groupAnnotation = "id",
-                                    just.group = "above",
-                                    name = "Protein domains")),
-               transcriptAnnotation = "transcript")
-
   #+END_SRC
 
-** Other use cases
-*** Getting annotations for feature counting
+** Map coordinates within proteins to the genome
+
+  #+BEGIN_SRC R :exports both :results graphics :file images/_proteins-plot.png :width 12 :height 8 :units cm :res 300 :pointsize 4
+    plotTracks(list(GenomeAxisTrack(), GeneRegionTrack(tx, name = "tx"),
+		    AnnotationTrack(map_1, groupAnnotation = "id", just.group = "above",
+				    name = "Protein domains")),
+	       transcriptAnnotation = "transcript")
+  #+END_SRC
+
+** Getting annotations for feature counting
 
 + _Example_: feature counting using =GenomicAlignments=' =summarizeOverlaps=:
-  #+BEGIN_SRC R
+  #+BEGIN_SRC R :exports both :results output
     ## Need a GRangesList of GRanges, one per gene.
     ## Get exons for all lincRNA genes.
     exns <- exonsBy(edb, filter = ~ gene_biotype == "lincRNA", by = "gene")
@@ -199,41 +276,35 @@ github/twitter: /jotsetung/
   #+END_SRC
 + For =Rsubread='s =featureCount= function: use the =toSAF= function.
 
-*** Plotting annotation data
+** Plotting annotation data
 
 + =EnsDb= integrated into =ggbio=.
 + _Example_: use =ggbio= and =ensembldb= to plot a chromosomal region.
-  #+BEGIN_SRC R
+  #+BEGIN_SRC R :results output graphics :file images/_ggbio-plot.png :exports both :width 12 :height 6 :units cm :res 300 :pointsize 4
     library(ggbio)
-
     ## Define the chromosomal region
     gr <- GRanges(seqnames = 18, ranges = IRanges(63123000, 63320300))
-
     autoplot(edb, GRangesFilter(gr), names.expr = "gene_name")
   #+END_SRC
+
+** Plotting annotation data
+
 + =Gviz=: use the =getGeneRegionTrackForGviz=.
-  #+BEGIN_SRC R
+  #+BEGIN_SRC R :results output graphics :file images/_Gviz-plot.png :exports both :width 12 :height 6 :units cm :res 300 :pointsize 4
     library(Gviz)
     grt <- getGeneRegionTrackForGviz(edb, filter = ~ genename == "BCL2")
-
     plotTracks(list(GenomeAxisTrack(), GeneRegionTrack(grt)),
                transcriptAnnotation = "symbol")
   #+END_SRC
 
-*** =AnnotationDbi= integration
+** =AnnotationDbi= integration
 
 + =EnsDb= databases support =keys=, =select=, =mapIds=.
-+ _Example_: Retrieve all data for the gene /BCL2/:
-  #+BEGIN_SRC R
-    ## Can also use filter expression here
-    res <- select(edb, keys = ~ genename == "BCL2")
-
-    head(res)
-
-    ## Get a list of all supported columns:
-    columns(edb)
-  #+END_SRC
 + Methods support passing filter expressions or filter objects with parameter =keys=.
++ _Example_: Retrieve all data for the gene /BCL2/:
+  #+BEGIN_SRC R :exports both :results output
+    head(select(edb, keys = ~ genename == "BCL2"))
+  #+END_SRC
 
 ** Finally...
 
