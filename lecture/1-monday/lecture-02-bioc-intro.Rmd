@@ -70,6 +70,7 @@ Help!
 ```{r, eval=FALSE}
 methods(class="DNAStringSet")
 ?"DNAStringSet"
+browseVignettes(package="Biostrings")
 ```
 
 # Genomic Ranges
@@ -111,8 +112,11 @@ Help!
 
 
 ```{r, eval=FALSE}
+methods(class="GRanges")
+methods(class="GRangesList")
 ?"GRanges"
 ?"GRangesList"
+browseVignettes(package="GenomicRanges")
 ```
 
 # Summarized Experiments
@@ -122,5 +126,7 @@ Help!
 Help!
 
 ```{r, eval=FALSE}
+methods(class="SummarizedExperiment")
 ?"SummarizedExperiment"
+browseVignettes(package="SummarizedExperiment")
 ```
