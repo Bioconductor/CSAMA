@@ -17,6 +17,14 @@ knitr::opts_chunk$set(
     cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE")))
 ```
 
+```{r setup, echo=FALSE}
+suppressPackageStartupMessages({
+    library(Biostrings)
+    library(GenomicRanges)
+    library(SummarizedExperiment)
+})
+```
+
 # History
 
 - Started 2002 as a platform for understanding analysis of microarray
@@ -34,14 +42,85 @@ knitr::opts_chunk$set(
 
 # High-throughput sequence work flow
 
+![](lecture-02-figures/SequencingEcosystem.png)
+
 # DNA Sequences
 
+```{r}
+library(Biostrings)
+
+dna <- DNAStringSet(c("AAACTG", "CCCTTCAAC", "TACGAA"))
+dna
+
+length(dna)
+dna[c(1, 3, 1)]
+
+width(dna)
+reverseComplement(dna)
+```
+
+Themes
+
+- _Valid_ data, e.g., alphabet
+- 'Vector' interface: `length()`, `[`, ...
+- Specialized operations, e.g,. `reverseComplement()`
+
 Help!
+
+```{r, eval=FALSE}
+methods(class="DNAStringSet")
+?"DNAStringSet"
+```
 
 # Genomic Ranges
 
+![](lecture-02-figures/GRanges.png)
+
+```{r}
+library(GenomicRanges)
+
+gr <- GRanges(c("chr1:100-120", "chr1:115-130", "chr2:200-220"))
+gr
+
+shift(gr, 1)
+
+reduce(gr)
+
+anno <- GRanges(c("chr1:110-150", "chr2:150-210"))
+countOverlaps(anno, gr)
+```
+
+- Data (e.g., aligned reads, called peaks, copy number)
+- Annotations (e.g., genes, exons, transcripts)
+
+Intra-range operations
+
+- e.g., `shift()`, `narrow()`, `flank()`
+
+Inter-range operations
+
+- e.g., `reduce()`, `coverage()`, `gaps()`, `disjoin()`
+
+Between-range operations
+
+- e.g., `countOverlaps()`, `findOverlaps()`, `summarizeOverlaps()`
+
+![](lecture-02-figures/GRangesList.png)
+
 Help!
+
+
+```{r, eval=FALSE}
+?"GRanges"
+?"GRangesList"
+```
 
 # Summarized Experiments
 
+![](lecture-02-figures/SummarizedExperiment.png)
+
 Help!
+
+```{r, eval=FALSE}
+?"SummarizedExperiment"
+```
