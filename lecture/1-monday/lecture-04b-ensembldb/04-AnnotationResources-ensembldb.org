@@ -33,7 +33,7 @@ github/twitter: /jotsetung/
     library(EnsDb.Hsapiens.v86)
     edb <- EnsDb.Hsapiens.v86
 
-    ## Get all human genes.
+    ## Get all genes from the database.
     gns <- genes(edb)
 
     gns
@@ -100,7 +100,7 @@ github/twitter: /jotsetung/
 + Dedicated packages:
   - =TxDb.Hsapiens.UCSC.hg38.knownGene=: UCSC based.
   - =EnsDb.Hsapiens.v86=: based on Ensembl (version 86).
-+ =AnnotationHub=:
++ =AnnotationHub= (preferred):
   - Central repository for annotation objects.
   - Downloaded resources cached locally.
   - Use =query= to search for entries, fetch them using =[[=.
@@ -130,7 +130,7 @@ github/twitter: /jotsetung/
 + =proteins= method or pass attributes to =columns= parameter.
 + _Example_: get all proteins for the gene /BCL2/.
   #+BEGIN_SRC R
-    ## Get protein annotations
+    ## Get protein annotations and return as AAStringSet
     prts <- proteins(edb, filter = ~ symbol == "BCL2", return.type = "AAStringSet")
 
     ## Result is returned as an AAStringSet
@@ -150,6 +150,7 @@ github/twitter: /jotsetung/
   #+BEGIN_SRC R
     library(Pbase)
 
+    ## Extract a Proteins object for BCL2 from the EnsDb
     bcl2 <- Proteins(edb, filter = ~ symbol == "BCL2")
 
     bcl2
