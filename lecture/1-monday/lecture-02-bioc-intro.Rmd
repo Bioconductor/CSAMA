@@ -59,7 +59,7 @@ width(dna)
 reverseComplement(dna)
 ```
 
-Themes
+[Biostrings][] themes
 
 - _Valid_ data, e.g., alphabet
 - 'Vector' interface: `length()`, `[`, ...
@@ -91,8 +91,13 @@ anno <- GRanges(c("chr1:110-150", "chr2:150-210"))
 countOverlaps(anno, gr)
 ```
 
+[GenomicRanges][]
+
 - Data (e.g., aligned reads, called peaks, copy number)
 - Annotations (e.g., genes, exons, transcripts)
+- Close relation to BED files (see `rtracklayer::import.bed()` and
+  [HelloRanges][])
+- Also vector interface -- `length()`, `[`, etc.
 
 Intra-range operations
 
@@ -106,8 +111,6 @@ Between-range operations
 
 - e.g., `countOverlaps()`, `findOverlaps()`, `summarizeOverlaps()`
 
-![](lecture-02-figures/GRangesList.png)
-
 Help!
 
 
@@ -119,9 +122,61 @@ methods(class="GRangesList")
 browseVignettes(package="GenomicRanges")
 ```
 
+## Lists of Genomic Ranges
+
+![](lecture-02-figures/GRangesList.png)
+
+- e.g., exons-within-transcripts, alignments-within-reads
+
 # Summarized Experiments
 
 ![](lecture-02-figures/SummarizedExperiment.png)
+
+Component parts
+
+```{r}
+counts <- read.csv("lecture-02-data/airway_counts.csv", row.names=1)
+counts <- as.matrix(counts)
+head(counts, 3)
+
+colData <- read.csv("lecture-02-data/airway_colData.csv", row.names=1)
+colData[, 1:4]
+
+rowRanges <- readRDS("lecture-02-data/airway_rowRanges.rds")
+rowRanges
+```
+
+- three components -- underlying 'matrix', 'row' annotations (genomic
+  features), 'column' annotations (sample descriptions)
+
+Could manipulate independently...
+
+```{r, fig.asp=1}
+cidx <- colData$dex == "trt"
+plot(
+    rowMeans(1 + counts[, cidx]) ~ rowMeans(1 + counts[, !cidx]),
+    log="xy"
+)
+```
+
+- very fragile, e.g., what if `colData` rows had been re-ordered?
+
+Solution: coordinate in a single object -- [SummarizedExperiment][]
+
+```{r, fig.asp=1}
+library(SummarizedExperiment)
+
+se <- SummarizedExperiment(counts, rowRanges = rowRanges, colData = colData)
+cidx <- se$dex == "trt"
+plot(
+    rowMeans(1 + assay(se)[, cidx]) ~ rowMeans(1 + assay(se)[, !cidx]),
+    log="xy"
+)
+```
+
+- Much more robust to 'bookkeeping' errors
+- matrix-like interface: `dim()`, two-dimensional `[`, ...
+- accessors: `assay()`, `rowData()` / `rowRanges()`, `colData()`, ...
 
 Help!
 
@@ -130,3 +185,34 @@ methods(class="SummarizedExperiment")
 ?"SummarizedExperiment"
 browseVignettes(package="SummarizedExperiment")
 ```
+
+# _Bioconductor_ packages for high-throughput genomic analysis
+
+- Web site, https://bioconductor.org
+- Support site, https://support.bioconductor.org
+- More than 1300 'software' packages
+
+    - Sequence analysis (RNASeq, ChIPSeq, called variants, copy number, 
+      single cell)
+    - Microarrays (methylation, copy number, classical expression, ...)
+    - Annotation (more about annotations later this morning...)
+    - Flow cytometry
+    - Proteomics, image analysis, ...
+
+- Discovery and use, e.g., [DESeq2][]
+
+    - https://bioconductor.org/packages
+    - Landing pages: title, description (abstract), installation instructions,
+      badges
+    - Vignettes!
+    - [Workflows][], [course material][], [videos][], ...
+
+[Biostrings]: https://bioconductor.org/packages/Biostrings
+[GenomicRanges]: https://bioconductor.org/packages/GenomicRanges
+[rtracklayer]: https://bioconductor.org/packages/rtracklayer
+[HelloRanges]: https://bioconductor.org/packages/HelloRanges
+[SummarizedExperiment]: https://bioconductor.org/packages/SummarizedExperiment
+[DESeq2]: https://bioconductor.org/packages/DESeq2
+[Workslfows]: https://bioconductor.org/help/workflows/
+[course material]: https://bioconductor.org/help/course-materials/
+[videos]: https://www.youtube.com/user/bioconductor
