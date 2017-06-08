@@ -55,7 +55,7 @@ This workflow requires R version >= 3.4 and the following packages:
   using the =doParallel= package and using this in =BiocParallel= seems to avoid
   such problems.
 
-#+NAME: libraries
+#+NAME: setup
 #+BEGIN_SRC R :results silent :ravel message = FALSE, results = "hide"
   ## Style
   library(BiocStyle)
@@ -82,15 +82,14 @@ with a pre-defined set of cluster nodes.
 
 #+END_SRC
 
-
 ** Introduction
 
 This workflow illustrates the use of Bioconductor packages for the
-pre-processing of LCMS-based metabolomics data sets. While other package exist
-too (such as =yamss= \cite{Myint:2017fp}), this workshop focuses on =xcms=
-\cite{Smith:2006ic} and uses the functionality of its new user interface. In
-LCMS-based metabolomics the pre-processing aims to identify the features
-possibly corresponding to metabolites and to quantify them.
+pre-processing of LCMS-based metabolomics data sets. This pre-processing aims to
+identify the features possibly corresponding to metabolites and to quantify
+them.  While other package exist too (such as =yamss= \cite{Myint:2017fp}), this
+workshop focuses on =xcms= \cite{Smith:2006ic} and uses the functionality of its
+new user interface.
 
 The topics covered in this document are:
 - Data import, organization and handling.
@@ -104,25 +103,25 @@ retention time) and columns to samples.
 The workflow does not cover (yet) data normalization strategies or
 identification of metabolites (i.e. mapping of detected features to
 corresponding metabolites). Also, the workflow focuses on gas/liquid
-chromatography (G/LC) mass spectrometry (MS) which combines the physical
+chromatography (GC/LC) mass spectrometry (MS) which combines the physical
 separation capabilities of the chromatography with the mass analysis
 capabilities of the MS. Chromatography is usually preferred in mass spectrometry
 experiments with complex samples because the added dimension (the retention time
-rt) helps to discriminate between analytes with identical mass-to-charge ratios
-(mz).
+/rt/) helps to discriminate between analytes with identical mass-to-charge ratios
+(/mz/).
 
 For more details and description of the general metabolomics data workflow see
 \cite{Sugimoto:2012jt}\cite{Smith:2014di}.
 
 ** Definitions and naming convention
 
-The aim of the metabolomics data pre-processing is the identification of peaks
-in the chromatographic dimension. These peaks are referred to as
-/chromatographic peaks/ in this document to distinguish them from /mass/ peaks
-identified in proteomics. The term /feature/ refers to individual ions with a
-unique mass-to-charge ratio (mz) and a unique retention time (rt). Such features
-are defined during the correspondence step in which the detected chromatographic
-peaks are matched between (and within) samples.
+In metabolomics data analysis, peaks are identified along the retention time
+axis. These peaks are referred to as /chromatographic peaks/ in this document to
+distinguish them from /mass/ peaks (i.e. peaks within a spectrum along the mz
+dimension). The term /feature/ refers to individual ions with a unique
+mass-to-charge ratio (m/z, or mz) and a unique retention time (rt). Such
+features are defined during the correspondence step in which the detected
+chromatographic peaks are matched between (and within) samples.
 
 ** Data import, organization and handling
 
@@ -131,15 +130,14 @@ proteomics/metabolomics. This data files have to be converted first into one of
 the file formats supported by the =mzR= package, i.e. the open /mzML/ or the /netCDF/
 file format. For metabolomics experiments it is suggested to load the data using
 the =readMSData2= function (from the =MSnbase= package \cite{Gatto:2012io}) into an
-=OnDiskMSnExp= object. Such objects hold only general spectra data (number of
-spectra in a file, retention time of spectra etc) in memory while the full raw
-data is accessed on demand. This keeps the memory footprint and requirements
-small and enables thus analyses also of large scale metabolomics experiments
-(for more details on the =OnDiskMSnExp= object see please the help pages and
-vignettes in the =MSnbase= package). The new user interface of the =xcms= package
-used in this document makes extensive use of objects from the =MSnbase= package
-and hence reuses all of their functionality. This helps also to define a general
-code base for MS-based data analysis.
+=OnDiskMSnExp= object. Such objects hold only general spectra data (such as number
+of spectra in a file or the retention time of each spectrum) in memory while the
+full raw data (the mz and intensity values per spectrum) is accessed on
+demand. This keeps the memory footprint small and enables thus analyses also of
+large scale metabolomics experiments (see help pages and vignettes of the
+=MSnbase= package for more details on the =OnDiskMSnExp= object). The new user
+interface of the =xcms= package, that's used in this document, makes extensive use
+of objects from the =MSnbase= package and hence reuses all of their functionality.
 
 Below we read the raw data files (in netCDF format) from the =faahKO= data
 package. This package provides a subset of the data from
@@ -153,7 +151,7 @@ range from 200-600 and retention time range from 2500-4500 seconds.
 #+BEGIN_SRC R :results silent :ravel message = FALSE, results = "hide", warning = FALSE
   ## Get the file names
   cdf_files <- dir(system.file("cdf", package = "faahKO"), recursive = TRUE,
-		   full.names = TRUE)
+ 		   full.names = TRUE)
 
   ## Define the sample grouping.
   s_groups <- rep("KO", length(cdf_files))
@@ -169,9 +167,10 @@ range from 200-600 and retention time range from 2500-4500 seconds.
 #+END_SRC
 
 The data is organized by spectrum, i.e. for each retention time we have a
-=Spectrum1= object containing the mz and intensity duplets measured by the
-mass spec. Below we extract one of the spectra and evaluate the data it
-contains.
+=Spectrum1= object containing the mz and intensity duplets measured by the mass
+spec. Below we extract one of the spectra and evaluate the data it
+contains. Individual spectra can be extracted using =[[=, which causes the MS data
+for the particular spectrum to be imported from the original data file. 
 
 #+NAME: single-spectrum
 #+BEGIN_SRC R :results silent :ravel message = FALSE
@@ -193,30 +192,34 @@ contains.
 #+END_SRC
 
 We can use various accessor functions to extract information from the
-=OnDiskMSnExp= object, such as =rtime= to get the retention time from each
+=OnDiskMSnExp= object, such as =rtime= to get the retention time for each
 spectrum. Many of these methods directly access information stored in the
 object's =fData= (corresponding to the spectrum headers in the mzML/netCDF files)
 and are thus very fast. The =mz=, =intensity= and =spectra= methods on the other hand
-require the original data to be read and are thus slower.
+read the original data on the fly and are thus slower.
 
 It is also important to note that the spectrum data within the object is not
 organized by sample and data is always returned as a one-dimensional vector. The
 association between a spectrum and the file from which it originates is provided
 by the =fromFile= method which returns an integer vector with the index of the
-file from which the spectrum was extracted. Various filter methods allow a fast
-and simple sub-setting of the full experiment. In the example below we create a
-total ion chromatogram (TIC) using the =filterFile= method to subset the object to
-data from a certain file. The total ion current per spectrum is extracted with
-the =tic= method. The TIC plots the sum of all measured intensities for a given
-retention time (i.e. a spectrum) against the retention time.
+file from which the spectrum was extracted.
+
+Various filter methods allow a fast and simple sub-setting of the full
+experiment. In the example below we create a total ion chromatogram (TIC) using
+the =filterFile= method to subset the object to data from a certain file. The
+total ion current per spectrum is extracted with the =tic= method. The TIC plots
+the sum of all measured intensities for a given retention time (i.e. a spectrum)
+against the retention time.
 
 #+NAME: faahKO-tic
 #+BEGIN_SRC R :results silent :ravel message = FALSE, fig.align = 'center', fig.width = 8, fig.height = 6
   ## Define the sample colors
   sample_colors <- brewer.pal(3, "Set1")[1:2]
   names(sample_colors) <- c("KO", "WT")
-  ## Subset the full raw data by file and plot the data.
+
+  ## Subset the full raw data by file and plot it.
   tmp <- filterFile(faahKO_raw, file = 1)
+
   plot(x = rtime(tmp), y = tic(tmp), xlab = "retention time", ylab = "TIC",
        col = paste0(sample_colors[pData(tmp)$sample_group], 80), type = "l")
   for (i in 2:length(fileNames(faahKO_raw))) {
@@ -235,7 +238,32 @@ problematic samples. Plotting the distribution of the total ion currents (=tic=)
 or the /base peak intensities/ (=bpi=) per file using boxplots can also be used for
 quality assessment.
 
-+ *Exercise 1*: use the =tic= and =fromFile= methods to create the TIC.
++ *Exercise 1*: alternative approach to plot the TIC: use the =tic= and =fromFile=
+  methods instead.
+
++ *Solution*:
+#+NAME: solution-exercise1
+#+BEGIN_SRC R :results silent :ravel results = "hide", message = FALSE, eval = FALSE
+  ## The tic returns a vector, one value for each spectrum in the experiment. The
+  ## values are not organized by sample/file
+  head(tic(faahKO_raw))
+
+  ## The fromFile method returns the index from the file the spectrum derives
+  head(fromFile(faahKO_raw))
+
+  ## Extract the total ion current and retention times and split them by file.
+  tics <- split(tic(faahKO_raw), f = fromFile(faahKO_raw))
+  rts <- split(rtime(faahKO_raw), f = fromFile(faahKO_raw))
+  ## Define the color for each sample
+  cols <- paste0(sample_colors[pData(faahKO_raw)$sample_group], 80)
+  ## initialize plot
+  plot(3, 3, pch = NA, xlim = range(rts), ylim = range(tics), main = "TIC",
+       xlab = "retention time", ylab = "intensity")
+  tmp <- mapply(rts, tics, cols, FUN = function(x, y, col) {
+      points(x = x, y = y, col = col, type = "l")
+  })
+
+#+END_SRC
 
 In most mzML and netCDF files the MS data is organized by spectrum
 (i.e. intensity values by their corresponding mz value) and, as detailed above,
@@ -244,16 +272,14 @@ however, peak detection is performed (for small slices along the mz dimension)
 in the time dimension and hence /orthogonally/ to the spectrum data. To extract
 intensity data by retention time, =xcms= defines the =extractChromatograms= method
 and the =Chromatogram= class. Below we create the base peak chromatogram (BPC,
-maximum signal per spectrum against its retention time) which usually could be
-generated with =bpi= method in a similar fashion than the TIC above. The present
-netCDF files do however not provide the base peak intensities in the spectrum
-headers within the files and the =bpi= method does thus return =-1= for all
-spectra. We have to create the BPC therefore using the =extractChromatogram=
-method that loads the full spectrum data from all files and aggregates the
-intensities per spectrum. The result is returned as a =list= of =Chromatogram=
-objects, one for each file. This is relatively fast for the present files (also
-because data is read in parallel) but can be slow with larger, higher
-resolution, MS experiments.
+maximum signal per spectrum against its retention time). Usually we could use
+the =bpi= method similarly to the =tic= method, but the present netCDF files do not
+provide the base peak intensities in the spectrum header information. We thus
+have to create the BPC using the =extractChromatogram= method that loads the full
+spectrum data from all files and aggregates the intensities per spectrum. The
+result is returned as a =list= of =Chromatogram= objects, one for each file. This is
+relatively fast for the present files (also because data is read in parallel)
+but can be slow with larger, higher resolution, MS experiments.
 
 #+NAME: faahKO-bpc
 #+BEGIN_SRC R :results silent :ravel message = FALSE, fig.align = 'center', fig.width = 8, fig.height = 6
@@ -270,7 +296,7 @@ resolution, MS experiments.
 
 #+END_SRC
 
-The BPC are similar between individual samples, but seem to be shifted in the
+The BPC are similar between individual samples, but seem to be shifted in
 retention time dimension. This shift will be corrected in the
 alignment/retention time adjustment step.
 
@@ -284,7 +310,7 @@ to be identified in the present LC-MS experiment.
   chrs <- extractChromatograms(faahKO_raw, mz = 335, rt = c(2700, 2900))
 
   plotChromatogram(chrs,
-                   col = paste0(sample_colors[pData(faahKO_raw)$sample_group], 80))
+		   col = paste0(sample_colors[pData(faahKO_raw)$sample_group], 80))
 
 #+END_SRC
 
@@ -311,12 +337,7 @@ the first file and plot it.
 #+END_SRC
 
 Apparently there are many mass peaks present at the specific retention time,
-most of them larger than the one for the chromatographic peak from the example
-above.
-
-As we can see in the spectrum above, multiple (mass) peaks are measured for the
-retention time corresponding to the maximal intensity of the chromatographic
-peak.
+most of them larger than the one of our example chromatographic peak.
 
 ** Chromatographic peak detection
 
@@ -325,13 +346,14 @@ of peaks in the retention time dimension (i.e. chromatographic peaks) for MS
 data slices along the mz dimension. The most commonly used algorithm is /centWave/
 \cite{Tautenhahn:2008fx} that performs a relatively robust peak detection. Peak
 detection can be performed on =OnDiskMSnExp= objects using the =findChromPeaks=
-method providing in addition a algorithm-specific parameter class, such as an
-=CentWaveParam= for centWave based peak detection, or =MatchedFilterParam= for peak
-detection using the /matched filter/ algorithm \cite{Smith:2006ic}.
+method providing in addition an algorithm-specific parameter class, such as an
+=CentWaveParam= for centWave based peak detection, or =MatchedFilterParam= for
+peak detection using the /matched filter/ algorithm \cite{Smith:2006ic}.
 
 Below we use the default parameters for the peak detection (which is however
-never a good idea in LC-MS data pre-processing). The peak detection is performed
-in parallel for each file.
+never a good idea in LC-MS data pre-processing because peak shape and MS data
+are highly dependent on the experimental setup). The peak detection is carried
+out in parallel for each file.
 
 #+NAME: faahKO-centWave-default
 #+BEGIN_SRC R :results silent :ravel message = FALSE, warning = FALSE
@@ -386,16 +408,17 @@ rt and mz widths of identified peaks might be informative. Plotting the raw data
 and visually inspecting the detected peaks represents however one of the best
 options to estimate peak detection performance. This is in most cases done on a
 handful of known compounds or internal control compounds added to each sample.
-The new user interface facilitates extraction of full or small slices of the MS
+The new user interface facilitates extraction of full, or small slices of the MS
 data and enables an easy access to the original (or processed) data at any
-stage. Performance is guaranteed by making use of the indexing capabilities
-of mzML and netCDF files reading only sub-sets of the data where possible. The
+stage. Performance is guaranteed by making use of the indexing capabilities of
+mzML and netCDF files reading only sub-sets of the data where possible. The
 =getEIC= method from the /old/ =xcms= user interface provided similar functionality
 but loaded the full data with each call. Also, not the original values were
-returned, but intensities from the /profile matrix/ which contains intensities
+returned, but intensities from the /profile matrix/ which contained intensities
 binned in equidistant slices along the mz dimension.
 
-Below we plot the chromatogram for the mz of 335 and highlight also all
+Below we plot the chromatogram for a mass-to-charge ratio of =mz = 335= (and a
+retention time window from 2700 to 2900 seconds) and highlight also all
 identified chromatographic peaks in that region.
 
 #+NAME: faahKO-chromatogram-example-peaks
@@ -412,10 +435,10 @@ identified chromatographic peaks in that region.
 #+END_SRC
 
 Over and above the peak detection seemed to be OK although in some samples no
-peaks were identified, mostly due to low (and sparse) signal intensities.
+peaks were identified, mostly due to low (and/or sparse) signal intensities.
 
 The =chromPeaks= method allows also to retrieve peaks for a specific =mz= or =rt=
-range. This allows to evaluate whether and how many chromatographic peaks have
+range. This enables to evaluate whether and how many chromatographic peaks have
 been detected for a certain mz-rt region. Below we extract all peaks identified
 in the above mz-rt region.
 
@@ -486,11 +509,46 @@ There is signal at the expected mz/rt, but why was this peak not detected?
   improve the centWave peak detection settings? Run peak detection with the
   modified settings and evaluate the results.
 
++ *Solution*: the chromatographic peaks are too narrow to be detected using the
+  default settings. Adjust the =peakwidth= parameter to represent the expected
+  range of peak widths.
+
+#+NAME: solution-exercise-2
+#+BEGIN_SRC R :results silent :ravel message = FALSE, eval = FALSE
+  ## Default centWave settings
+  CentWaveParam()
+
+  ## The rt width of the peak is much smaller than the default 20-50 seconds.
+
+  ## Adapt the peakwidth parameter and re-run the peak detection
+  cwp <- CentWaveParam(peakwidth = c(2, 10))
+  proc_data <- findChromPeaks(raw_data, param = cwp)
+
+  ## Numer of detected peaks:
+  nrow(chromPeaks(proc_data))
+
+  ## Average rt width
+  mean(chromPeaks(proc_data)[, "rtmax"] - chromPeaks(proc_data)[, "rtmin"])
+
+  ## Do we find a glycine peak?
+  chromPeaks(proc_data, mz = mz_glyc, ppm = 20)
+
+  ## Yes we do, and at the expected rt.
+
+  ## plot the data and highlight the peak.
+  plotChromatogram(eic_glyc)
+  highlightChromPeaks(proc_data, mz = mz_glyc, rt = c(165, 180), ppm = 20)
+
+  ## Peak is eventually even a little too broad.
+
+#+END_SRC
+
+
 The =IPO= Bioconductor package \cite{Libiseller:2015km} provides functionality for
-an automatic tuning of =xcms= peak detection parameters and is thus a good starting point
-to automatically tune parameters for a specific metabolomics setup/experiment. Visual
-inspection of identified peaks is however crucial to guarantee proper peak
-detection.
+an automatic tuning of =xcms= peak detection parameters and is thus a good
+starting point to automatically tune parameters for a specific metabolomics
+setup/experiment. Visual inspection of identified peaks is however crucial to
+guarantee proper peak detection.
 
 ** Alignment
 
@@ -522,7 +580,7 @@ properly.
 
 The result from the =adjustRtime= call is the same =XCMSnExp= object containing in
 addition the adjusted retention times. The =hasAdjustedRtime= method can be used
-to evaluate if the object contains adjusted retention times which can then be
+to evaluate if the object contains adjusted retention times that can be
 extracted using the =adjustedRtime= method. If an =XCMSnExp= object contains
 alignment results, the =rtime= method does also by default return the adjusted
 retention times. Raw retention times can then be extracted by passing =adjusted =
@@ -604,6 +662,31 @@ the =dropAdjustedRtime= method in which case the raw retention times are restore
   alignment, extract the chromatograms either from the raw =faahKO_raw= object or
   use the =dropAdjustedRtime= method to restore raw retention times.
 
++ *Solution*:
+#+NAME: solution-exercise-3
+#+BEGIN_SRC R :results silent :ravel results = "hide", message = FALSE, eval = FALSE
+  ## To extract the chromatogram before retention time adjustment we could
+  ## drop the retention time adjustment results:
+  chrs_raw <- extractChromatograms(dropAdjustedRtime(faahKO),
+				   rt = c(2700, 2900), mz = 335)
+
+  ## Or, more simpler, just pass the adjustedRtime = FALSE parameter to the method.
+  chrs_raw <- extractChromatograms(faahKO, adjustedRtime = FALSE,
+				   rt = c(2700, 2900), mz = 335)
+
+  ## Define the color for each sample
+  cols <- paste0(sample_colors[pData(faahKO)$sample_group], 80)
+  par(mfrow = c(2, 1))
+  plotChromatogram(chrs_raw, col = cols)
+
+  ## Extract the chromatograms after adjustment.
+  chrs_adj <- extractChromatograms(faahKO, rt = c(2700, 2900), mz = 335)
+  plotChromatogram(chrs_adj, col = cols)
+
+  ## Alignment is not perfect for this paricular peak.
+
+#+END_SRC
+
 An alternative to the /obiwarp/ method is the /peakGroups/ method that performs the
 alignment using so called /hook/ peaks that are present in most samples. The
 retention times are then adjusted by aligning these peaks and interpolating in
@@ -615,7 +698,7 @@ Note that all alignment methods do depend on the assumption that the samples are
 similar (obiwarp: have similar chromatograms and /peak groups/: have metabolites
 present in all samples that can be used as hook peaks). 
 
-** Correspondence
+** COMMENT Correspondence
 
 The final step in the metabolomics pre-processing is the correspondence that
 matches detected chromatographic peaks between samples (and depending on the
@@ -655,11 +738,35 @@ times. Peaks combined into /features/ (peak groups) are indicated with grey
 rectangles. This grouping depends on the parameters for the density function and
 other parameters passed to the algorithm with the =PeakDensityParam=.
 
-With the default settings (=bw = 30=) the two neighboring/overlapping peaks are
-combined into a single feature.
+With the default settings (=bw = 30=) the two neighboring/overlapping peaks at a
+retention time of about 3000 seconds are combined into a single feature.
 
 + *Exercise 4*: change the bandwith of the density function (parameter =bw=) to
   separate the two peaks.
+
++ *Solution*:
+
+#+NAME: solution-exercise-4
+#+BEGIN_SRC R :results silent :ravel results = "hide", message = FALSE, eval = FALSE
+  par(mfrow = c(3, 1), mar = c(1, 4, 1, 0.5))
+  plotChromatogram(chrs, col = paste0(cols, 80), xaxt = "n", xlab = "",
+		   xlim = c(2500, 4000))
+  ## Highlight the detected peaks in that region.
+  highlightChromPeaks(faahKO, mz = mzr, col = paste0(cols, "05"),
+		      border = paste0(cols, 20))
+  ## Small bandwidth
+  plotChromPeakDensity(faahKO, mz = mzr, col = paste0(cols, "60"),
+		       param = PeakDensityParam(bw = 5), pch = 16,
+		       xlim = c(2500, 4000))
+  ## The smaller peaks are no longer grouped to a feature, because the peak was
+  ## identified in too few samples (minFraction parameter of PeakDensityParam)
+
+  ## Next
+  plotChromPeakDensity(faahKO, mz = mzr, col = paste0(cols, "60"),
+		       param = PeakDensityParam(bw = 25), pch = 16,
+		       xlim = c(2500, 4000))
+
+#+END_SRC
 
 The =bw= is only one of the parameters of the =PeakDensityParam=. Other important
 settings are =minFraction=, i.e. the minimal proportion of samples within a group
@@ -681,8 +788,16 @@ algorithm.
 The results from the correspondence can be extracted using the
 =featureDefinitions= method, that returns a =DataFrame= with the definition of the
 features (i.e. the mz and rt ranges and, in column =peakidx=, the index of the
-chromatographic peaks in the =chromPeaks= matrix for each feature). The
-=featureValues= method returns a =matrix= with rows being features and columns
+chromatographic peaks in the =chromPeaks= matrix for each feature). 
+
+#+NAME: faahKO-featureDefs
+#+BEGIN_SRC R :results silent
+  ## Extract the feature definitions
+  featureDefinitions(faahKO)
+
+#+END_SRC
+
+The =featureValues= method returns a =matrix= with rows being features and columns
 samples. The content of this matrix can be defined using the =value=
 argument. Setting =value = "into"= returns a matrix with the integrated signal of
 the peaks corresponding to a feature in a sample. Any column name of the
@@ -740,6 +855,30 @@ define whether or not filled-in peak values should be returned too.
 + *Exercise 5*: Compare the intensity of filled-in peaks with those of detected
   peaks.
 
++ *Solution*:
+
+#+NAME: solution-exercise-5
+#+BEGIN_SRC R :results silent :ravel results = "hide", message = FALSE, eval = FALSE
+  ## Get the intensities of the detected peaks
+  not_filled <- featureValues(faahKO, filled = FALSE, value = "into")
+
+  ## Get the intensities of the filled-in peaks:
+  ## o Extract all intensities
+  filled_in <- featureValues(faahKO, value = "into")
+  ## o Set values for detected peaks NA
+  filled_in[!is.na(not_filled)] <- NA
+
+  par(mfrow = c(2, 1))
+  boxplot(log2(not_filled), main = "Detected peaks",
+	  ylab = expression(log[2]~intensity))
+  boxplot(log2(filled_in), main = "Filled-in peaks",
+	  ylab = expression(log[2]~intensity))
+  ## As expected, the intensities of the filled-in peaks are on average lower,
+  ## still, the intensities are considerably high possibly indicating that for
+  ## many peaks only peak detection failed.
+
+#+END_SRC
+
 At last we perform a principal component analysis to evaluate the grouping of
 the samples in this experiment. Note that we did not perform any data
 normalization hence the grouping might also be influenced by technical biases.
@@ -782,142 +921,6 @@ properties of the mice analyzed (sex, age, litter mates etc).
   identify features that are different between groups.
 + Identification: annotation of features to metabolites/chemical
   compounds. Bioconductor's =CAMERA= package might be a good starting point.
-
-** Solutions
-
-This section contains one possible solution for each exercise.
-
-+ *Exercise 1*: use the =tic= and =fromFile= methods to create the TIC. *Solution*: use
-  the =tic= method to extract the total ion current per spectrum and split this by
-  file using the index returned by the =fromFile= method.
-
-#+NAME: solution-exercise1
-#+BEGIN_SRC R :results silent :ravel results = "hide", message = FALSE, eval = FALSE
-  ## The tic returns a vector, one value for each spectrum in the experiment. The
-  ## values are not organized by sample/file
-  head(tic(faahKO_raw))
-
-  ## The fromFile method returns the index from the file the spectrum derives
-  head(fromFile(faahKO_raw))
-
-  ## Extract the total ion current and retention times and split them by file.
-  tics <- split(tic(faahKO_raw), f = fromFile(faahKO_raw))
-  rts <- split(rtime(faahKO_raw), f = fromFile(faahKO_raw))
-  ## Define the color for each sample
-  cols <- paste0(sample_colors[pData(faahKO_raw)$sample_group], 80)
-  ## initialize plot
-  plot(3, 3, pch = NA, xlim = range(rts), ylim = range(tics), main = "TIC",
-       xlab = "retention time", ylab = "intensity")
-  tmp <- mapply(rts, tics, cols, FUN = function(x, y, col) {
-      points(x = x, y = y, col = col, type = "l")
-  })
-
-#+END_SRC
-
-+ *Exercise 2*: inspecting the chromatographic peak for glycine, how could you
-  improve the centWave peak detection settings? Run peak detection with the
-  modified settings and evaluate the results. *Solution*: the chromatographic
-  peaks are less broad. Adjust the =peakwidth= parameter to represent the expected
-  range of peak widths.
-
-#+NAME: solution-exercise-2
-#+BEGIN_SRC R :results silent :ravel message = FALSE, eval = FALSE
-  ## The rt width of the peak is much smaller than the default 20-50 seconds.
-
-  ## Adapt the peakwidth parameter and re-run the peak detection
-  cwp <- CentWaveParam(peakwidth = c(2, 10))
-  proc_data <- findChromPeaks(raw_data, param = cwp)
-
-  ## Numer of detected peaks:
-  nrow(chromPeaks(proc_data))
-
-  ## Average rt width
-  mean(chromPeaks(proc_data)[, "rtmax"] - chromPeaks(proc_data)[, "rtmin"])
-
-  ## Do we find a glycine peak?
-  chromPeaks(proc_data, mz = mz_glyc, ppm = 20)
-
-  ## Yes we do, and at the expected rt.
-
-  ## plot the data and highlight the peak.
-  plotChromatogram(eic_glyc)
-  highlightChromPeaks(proc_data, mz = mz_glyc, rt = c(165, 180), ppm = 20)
-
-  ## Peak is eventually even a little too broad.
-
-#+END_SRC
-
-+ *Exercise 3*: plot the chromatographic peak for =mz = 335= and =rt = c(2700, 2900)=
-  before and after retention time correction. Hint: for the peaks before
-  alignment, extract the chromatograms either from the raw =faahKO_raw= object or
-  use the =dropAdjustedRtime= method to restore raw retention times.
-
-#+NAME: solution-exercise-3
-#+BEGIN_SRC R :results silent :ravel results = "hide", message = FALSE, eval = FALSE
-  ## To extract the chromatogram before retention time adjustment we have to
-  ## drop the retention time adjustment results:
-  chrs_raw <- extractChromatograms(dropAdjustedRtime(faahKO),
-                                   rt = c(2700, 2900), mz = 335)
-
-  ## Define the color for each sample
-  cols <- paste0(sample_colors[pData(faahKO)$sample_group], 80)
-  par(mfrow = c(2, 1))
-  plotChromatogram(chrs_raw, col = cols)
-
-  ## Extract the chromatograms after adjustment.
-  chrs_adj <- extractChromatograms(faahKO, rt = c(2700, 2900), mz = 335)
-  plotChromatogram(chrs_adj, col = cols)
-
-  ## Alignment is not perfect for this paricular peak.
-
-#+END_SRC
-
-+ *Exercise 4*: change the bandwith of the density function (parameter =bw=) to
-  separate the two peaks.
-
-#+NAME: solution-exercise-4
-#+BEGIN_SRC R :results silent :ravel results = "hide", message = FALSE, eval = FALSE
-  par(mfrow = c(4, 1), mar = c(1, 4, 1, 0.5))
-  plotChromatogram(chrs, col = paste0(cols, 80), xaxt = "n", xlab = "")
-  ## Highlight the detected peaks in that region.
-  highlightChromPeaks(faahKO, mz = mzr, col = paste0(cols, "05"),
-                      border = paste0(cols, 20))
-  ## Small bandwidth
-  plotChromPeakDensity(faahKO, mz = mzr, col = paste0(cols, "60"),
-                       param = PeakDensityParam(bw = 5), pch = 16)
-  ## The smaller peaks are no longer grouped to a feature, because the peak was
-  ## identified in too few samples (minFraction parameter of PeakDensityParam)
-
-  ## Next
-  plotChromPeakDensity(faahKO, mz = mzr, col = paste0(cols, "60"),
-                       param = PeakDensityParam(bw = 25), pch = 16)
-  ## Same result; we would need to reduce the minFraction parameter
-
-#+END_SRC
-
-+ *Exercise 5*: Compare the intensity of filled-in peaks with those of detected
-  peaks.
-
-#+NAME: solution-exercise-5
-#+BEGIN_SRC R :results silent :ravel results = "hide", message = FALSE, eval = FALSE
-  ## Get the intensities of the detected peaks
-  not_filled <- featureValues(faahKO, filled = FALSE, value = "into")
-
-  ## Get the intensities of the filled-in peaks:
-  ## o Extract all intensities
-  filled_in <- featureValues(faahKO, value = "into")
-  ## o Set values for detected peaks NA
-  filled_in[!is.na(not_filled)] <- NA
-
-  par(mfrow = c(2, 1))
-  boxplot(log2(not_filled), main = "Detected peaks",
-          ylab = expression(log[2]~intensity))
-  boxplot(log2(filled_in), main = "Filled-in peaks",
-          ylab = expression(log[2]~intensity))
-  ## As expected, the intensities of the filled-in peaks are on average lower,
-  ## still, the intensities are considerably high.
-
-#+END_SRC
 
 ** References
 
