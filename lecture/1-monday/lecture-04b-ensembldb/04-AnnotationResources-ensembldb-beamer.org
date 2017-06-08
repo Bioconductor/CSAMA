@@ -18,7 +18,7 @@
 #+OPTIONS: ^:{} toc:nil
 #+PROPERTY: header-args:R :exports code
 #+PROPERTY: header-args:R :results silent
-#+PROPERTY: header-args:R :session *R-lecture*
+#+PROPERTY: header-args:R :session *CSAMA_ensembldb*
 #+STARTUP: overview
 
 #+LATEX_CLASS: beamer
@@ -53,7 +53,7 @@
     ## Load the database for human genes, Ensembl release 86.
     library(EnsDb.Hsapiens.v86)
     edb <- EnsDb.Hsapiens.v86
-    ## Get all human genes.
+    ## Get all genes from the database.
     gns <- genes(edb)
     gns
   #+END_SRC
@@ -258,7 +258,7 @@
 
 ** Map coordinates within proteins to the genome
 
-  #+BEGIN_SRC R :exports both :results graphics :file images/_proteins-plot.png :width 12 :height 8 :units cm :res 300 :pointsize 4
+  #+BEGIN_SRC R :exports both :results output graphics :file images/_proteins-plot.png :width 12 :height 8 :units cm :res 300 :pointsize 4
     plotTracks(list(GenomeAxisTrack(), GeneRegionTrack(tx, name = "tx"),
 		    AnnotationTrack(map_1, groupAnnotation = "id", just.group = "above",
 				    name = "Protein domains")),
@@ -280,7 +280,7 @@
 
 + =EnsDb= integrated into =ggbio=.
 + _Example_: use =ggbio= and =ensembldb= to plot a chromosomal region.
-  #+BEGIN_SRC R :results output graphics :file images/_ggbio-plot.png :exports both :width 12 :height 6 :units cm :res 300 :pointsize 4
+  #+BEGIN_SRC R :results output output graphics :file images/_ggbio-plot.png :exports both :width 12 :height 6 :units cm :res 300 :pointsize 4
     library(ggbio)
     ## Define the chromosomal region
     gr <- GRanges(seqnames = 18, ranges = IRanges(63123000, 63320300))
