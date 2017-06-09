@@ -12,13 +12,14 @@ johannes.rainer@eurac.edu
 github/twitter: jotsetung
 
 + Focus on pre-processing of LCMS data.
-+ Focus on the =xcms= package, but other exist too (e.g. =yamss=).
++ Focus on the =xcms= package (/new/ user interface), but other exist too
+  (e.g. =yamss=).
 
 ** Metabolomics?
 
 + Is the large-scale study of small molecules (metabolites) in a system (cell,
   tissue or organism).
-+ Metabolites are intermediate or end products of metabolic pathways.
++ Metabolites are intermediates and products of cellular processes (metabolism).
 + From Genome to Metabolome:
   - *Genome*: what can happen.
   - *Transcriptome*: what appears to be happening.
@@ -29,12 +30,21 @@ github/twitter: jotsetung
 ** How are we measuring that?
 
 *** Nuclear magnetic Resonance (NMR)
+
+#+BEGIN_SRC R :results silent :exports none
+  ## Silently setting up parallel processing.
+  library(xcms)
+  library(doParallel)
+  registerDoParallel(4)
+  register(DoparParam())
+#+END_SRC
+
 *** MS-based metabolomics
 
 **** Mass Spectrometry (MS)
   [[./images/MS.png]]
 
-+ Problem: can not distinguish between metabolites with the same m/z.
++ Problem: unable to distinguish between metabolites with the same mass-to-charge ratio (m/z).
 
 **** Liquid Chromatography Mass Spectrometry (LCMS)
 
@@ -42,21 +52,23 @@ github/twitter: jotsetung
 
 + Combines physical separation via LC with MS for mass analysis.
 + Additional time dimension to separate different ions with same m/z.
-+ Also, Gas Chromatography MS (GCMS).
++ Also used: Gas Chromatography MS (GCMS).
++ Targeted/untargeted metabolomics.
+
 
 ** LCMS-based metabolomics data pre-processing
 
 + *Input*: mzML or netCDF files with multiple MS spectra per sample.
 + *Output*: matrix of abundances, rows being /features/, columns samples.
-+ Bioconductor: =xcms= package (/new/ user interface).
-+ Load files from the =faahKO= data package.
++ *feature*: ion with a unique mass-to-charge ratio (m/z) and retention time.
++ _Example_: load files from the =faahKO= data package, process using =xcms=.
   #+BEGIN_SRC R :results silent
     library(xcms)
     library(faahKO)
     library(RColorBrewer)
 
     cdf_files <- dir(system.file("cdf", package = "faahKO"), recursive = TRUE,
-		     full.names = TRUE)[c(1, 2, 7, 8)]
+                     full.names = TRUE)[c(1, 2, 7, 8)]
     ## Read the data
     faahKO <- readMSData2(cdf_files)
   #+END_SRC
@@ -65,7 +77,7 @@ github/twitter: jotsetung
 *** Peak detection
 
 + Identify chromatographic peaks within slices along mz dimension.
-+ How do such peaks look like?
++ _Example_: how do such peaks look like?
   #+BEGIN_SRC R :results output graphics :file images/_chrom-peak-example.png
     ## Extract the chromatogram for an mz-rt slice
     chrs <- extractChromatograms(faahKO, mz = c(241.1, 241.2), rt = c(3550, 3800))
@@ -75,17 +87,18 @@ github/twitter: jotsetung
     plotChromatogram(chrs, col = paste0(cols, 80))
   #+END_SRC
 + *centWave* (Tautenhahn et al. /BMC Bioinformatics/, 2008):
-  #+BEGIN_SRC R :results silent
-    ## Do centWave-based peak detection
-    faahKO <- findChromPeaks(faahKO, param = CentWaveParam())
-  #+END_SRC
   1) Detection of regions of interest
     [[./images/centWave-ROI.png]]
     - mz-rt regions with low mz-variance.
   2) Peak detection using continuous wavelet transform (CWT)
     [[./images/centWave-CWT.png]]
-    - Corresponds to multiple Gaussian fits and choosing the best.
-+ =XCMSnExp=: container for LC/GC-MS results, extends =OnDiskMSnExp=.
+    - Equivalent to multiple Gaussian fits and choosing the best.
++ _Example_: centWave-based peak detection:
+  #+BEGIN_SRC R :results silent
+    ## Do centWave-based peak detection
+    faahKO <- findChromPeaks(faahKO, param = CentWaveParam())
+  #+END_SRC
++ Result: =XCMSnExp=, container for LC/GC-MS results, extends =OnDiskMSnExp=.
   #+BEGIN_SRC R :results output
     ## Extract identified chromatographic peaks
     head(chromPeaks(faahKO))
@@ -94,50 +107,53 @@ github/twitter: jotsetung
 *** Alignment
 
 + Adjust retention time differences/shifts between samples.
++ _Example_: plot total ion chromatogram (TIC) to show differences.
   #+BEGIN_SRC R :results output graphics :file images/_bpc-raw.png
     ## Plot the TIC
     tics <- split(tic(faahKO), f = fromFile(faahKO))
     rts <- rtime(faahKO, bySample = TRUE)
 
     plot(3, 3, pch = NA, xlim = range(rts), ylim = range(tics),
-	 xlab = "retention time", ylab = "intensity", main = "TIC")
-    tmp <- mapply(rts, tics, paste0(cols, 80), FUN = function(x, y, col) {
-	points(x, y, col = col, type = "l")
+         xlab = "retention time", ylab = "intensity", main = "TIC")
+    mapply(rts, tics, paste0(cols, 80), FUN = function(x, y, col) {
+        points(x, y, col = col, type = "l")
     })
   #+END_SRC
 + Overview of algorithms: (Smith et al. /Brief Bioinformatics/ 2013).
-+ Assumptions: 
-  - samples are relatively similar (either similar chromatograms or a
-    set of common metabolites present in all).
-  - Warping methods: analyte elution order is same in all samples.
-+ =xcms=: obiwarp (Prince et al. /Anal Chem/, 2006), /peak groups/ (Smith
-  et. al /Anal Chem/ 2006).
++ =xcms=: /peak groups/ (Smith et. al /Anal Chem/ 2006), obiwarp (Prince et al. /Anal
+  Chem/, 2006).
++ _Example_: use obiwarp to align samples.
   #+BEGIN_SRC R :results output graphics :file images/_bpc_adjusted.png
     ## Use obiwarp to align the samples
     faahKO <- adjustRtime(faahKO, param = ObiwarpParam())
 
+    ## Plot TIC before adjustment
     par(mfrow = c(2, 1), mar = c(4, 4, 1, 0.5))
     plot(3, 3, pch = NA, xlim = range(rts), ylim = range(tics),
-	 xlab = "retention time", ylab = "total ion intensity",
-	 main = "Before adjustment")
+         xlab = "retention time", ylab = "total ion intensity",
+         main = "Before adjustment")
     mapply(rts, tics, paste0(cols, 80), FUN = function(x, y, col) {
-	points(x, y, col = col, type = "l")
+        points(x, y, col = col, type = "l")
     })
 
     ## Plot TIC after adjustment
     rts_adj <- rtime(faahKO, bySample = TRUE)
     plot(3, 3, pch = NA, xlim = range(rts_adj), ylim = range(tics),
-	 xlab = "retention time", ylab = "total ion intensity",
-	 main = "After adjustment")
+         xlab = "retention time", ylab = "total ion intensity",
+         main = "After adjustment")
     mapply(rts_adj, tics, paste0(cols, 80), FUN = function(x, y, col) {
-	points(x, y, col = col, type = "l")
+        points(x, y, col = col, type = "l")
     })
   #+END_SRC
-
++ Assumptions: 
+  - Samples relatively similar (either similar chromatograms or a
+    set of common metabolites present in all).
+  - Warping methods: analyte elution order is same in all samples.
++ _Example_: effect of alignment on example peak.
   #+BEGIN_SRC R :results output graphics :file images/_chrom-peak-example-2.png
     ## Plot extracted ion chromatogram for mz-rt slice
     chrs_adj <- extractChromatograms(faahKO, mz = c(241.1, 241.2),
-				     rt = c(3550, 3800))
+                                     rt = c(3550, 3800))
 
     par(mfrow = c(2, 1))
     plotChromatogram(chrs, col = paste0(cols, 80), main = "Before alignment")
@@ -160,13 +176,13 @@ github/twitter: jotsetung
 
     ## Highlight the detected peaks in that region.
     highlightChromPeaks(faahKO, mz = mzr, col = paste0(cols, "05"),
-			border = paste0(cols, 20))
+                        border = paste0(cols, 20))
 
     ## Define the parameters for the peak density method
     pdp <- PeakDensityParam(bw = 30)
     par(mar = c(4, 4, 1, 0.5))
     plotChromPeakDensity(faahKO, mz = mzr, col = paste0(cols, "60"), param = pdp,
-			 pch = 16, xlim = c(2500, 4000))
+                         pch = 16, xlim = c(2500, 4000))
 
   #+END_SRC
 + Peaks that are close in rt are grouped to a /feature/.
