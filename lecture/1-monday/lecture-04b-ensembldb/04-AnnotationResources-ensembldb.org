@@ -93,7 +93,6 @@ github/twitter: /jotsetung/
     supportedFilters(edb)
   #+END_SRC
 + Filters speed up queries.
-+ /outlook/: =Filter= method for =EnsDb=.
 
 ** Getting annotation resources
 
