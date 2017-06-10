@@ -144,7 +144,6 @@
                          tx_biotype == "protein_coding")
   #+END_SRC
 + Filters speed up queries.
-+ /outlook/: =Filter= method for =EnsDb=.
 
 ** Getting annotation resources
 

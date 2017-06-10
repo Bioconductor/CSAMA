@@ -1,0 +1,356 @@
+#+TITLE: Metabolomics data analysis with Bioconductor
+#+AUTHOR: Johannes Rainer (Eurac Research, Italy)
+#+EMAIL: email: johannes.rainer@eurac.edu, github/twitter: jotsetung
+#+DATE: June 12, 2017 @CSAMA2017
+#+LATEX_HEADER: \usepackage{parskip}
+#+LATEX_HEADER: \usepackage{inconsolata}
+#+LATEX_HEADER: \definecolor{lightgrey}{HTML}{F0F0F0}
+#+LATEX_HEADER: \definecolor{edarkgrey}{HTML}{737a80}
+#+LATEX_HEADER: \definecolor{solarizedlightbg}{HTML}{FCF4DC}
+#+LATEX_HEADER: \makeatletter
+#+LATEX_HEADER: \patchcmd{\@verbatim}
+#+LATEX_HEADER:   {\verbatim@font}
+#+LATEX_HEADER:   {\verbatim@font\scriptsize}
+#+LATEX_HEADER:   {}{}
+#+LATEX_HEADER: \makeatother
+#+LATEX_HEADER: \let\oldtexttt\texttt%
+#+LATEX_HEADER: \renewcommand{\texttt}[2][edarkgrey]{\textcolor{#1}{\ttfamily #2}}%
+#+OPTIONS: ^:{} toc:nil
+#+PROPERTY: header-args:R :exports code
+#+PROPERTY: header-args:R :results silent
+#+PROPERTY: header-args:R :session *CSAMA_metabolomics*
+#+STARTUP: overview
+
+#+LATEX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [presentation,smaller]
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: eurac
+#+BEAMER_INNER_THEME: circles
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+OPTIONS: toc:nil
+#+OPTIONS: H:2
+#+OPTIONS: email:t
+#+OPTIONS: author:t
+
+* Metabolomics data analysis with Bioconductor
+
+** Talk content
+
++ Focus on pre-processing of LCMS data.
++ Focus on the =xcms= package (/new/ user interface), but other exist too
+  (e.g. =yamss=).
+
+
+** Metabolomics?
+
++ Is the large-scale study of small molecules (metabolites) in a system (cell,
+  tissue or organism).
++ Metabolites are intermediates and products of cellular processes (metabolism).
++ From Genome to Metabolome:
+  - *Genome*: what can happen.
+  - *Transcriptome*: what appears to be happening.
+  - *Proteome*: what makes it happen.
+  - *Metabolome*: what actually happened. Influenced by genetic and environmental
+    factors.
+
+** How are we measuring that?
+
++ Nuclear magnetic Resonance (NMR) - not covered here.
++ Mass spec (MS)-based metabolomics
+
+** Mass Spectrometry (MS)
+
+[[./images/MS.png]]
+
++ Problem: unable to distinguish between metabolites with the same
+  mass-to-charge ratio (m/z).
+
+** Liquid Chromatography Mass Spectrometry (LCMS)
+
+[[./images/LCMS.png]]
+
++ Combines physical separation via LC with MS for mass analysis.
++ Additional time dimension to separate different ions with same m/z.
++ Also used: Gas-chromatography (GC) instead of LC.
++ Additional complication: targeted/untargeted metabolomics.
+
+** LCMS-based metabolomics data pre-processing
+
+#+BEGIN_SRC R :results silent :exports none
+  rm(list = ls())
+  library(xcms)
+  library(RColorBrewer)
+  library(doParallel)
+  registerDoParallel(4)
+  register(DoparParam())
+
+#+END_SRC
+
++ *Input*: mzML or netCDF files with multiple MS spectra per sample.
++ *Output*: matrix of abundances, rows being /features/, columns samples.
++ *feature*: ion with a unique mass-to-charge ratio (m/z) and retention time.
++ _Example_: load files from the =faahKO= data packages, process using =xcms=.
+  #+BEGIN_SRC R :results silent :exports code
+    library(xcms)
+    library(faahKO)
+    library(RColorBrewer)
+
+    cdf_files <- dir(system.file("cdf", package = "faahKO"), recursive = TRUE,
+		     full.names = TRUE)[c(1, 2, 7, 8)]
+    ## Read the data
+    faahKO <- readMSData2(cdf_files)
+  #+END_SRC
++ =OnDiskMSnExp=: small memory size, loads data on-demand.
+
+** LCMS-based metabolomics data pre-processing
+
++ Chromatographic peak detection.
++ Sample alignment.
++ Correspondence.
+
+** LCMS pre-processing: Peak detection
+
++ *Goal*: Identify chromatographic peaks within slices along mz dimension.
++ What type of peaks have to be detected?
+  #+BEGIN_SRC R :results output graphics :file images/_chrom-peak-example.png :exports both :width 12 :height 6 :units cm :res 300 :pointsize 4
+    mzr <- c(241.1, 241.2)
+    chrs <- extractChromatograms(faahKO, mz = mzr, rt = c(3550, 3800))
+
+    cols <- brewer.pal(3, "Set1")[c(1, 1, 2, 2)]
+    plotChromatogram(chrs, col = paste0(cols, 80))
+
+  #+END_SRC
+
+** LCMS pre-processing: Peak detection
+
++ *centWave* (Tautenhahn et al. /BMC Bioinformatics/, 2008):
++ Step 1: Detection of regions of interest
+  [[./images/centWave-ROI.png]]
+  - mz-rt regions with low mz-variance.
+
+** LCMS pre-processing: Peak detection
+
+- Step 2: Peak detection using continuous wavelet transform (CWT)
+
+#+ATTR_LATEX: :width 0.7\textwidth 
+[[./images/centWave-CWT.png]]
+
+- Equivalent to multiple Gaussian fits and choosing the best.
+
+** LCMS pre-processing: Peak detection
+
++ _Example_: centWave-based peak detection:
+  #+NAME: peak-detection
+  #+BEGIN_SRC R :results output :exports code
+    faahKO <- findChromPeaks(faahKO, param = CentWaveParam())
+
+  #+END_SRC
++ Result: =XCMSnExp=, container for LC/GC-MS results, extends =OnDiskMSnExp=.
+  #+BEGIN_SRC R :results output verbatim :exports both
+    head(chromPeaks(faahKO))
+
+  #+END_SRC
+
+** LCMS pre-processing: Alignment
+
++ *Goal*: Adjust retention time differences/shifts between samples.
++ Total ion chromatogram (TIC) representing the sum of intensities across
+  a spectrum.
+  #+BEGIN_SRC R :results output graphics :file images/_bpc-raw.png :exports results :width 12 :height 5 :units cm :res 300 :pointsize 4
+    ## Plot the TIC
+    tics <- split(tic(faahKO), f = fromFile(faahKO))
+    rts <- rtime(faahKO, bySample = TRUE)
+
+    plot(3, 3, pch = NA, xlim = range(rts), ylim = range(tics),
+	 xlab = "retention time", ylab = "intensity", main = "TIC")
+    mapply(rts, tics, paste0(cols, 80), FUN = function(x, y, col) {
+	points(x, y, col = col, type = "l")
+    })
+
+  #+END_SRC
+
++ Overview of algorithms: (Smith et al. /Brief Bioinformatics/ 2013).
++ =xcms=: /peak groups/ (Smith et. al /Anal Chem/ 2006), obiwarp (Prince et
+  al. /Anal Chem/, 2006),
+
+** LCMS pre-processing: Alignment
+
++ _Example_: use obiwarp to align samples.
+  #+BEGIN_SRC R :results silent :exports code
+    faahKO <- adjustRtime(faahKO, param = ObiwarpParam())
+
+  #+END_SRC
++ TIC after adjustment:
+  #+BEGIN_SRC R :results output graphics :file images/_bpc_adjusted.png :exports results :width 12 :height 5 :units cm :res 300 :pointsize 4
+    rts_adj <- rtime(faahKO, bySample = TRUE)
+
+    plot(3, 3, pch = NA, xlim = range(rts_adj), ylim = range(tics),
+	 xlab = "retention time", ylab = "intensity", main = "TIC, adjusted")
+    mapply(rts_adj, tics, paste0(cols, 80), FUN = function(x, y, col) {
+	points(x, y, col = col, type = "l")
+    })
+
+  #+END_SRC
+
++ Assumptions: 
+  - Samples relatively similar (either similar chromatograms or a
+    set of common metabolites present in all).
+  - Warping methods: analyte elution order is same in all samples.
+
+** LCMS pre-processing: Alignment
+
++ _Example_: effect of alignment on example peak.
+  #+BEGIN_SRC R :results output graphics :file images/_chrom-peak-example-2.png :exports both :width 12 :height 7 :units cm :res 300 :pointsize 4
+    chrs_adj <- extractChromatograms(faahKO, mz = mzr, rt = c(3550, 3800))
+    
+    par(mfrow = c(2, 1))
+    plotChromatogram(chrs, col = paste0(cols, 80), main = "Before alignment")
+    plotChromatogram(chrs_adj, col = paste0(cols, 80), main = "After alignment")
+
+    #+END_SRC
+
+** LCMS pre-processing: Correspondence
+
++ *Goal*: Group detected chromatographic peaks across samples.
++ =xcms=: /peak density/ method:
+  #+BEGIN_SRC R :results output graphics :file images/_peak-density-plot.png :exports results :width 12 :height 8 :units cm :res 300 :pointsize 4
+    ## mz slice to plot
+    mzr <- c(305.05, 305.15)
+
+    ## Extract and plot the chromatograms
+    chrs_2 <- extractChromatograms(faahKO, mz = mzr)
+
+    par(mfrow = c(2, 1), mar = c(1, 4, 1, 0.5))
+    plotChromatogram(chrs_2, col = paste0(cols, 80), xaxt = "n", xlab = "")
+    ## Highlight the detected peaks in that region.
+    highlightChromPeaks(faahKO, mz = mzr, col = paste0(cols, "05"),
+			border = paste0(cols, 20))
+    ## Define the parameters for the peak density method
+    pdp <- PeakDensityParam(bw = 30)
+    par(mar = c(4, 4, 1, 0.5))
+    plotChromPeakDensity(faahKO, mz = mzr, col = paste0(cols, "60"), param = pdp,
+			 pch = 16)
+
+  #+END_SRC
+
++ Peaks that are close in rt are grouped to a /feature/.
+
+** LCMS pre-processing: Correspondence
+
++ _Example_: peak grouping.
+  #+NAME: peak-grouping
+  #+BEGIN_SRC R :results output :exports code
+  faahKO <- groupChromPeaks(faahKO, param = PeakDensityParam())
+
+  #+END_SRC
+
++ Extract results: =featureDefinitions=: extract the definition of features.
+  #+BEGIN_SRC R :results output verbatim :exports both
+    ## Definitions of the features:
+    featureDefinitions(faahKO)
+
+  #+END_SRC
+
+** LCMS pre-processing: Correspondence
+
++ =featureValues=: extract /values/ for each feature from each sample.
+  #+BEGIN_SRC R :results output verbatim :exports both
+    ## Access feature intensities
+    head(featureValues(faahKO, value = "into"))
+
+  #+END_SRC
+
+** LCMS pre-processing
+
++ Final note: =XCMSnExp= object tracks all analysis steps.  
+  #+BEGIN_SRC R :results output :exports both
+    ## Extract the "processing history"
+    processHistory(faahKO)
+  #+END_SRC
+
+
+** What next? Missing values
+
++ =xcms= provides the possibility to read data from raw files to fill-in missing
+  peaks (=fillChromPeaks=).
++ Data imputation. Be aware of introduced correlations.
+
+** What next? Data normalization
+
++ Adjust within batch and between batch differences.
++ Injection order dependent signal drift (Wehrens et al. /Metabolomics/ 2016).
+  [[./images/signal-drift.png]]
++ =MetNorm= RUV for metabolomics (Livera et al. /Anal Chem/ 2015).
+
+** What next? Identification
+
++ Annotate features to metabolites.
++ Features are *not* chemical compounds.
++ Features from the same compound are co-eluting and can be related (isotopes,
+  adducts).
++ Starting point: =CAMERA= package.
++ On-line spectra databases (e.g. =MassBank=).
+  
+** Finally...
+
++ Hands on in the afternoon workshop.
+
+
+*thank you for your attention!*
+
+** Result buffer                                                   :noexport:
+
+#+RESULTS: peak-detection
+
+#+RESULTS: peak-grouping
+
+** Notes on methods                                                :noexport:
+
+*** centWave:
+
+Matched filter: compare the signal to a model peak with a fixed width and shape.
+
+1) Identify regions of interest (ROIs): property of an (TOF) MS: noise
+   peaks/signal scatter in m/z dimension, once there is a /real/ ion measured,
+   i.e. the intensities increase, the scattering decreases and the signal gets
+   more stable. To identify regions with a /real/ peak look in the 2D space for
+   regions with a lower variance in m/z dimension than in it's surrounding.
+   The actual algorithm: ROI is a region were at least /x/ centroids with an m/z
+   deviation less than /mu/ occur. /mu/ is given in ppm and is related to the mass
+   accuracy of the machine - also the minimum peak rt width is considered.
+2) Do the peak detection within the ROIs: matching the peak signal to a model
+   peak with a fixed width and shape can be problematic as not all peaks have to
+   have the same shape.  centWave: apply continuous wavelet transform to the
+   intensity values of the ROI. Result: two-dimensional matrix of wavelet
+   coefficients. At each scale the local maxima of the CWT coefficients are
+   detected. Peak boundaries are identified by descending the peak. _CWT_:
+   compares the similarity between the signal and a /mother wavelet/ (mexican hat
+   wavelet is used) that is stretched and compressed. The CWT compares the
+   signal to (shifted and) compressed or stretched versions of a wavelet
+   (scales). The result is than a 2D matrix with the coefficients at the
+   different scales. The CWT is thus somewhat comparable to a matched filter
+   using a Gaussian shaped peak with different widths and selecting the best
+   fitting for each peak.
+
+*** Warp
+
+Mostly done on the TIC. Does not require the definition of hook peaks. Warping
+stretches, shifts and squeezes the signal from a sample such that a function
+comparing the sample to a reference is minimized, i.e. the peaks in the TIC are
+best overlapping.
+
+*** obiwarp
+
+Similar concept than warping, but considers also the m/z dimension, i.e. instead
+of comparing the TIP from one sample against the other the full spectra are
+compared between samples.
+
+Uses the mass dimension to generate the similarity function, m/z values are
+binned and compared with each other.
+
+1) Generate m/z, rt, intensity matrices from both samples by binning the values
+   into equidistant m/z, rt bins.
+2) Correlate each spectrum from one against each spectrum from both samples.
+3) Use dynamic programming to define the function that best aligns
+   them. Deviating from the diagonal is penalized. If both samples are not
+   shifted, the ideal function would be the diagonal line.
