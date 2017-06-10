@@ -216,3 +216,22 @@ browseVignettes(package="SummarizedExperiment")
 [Workslfows]: https://bioconductor.org/help/workflows/
 [course material]: https://bioconductor.org/help/course-materials/
 [videos]: https://www.youtube.com/user/bioconductor
+
+# End matter
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
+
+## Acknowledgements
+
+Research reported in this tutorial was supported by the National Human
+Genome Research Institute and the National Cancer Institute of the
+National Institutes of Health under award numbers U41HG004059 and
+U24CA180996.
+
+This project has received funding from the European Research Council
+(ERC) under the European Union's Horizon 2020 research and innovation
+programme (grant agreement number 633974)

@@ -556,3 +556,22 @@ brfss <- read.csv(fname)
 [org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
 [TxDb.Hsapiens.UCSC.hg19.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg19.knownGene
 [BSgenome.Hsapiens.UCSC.hg19]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg19
+
+# End matter
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
+
+## Acknowledgements
+
+Research reported in this tutorial was supported by the National Human
+Genome Research Institute and the National Cancer Institute of the
+National Institutes of Health under award numbers U41HG004059 and
+U24CA180996.
+
+This project has received funding from the European Research Council
+(ERC) under the European Union's Horizon 2020 research and innovation
+programme (grant agreement number 633974)
