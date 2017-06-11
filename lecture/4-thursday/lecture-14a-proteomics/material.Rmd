@@ -48,6 +48,14 @@ library("cputools")
 
 # Mass spectrometry
 
+## Mass spectrometry
+
+- Proteomics: digestions of proteins into peptides
+- Separation of moleculares: *liquid chromatography* (LC)
+- Ionisation of molecules: MS *source*
+- Separation of ions: MS *analyser*
+- Quantitation of ions: MS *detector*
+
 ## { .fullpage }
 
 ![MS schematics](./Figures/SchematicMS2.png)
@@ -126,16 +134,16 @@ x2
 ```
 
 
-## { .fullpage }
+## 
 
-```{r p1}
+```{r plotrw}
 data(itraqdata)
 plot(itraqdata[[22]], full = TRUE, reporters = iTRAQ4)
 ```
 
-## { .fullpage }
+##
 
-```{r pp}
+```{r plotrw2}
 itraqdata2 <- pickPeaks(itraqdata)
 plot(itraqdata2[[22]], itraqdata2[[26]])
 ```
@@ -191,6 +199,23 @@ str(psms(id))
 
 
 ## Protein inference
+
+- Keep only reliable peptides
+- From these peptides, infer proteins
+- If proteins can't be resolved due to shared peptides, merge them
+  into protein groups of indistinguishable or non-differentiable
+  proteins.
+
+
+Next figure from
+[Qeli and Ahrens (2010)](http://www.ncbi.nlm.nih.gov/pubmed/20622826).
+See also
+[Nesvizhskii and Aebersold (2005)](http://www.ncbi.nlm.nih.gov/pubmed/16009968).
+
+
+## { .fullpage }
+
+![Peptide evidence classes](./Figures/nbt0710-647-F2.gif)
 
 
 # Proteomics data
