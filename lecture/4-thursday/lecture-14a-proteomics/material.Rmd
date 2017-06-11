@@ -31,7 +31,7 @@ any purpose, even commercially.
 
 ## Table of content
 
-- Brief intro on how MS works
+- Mass spectrometry
 - Raw MS data (linked to the how MS works section)
 - MS quantitation: MS1 vs MS2 (MS3), label-free vs labelled
 - Peptide identification and protein inference
@@ -39,6 +39,7 @@ any purpose, even commercially.
 - Some packages of interest
 
 ```{r env, echo=FALSE, message=FALSE, warning=FALSE}
+library("BiocStyle")
 library("MSnbase")
 library("RforProteomics")
 library("Pbase")
@@ -71,26 +72,80 @@ library("cputools")
 
 ![MS data](./Figures/F02-3D-MS1-MS2-scans-100-1200-lattice.png)
 
+# Mass spectometry in R
+
 ## In R
 
-```{r}
+```{r mzr1, eval=TRUE}
 library("msdata")
 library("mzR")
 fls <- proteomics(full = TRUE)
 basename(fl <- fls[2])
-rw <- readMSData2(fl)
+rw <- openMSfile(fl)
+rw
 ```
 
-## Some operations
+## Accessors 
 
-- filtering
-- ...
+```{r mzr2}
+softwareInfo(rw)
+str(spectra(rw, 10:11))
+str(header(rw))
+```
+
+## `MSnExp`
+
+Using `MSnExp` objects from the `r Biocpkg("MSnbase")` package to
+conveniently and efficiently manage raw MS experiments.
+
+## 
+
+
+```{r msb, message=FALSE}
+library("MSnbase")
+(x <- readMSData2(fl))
+```
+
+## 
+
+```{r msb2, cache=TRUE}
+table(msLevel(x))
+head(centroided(x))
+table(isCentroided(x), msLevel(x))
+centroided(x) <- isCentroided(x)
+```
+
+## 
+
+```{r}
+library("magrittr")
+x2 <- x %>%
+    filterMsLevel(2L) %>%
+    filterMz(c(126, 132))
+x2
+```
+
+
+## { .fullpage }
+
+```{r p1}
+data(itraqdata)
+plot(itraqdata[[22]], full = TRUE, reporters = iTRAQ4)
+```
+
+## { .fullpage }
+
+```{r pp}
+itraqdata2 <- pickPeaks(itraqdata)
+plot(itraqdata2[[22]], itraqdata2[[26]])
+```
 
 # Proteomics
 
 ## Proteomics
 
-- MS2 spectra are peptides
+- Peaks in MS1 are peptides
+- MS2 spectra are peptides fragments
 - Use the fragmentation pattern to deduce the peptide sequence
 - De nove sequencing
 - Database search
@@ -99,7 +154,10 @@ rw <- readMSData2(fl)
 
 ![Identification](./Figures/bibbs03.jpg)
 
+<br/>
+<div style="font-size:70%">
 Credit `abrg.org`
+</div>
 
 ## Database search
 
@@ -116,6 +174,27 @@ cid <- calculateFragments("AEGKLRFK",
 ht(cid, n = 3)
 ```
 
+## Identification in R
+
+```{r}
+idf <- system.file("mzid", "Tandem.mzid.gz", package = "msdata")
+id <- openIDfile(idf)
+softwareInfo(id)
+enzymes(id)
+str(psms(id))
+```
+
+## Searching in R
+
+- `r Biocpkg("MSGFplus")`
+- `r Biocpkg("rTANDEM")`
+
+
+## Protein inference
+
+
+# Proteomics data
+
 ## Proteomics data
 
 ### Raw data:
@@ -126,18 +205,15 @@ ht(cid, n = 3)
 ### Protein database:
 - to match MS2 spectra against
 
-
-## Protein inference
-
 ## Proteomics data
 
 | File/format   |  package  |
 |---------------|-----------|
-| Raw (`mz*ML`) | `mzR`     |
+| Raw (`mz*ML`) | `mzR`, `MSnbase` |
 | mzTab         | `MSnbase` |
 | `mgf`         | `MSnbase` |
 | `mzIdentML`   | `mzR`, `mzID` |
-| `mzQuantML`   | `NA``     |
+| `mzQuantML`   | `NA`     |
 
 
 # Quantitiative proteomics
@@ -153,6 +229,39 @@ ht(cid, n = 3)
 
 ![MSnSet structure](./Figures/msnset.png)
 
+## 
+
+```{r addid}
+quantFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
+                 full.name = TRUE, pattern = "mzXML$")
+identFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
+                 full.name = TRUE, pattern = "dummyiTRAQ.mzid")
+x <- readMSData(quantFile)
+x <- addIdentificationData(x, identFile)
+fData(x)$pepseq
+```
+
+## 
+
+```{r qnt}
+xq <- quantify(x, reporters = iTRAQ4, method = "max")
+exprs(xq)
+headf(Data(xq))
+```
+
+## 
+
+```{r eval=FALSE}
+qt <- quantify(rx, reporters = TMT6)
+## qt <- readMSnSet("quantdata.csv", ecols = 5:11)
+nqt <- normalise(qt, method = "vsn")
+boxplot(exprs(nqt))
+MAplot(nqt[, 1:2])
+```
+
+## { .fullpage }
+
+![vsn boxplot](./Figures/vsn-boxplot.png)
 
 ## Packages of interest
 
@@ -162,16 +271,11 @@ All MS and proteomics Bioc packages (from [biocViews]()):
 RforProteomics::proteomicsPackages()
 RforProteomics::massSpectrometryPackages()
 ```
-
-- `mzR`
-- `MSnbase`
-- `MSnID`
-- `MSGFplus`
-- `MSstats`, `msmsTests`
+- `MSnID`, `MSstats`, `msmsTests`
 - Many Bioconductor packages for the statistical and downstream
   analysis
 
-## More
+## More examples
 
 - Lab this afternoon
 - [Proteomics workflow](http://bioconductor.org/help/workflows/proteomics/)
@@ -194,8 +298,7 @@ citation(package = "RforProteomics")
 
 ### Development
 
-- Sebastian Gibb
-- Johannes Rainer
+- Sebastian Gibb, Johannes Rainer
 
 ### Funding: 
 - BBSRC
