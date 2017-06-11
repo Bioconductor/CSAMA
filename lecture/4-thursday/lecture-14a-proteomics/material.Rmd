@@ -288,6 +288,9 @@ MAplot(nqt[, 1:2])
 
 ![vsn boxplot](./Figures/vsn-boxplot.png)
 
+
+# Conclusions
+
 ## Packages of interest
 
 All MS and proteomics Bioc packages (from [biocViews]()):
