@@ -1,18 +1,18 @@
 ---
 title: "RNA-seq workflow: gene-level exploratory analysis and differential expression"
-subtitle: CSAMA2017 version - June 13, 2017
+subtitle: CSAMA 2017 version 
 author:
 - name: Michael I. Love
   affiliation: Departments of Biostatistics and Genetics, UNC-Chapel Hill, Chapel Hill, NC, US
+- name: Charlotte Soneson
+  affiliation: Institute for Molecular Life Sciences, Univ. Zurich, CH
 - name: Simon Anders
-  affiliation:
-  - Institute for Molecular Medicine Finland (FIMM), Helsinki, Finland
-  - &EMBL European Molecular Biology Laboratory (EMBL), Heidelberg, Germany
+  affiliation: Centre for Molecular Biology, Univ. Heidelberg (ZMBH), Germany
 - name: Vladislav Kim
-  affiliation: *EMBL
+  affiliation: &EMBL European Molecular Biology Laboratory (EMBL), Heidelberg, Germany
 - name: Wolfgang Huber
   affiliation: *EMBL
-date: 30 March 2017
+date: 13 June 2017
 output: BiocStyle::html_document2
 bibliography: bibliography.bib
 vignette: >
@@ -24,7 +24,7 @@ vignette: >
 
 <!--
      # a list of all required libraries:
-     reqlibs=sub(".*library\\(\"(.*?)\"\\).*","\\1",grep("library\\(",readLines("rnaseqGene_CSAMA2017.Rmd"),value=TRUE))
+     reqlibs = sub(".*library\\(\"(.*?)\"\\).*","\\1",grep("library\\(",readLines("rnaseqGene_CSAMA2017.Rmd"),value=TRUE))
      find.package(reqlibs)
 -->
 
@@ -40,14 +40,14 @@ opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE,
 
 # Abstract
 
-Here we walk through an end-to-end gene-level RNA-seq differential
+We walk through an end-to-end gene-level RNA-seq differential
 expression workflow using Bioconductor packages.  We will start from
 the FASTQ files, show how these were aligned to the reference genome,
 and prepare a count matrix which tallies the number of RNA-seq
 reads/fragments within each gene for each sample.  We will
 perform exploratory data analysis (EDA) for quality assessment and to
 explore the relationship between samples, perform differential gene
-expression analysis, and visually explore the results.
+expression analysis and visually explore the results.
 
 # Introduction
 
@@ -118,7 +118,7 @@ reads/fragments. This is important for the statistical models used by *DESeq2* a
 hold, as only counts allow assessing the measurement precision
 correctly. It is important to *never* provide counts that were
 pre-normalized for sequencing depth/library size, as the statistical
-model is most powerful when applied to un-normalized counts, and is
+model is most powerful when applied to un-normalized counts and is
 designed to account for library size differences internally.
 
 ## Recommended: transcript abundances and the *tximport* pipeline
@@ -154,9 +154,9 @@ those fragments that can align to multiple genes with homologous
 sequence [@Robert2015Errors].  Note that transcript abundance
 quantifiers skip the generation of large files which store read
 alignments, instead producing smaller files which store estimated
-abundances, counts, and effective lengths per transcript.  For more
+abundances, counts and effective lengths per transcript.  For more
 details, see the manuscript describing this approach
-[@Soneson2015Differential], and the `r Biocpkg("tximport")` package
+[@Soneson2015Differential] and the `r Biocpkg("tximport")` package
 vignette for software details. The entry point back into this workflow
 after using a transcript quantifier and *tximport* would be the
 [section on exploratory data analysis](#eda) below.
@@ -178,11 +178,12 @@ A number of software programs exist to align reads to a reference
 genome, and we encourage you to check out some of the benchmarking papers that
 discuss the advantages and disadvantages of each software, which
 include accuracy, sensitivity in aligning reads over splice junctions, speed,
-memory required, usability, and many other features.
+memory required, usability and many other features.
 Here, we used the
 [STAR read aligner](https://code.google.com/p/rna-star/) [@Dobin2013STAR]
 to align the reads for our current experiment to the Ensembl
-release 75 [@Flicek2014Ensembl] human reference genome. In the following code example, it is assumed that there is a file in the current
+release 75 [@Flicek2014Ensembl] human reference genome. In the following 
+code example, it is assumed that there is a file in the current
 directory called `files` with each line containing an identifier for
 each experiment, and we have all the FASTQ files in a subdirectory
 `fastq`. If you have downloaded the FASTQ files from the
@@ -196,7 +197,8 @@ We have also created a subdirectory, `aligned`,
 where STAR will output its alignment files. 
 
 ```
-for f in `cat files`; do STAR --genomeDir ../STAR/ENSEMBL.homo_sapiens.release-75 \
+for f in `cat files`; do STAR \
+--genomeDir ../STAR/ENSEMBL.homo_sapiens.release-75 \
 --readFilesIn fastq/$f\_1.fastq fastq/$f\_2.fastq \
 --runThreadN 12 --outFileNamePrefix aligned/$f.; done
 ```
@@ -240,7 +242,7 @@ the full path to the `extdata` directory, where R packages store
 external data, that is part of the `r Biocexptpkg("airway")` package.
 
 ```{r dir}
-indir <- system.file("extdata", package="airway", mustWork=TRUE)
+indir <- system.file("extdata", package = "airway", mustWork = TRUE)
 ```
 
 In this directory, we find the eight BAM files (and some other files):
@@ -258,7 +260,7 @@ We load such a CSV file with *read.csv*:
 
 ```{r sampleTable}
 csvfile <- file.path(indir, "sample_table.csv")
-sampleTable <- read.csv(csvfile, row.names=1)
+sampleTable <- read.csv(csvfile, row.names = 1)
 sampleTable
 ```
 
@@ -301,7 +303,7 @@ be treated, e.g., only process 2 million reads at a time. See
 
 ```{r Rsamtools}
 library("Rsamtools")
-bamfiles <- BamFileList(filenames, yieldSize=2000000)
+bamfiles <- BamFileList(filenames, yieldSize = 2000000)
 ```
 
 **Note:** make sure that the chromosome names of the genomic features
@@ -351,7 +353,7 @@ using a 0-length character vector.
 
 ```{r txdb}
 gtffile <- file.path(indir,"Homo_sapiens.GRCh37.75_subset.gtf")
-txdb <- makeTxDbFromGFF(gtffile, format="gtf", circ_seqs=character())
+txdb <- makeTxDbFromGFF(gtffile, format = "gtf", circ_seqs = character())
 txdb
 ```
 
@@ -360,7 +362,7 @@ by gene [@Lawrence2013Software]. Each element of the list is a
 *GRanges* object of the exons for a gene.
 
 ```{r}
-ebg <- exonsBy(txdb, by="gene")
+ebg <- exonsBy(txdb, by = "gene")
 ebg
 ```
 
@@ -370,7 +372,7 @@ After these preparations, the actual counting is easy. The function
 *summarizeOverlaps* from the `r Biocpkg("GenomicAlignments")`
 package will do this. This produces a *SummarizedExperiment*
 object that contains a variety of information about
-the experiment, and will be described in more detail below.
+the experiment and will be described in more detail below.
 
 **Note:** If it is desired to perform counting using multiple cores, one can use
 the *register* and *MulticoreParam* or *SnowParam* functions from the
@@ -394,11 +396,11 @@ register(SerialParam())
 The following call creates the *SummarizedExperiment* object with counts:
 
 ```{r}
-se <- summarizeOverlaps(features=ebg, reads=bamfiles,
-                        mode="Union",
-                        singleEnd=FALSE,
-                        ignore.strand=TRUE,
-                        fragments=TRUE)
+se <- summarizeOverlaps(features = ebg, reads = bamfiles,
+                        mode = "Union",
+                        singleEnd = FALSE,
+                        ignore.strand = TRUE,
+                        fragments = TRUE)
 ```
 
 We specify a number of arguments besides the `features` and the
@@ -412,8 +414,8 @@ Setting `singleEnd` to `FALSE`
 indicates that the experiment produced paired-end reads, and we want
 to count a pair of reads (a fragment) only once toward the count
 for a gene. 
-The `fragments` argument can be used when `singleEnd=FALSE` to specify if unpaired
-reads should be counted (yes if `fragments=TRUE`).
+The `fragments` argument can be used when `singleEnd = FALSE` to specify if unpaired
+reads should be counted (yes if `fragments = TRUE`).
 
 In order to produce correct counts, it is important to know if the
 RNA-seq experiment was strand-specific or not. This experiment was not
@@ -433,9 +435,9 @@ visually check the read alignments using a genome visualization tool.
 
 ## SummarizedExperiment
 
-```{r sumexp, echo=FALSE}
-par(mar=c(0,0,0,0))
-plot(1,1,xlim=c(0,100),ylim=c(0,100),bty="n",
+```{r sumexp, echo = FALSE}
+par(mar = c(0,0,0,0))
+plot(1,1,xlim = c(0,100),ylim = c(0,100),bty = "n",
      type="n",xlab="",ylab="",xaxt="n",yaxt="n")
 polygon(c(45,90,90,45),c(5,5,70,70),col="pink",border=NA)
 polygon(c(45,90,90,45),c(68,68,70,70),col="pink3",border=NA)
@@ -470,7 +472,7 @@ This example code above actually only counted a small subset of fragments
 from the original experiment. Nevertheless, we
 can still investigate the resulting *SummarizedExperiment* by looking at
 the counts in the `assay` slot, the phenotypic data about the samples in
-`colData` slot (in this case an empty *DataFrame*), and the data about the
+`colData` slot (in this case an empty *DataFrame*) and the data about the
 genes in the `rowRanges` slot.
 
 ```{r}
@@ -599,7 +601,7 @@ se$dex
 `%<>%` is the compound assignment pipe-operator from
 the `r CRANpkg("magrittr")` package, the above line of code is a concise way of saying
 
-```{r explaincmpass, eval=FALSE}
+```{r explaincmpass, eval = FALSE}
 se$dex <- relevel(se$dex, "untrt")
 ```
 
@@ -689,7 +691,7 @@ library("DESeq2")
 ```
 
 ```{r}
-dds <- DESeqDataSet(se, design=~ cell + dex)
+dds <- DESeqDataSet(se, design = ~cell + dex)
 ```
 
 ## Starting from count matrices
@@ -739,9 +741,9 @@ To now construct the *DESeqDataSet* object from the matrix of counts and the
 sample information table, we use:
 
 ```{r}
-ddsMat <- DESeqDataSetFromMatrix(countData=countdata,
-                                 colData=coldata,
-                                 design=~ cell + dex)
+ddsMat <- DESeqDataSetFromMatrix(countData = countdata,
+                                 colData = coldata,
+                                 design = ~cell + dex)
 ```
 
 We will continue with the object generated from the
@@ -754,12 +756,12 @@ namely a *DGEList* object. It is just as easy to create a *DGEList* object using
 the count matrix and information about samples. We can additionally add
 information about the genes:
 
-```{r message=FALSE}
+```{r message = FALSE}
 library("edgeR")
-genetable <- data.frame(gene.id=rownames(se))
-dge <- DGEList(counts=countdata, 
-               samples=coldata, 
-               genes=genetable)
+genetable <- data.frame(gene.id = rownames(se))
+dge <- DGEList(counts = countdata, 
+               samples = coldata, 
+               genes = genetable)
 names(dge)
 ```
 
@@ -834,17 +836,17 @@ data (here, Poisson counts with a range of lambda from 0.1 to 100).
 We plot the standard deviation of each row (genes) against the mean:
 
 ```{r meanSdCts}
-lambda <- 10^seq(from=-1, to=2, length=1000)
-cts <- matrix(rpois(1000*100, lambda), ncol=100)
+lambda <- 10^seq(from = -1, to = 2, length = 1000)
+cts <- matrix(rpois(1000*100, lambda), ncol = 100)
 library("vsn")
-meanSdPlot(cts, ranks=FALSE)
+meanSdPlot(cts, ranks = FALSE)
 ```
 
 And for logarithm-transformed counts after adding a pseudocount of 1:
 
 ```{r meanSdLogCts}
 log.cts.one <- log2(cts + 1)
-meanSdPlot(log.cts.one, ranks=FALSE)
+meanSdPlot(log.cts.one, ranks = FALSE)
 ```
 
 The logarithm with a small pseudocount amplifies differences when the
@@ -888,51 +890,51 @@ The function *rlog* returns an object based on the *SummarizedExperiment*
 class that contains the rlog-transformed values in its *assay* slot.
 
 ```{r rlog}
-rld <- rlog(dds, blind=FALSE)
+rld <- rlog(dds, blind = FALSE)
 head(assay(rld), 3)
-meanSdPlot(assay(rld), ranks=FALSE)
+meanSdPlot(assay(rld), ranks = FALSE)
 ```
 
 The function *vst* returns a similar object:
 
 ```{r vst}
-vsd <- vst(dds, blind=FALSE)
+vsd <- vst(dds, blind = FALSE)
 head(assay(vsd), 3)
-meanSdPlot(assay(vsd), ranks=FALSE)
+meanSdPlot(assay(vsd), ranks = FALSE)
 ```
 
-In the above function calls, we specified `blind=FALSE`, which means
+In the above function calls, we specified `blind = FALSE`, which means
 that differences between cell lines and treatment (the variables in
 the design) will not contribute to the expected variance-mean trend of
 the experiment. The experimental design is not used directly in the
 transformation, only in estimating the global amount of variability in
 the counts.  For a fully *unsupervised* transformation, one can set
-`blind=TRUE` (which is the default).
+`blind = TRUE` (which is the default).
 
 To show the effect of the transformation, in the figure below
 we plot the first sample
 against the second, first simply using the *log2* function (after adding
 1, to avoid taking the log of zero), and then using the rlog- and VST-transformed
 values. For the *log2* approach, we need to first estimate *size factors* to
-account for sequencing depth, and then specify `normalized=TRUE`.
+account for sequencing depth, and then specify `normalized = TRUE`.
 Sequencing depth correction is done automatically for the *rlog*
 and the *vst*.
 
-```{r rldplot, fig.width=6, fig.height=2.5}
+```{r rldplot, fig.width = 6, fig.height = 2.5}
 library("dplyr")
 library("ggplot2")
 
 dds <- estimateSizeFactors(dds)
 
 df <- bind_rows(
-  as_data_frame(log2(counts(dds, normalized=TRUE)[, 1:2]+1)) %>%
-         mutate(transformation="log2(x + 1)"),
-  as_data_frame(assay(rld)[, 1:2]) %>% mutate(transformation="rlog"),
-  as_data_frame(assay(vsd)[, 1:2]) %>% mutate(transformation="vst"))
+  as_data_frame(log2(counts(dds, normalized = TRUE)[, 1:2]+1)) %>%
+         mutate(transformation = "log2(x + 1)"),
+  as_data_frame(assay(rld)[, 1:2]) %>% mutate(transformation = "rlog"),
+  as_data_frame(assay(vsd)[, 1:2]) %>% mutate(transformation = "vst"))
   
 colnames(df)[1:2] <- c("x", "y")  
 
-ggplot(df, aes(x=x, y=y)) + geom_hex(bins=80) +
+ggplot(df, aes(x = x, y = y)) + geom_hex(bins = 80) +
   coord_fixed() + facet_grid(. ~ transformation)  
 ```
 
@@ -941,7 +943,7 @@ scatterplots using the log2 transform of normalized counts (left),
 using the rlog (middle), and using the VST (right). While the rlog is
 on roughly the same scale as the log2 counts, the VST has a upward
 shift for the smaller values. It is the differences between samples
-(deviation from y=x in these scatterplots) which will contribute to
+(deviation from y = x in these scatterplots) which will contribute to
 the distance calculations and the PCA plot.
 
 We can see how genes with low counts (bottom left-hand corner) seem to
@@ -987,15 +989,15 @@ rows/columns of the distance matrix, which is not desired.
 We also manually specify a blue color palette using the
 *colorRampPalette* function from the `r CRANpkg("RColorBrewer")` package.
 
-```{r distheatmap, fig.width=6.1, fig.height=4.5}
+```{r distheatmap, fig.width = 6.1, fig.height = 4.5}
 sampleDistMatrix <- as.matrix(sampleDists)
-rownames(sampleDistMatrix) <- paste(rld$dex, rld$cell, sep=" - ")
+rownames(sampleDistMatrix) <- paste(rld$dex, rld$cell, sep = " - ")
 colnames(sampleDistMatrix) <- NULL
 colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
 pheatmap(sampleDistMatrix,
-         clustering_distance_rows=sampleDists,
-         clustering_distance_cols=sampleDists,
-         col=colors)
+         clustering_distance_rows = sampleDists,
+         clustering_distance_cols = sampleDists,
+         col = colors)
 ```
 
 **Heatmap of sample-to-sample distances using the rlog-transformed values.**
@@ -1021,14 +1023,14 @@ poisd <- PoissonDistance(t(counts(dds)))
 
 We plot the heatmap in a Figure below.
 
-```{r poisdistheatmap, fig.width=6.1, fig.height=4.5}
+```{r poisdistheatmap, fig.width = 6.1, fig.height = 4.5}
 samplePoisDistMatrix <- as.matrix(poisd$dd)
-rownames(samplePoisDistMatrix) <- paste(rld$dex, rld$cell, sep=" - ")
+rownames(samplePoisDistMatrix) <- paste(rld$dex, rld$cell, sep = " - ")
 colnames(samplePoisDistMatrix) <- NULL
 pheatmap(samplePoisDistMatrix,
-         clustering_distance_rows=poisd$dd,
-         clustering_distance_cols=poisd$dd,
-         col=colors)
+         clustering_distance_rows = poisd$dd,
+         clustering_distance_cols = poisd$dd,
+         col = colors)
 ```
 
 **Heatmap of sample-to-sample distances using the *Poisson Distance*.**
@@ -1050,8 +1052,8 @@ is printed in the axis label. Note that these percentages do not add to
 variance (although each of these remaining dimensions will explain
 less than the two that we see). 
 
-```{r plotpca, fig.width=6, fig.height=4.5}
-plotPCA(rld, intgroup=c("dex", "cell"))
+```{r plotpca, fig.width = 6, fig.height = 4.5}
+plotPCA(rld, intgroup = c("dex", "cell"))
 ```
 
 **PCA plot using the rlog-transformed values.** Each unique combination of
@@ -1068,7 +1070,7 @@ See the *ggplot2* [documentation](http://docs.ggplot2.org/current/)
 for more details on using *ggplot*.
 
 ```{r}
-pcaData <- plotPCA(rld, intgroup=c("dex", "cell"), returnData=TRUE)
+pcaData <- plotPCA(rld, intgroup = c("dex", "cell"), returnData = TRUE)
 pcaData
 percentVar <- round(100 * attr(pcaData, "percentVar"))
 ```
@@ -1077,9 +1079,9 @@ We can then use these data to build up a second plot in a figure below, specifyi
 color of the points should reflect dexamethasone treatment and the
 shape should reflect the cell line.
 
-```{r ggplotpca, fig.width=6, fig.height=4.5}
-ggplot(pcaData, aes(x=PC1, y=PC2, color=dex, shape=cell)) +
-  geom_point(size=3) +
+```{r ggplotpca, fig.width = 6, fig.height = 4.5}
+ggplot(pcaData, aes(x = PC1, y = PC2, color = dex, shape = cell)) +
+  geom_point(size = 3) +
   xlab(paste0("PC1: ", percentVar[1], "% variance")) +
   ylab(paste0("PC2: ", percentVar[2], "% variance")) +
   coord_fixed()
@@ -1104,22 +1106,22 @@ don't have a matrix of data, but only a matrix of distances. Here we
 compute the MDS for the distances calculated from the *rlog*
 transformed counts and plot these in a figure below.
 
-```{r mdsrlog, fig.width=6, fig.height=4.5}
+```{r mdsrlog, fig.width = 6, fig.height = 4.5}
 mds <- as.data.frame(colData(rld))  %>%
          cbind(cmdscale(sampleDistMatrix))
-ggplot(mds, aes(x=`1`, y=`2`, color=dex, shape=cell)) +
-  geom_point(size=3) + coord_fixed()
+ggplot(mds, aes(x = `1`, y = `2`, color = dex, shape = cell)) +
+  geom_point(size = 3) + coord_fixed()
 ```
 
 **MDS plot using rlog-transformed values.**
 
 In a figure below we show the same plot for the *PoissonDistance*:
 
-```{r mdspois, fig.width=6, fig.height=4.5}
+```{r mdspois, fig.width = 6, fig.height = 4.5}
 mdsPois <- as.data.frame(colData(dds)) %>%
    cbind(cmdscale(samplePoisDistMatrix))
-ggplot(mdsPois, aes(x=`1`, y=`2`, color=dex, shape=cell)) +
-  geom_point(size=3) + coord_fixed()
+ggplot(mdsPois, aes(x = `1`, y = `2`, color = dex, shape = cell)) +
+  geom_point(size = 3) + coord_fixed()
 ```
 
 **MDS plot using the *Poisson Distance*.**
@@ -1169,14 +1171,14 @@ the design, we could optionally leave off the `contrast` argument to extract
 the comparison of the two levels of `dex`.
 
 ```{r}
-res <- results(dds, contrast=c("dex", "trt", "untrt"))
+res <- results(dds, contrast = c("dex", "trt", "untrt"))
 ```
 
 As `res` is a *DataFrame* object, it carries metadata
 with information on the meaning of the columns:
 
 ```{r}
-mcols(res, use.names=TRUE)
+mcols(res, use.names = TRUE)
 ```
 
 The first column, `baseMean`, is a just the average of the normalized
@@ -1235,19 +1237,19 @@ inform the `results()` function about it, so that the function can use this
 threshold for the optimal independent filtering that it performs:
 
 ```{r}
-res.05 <- results(dds, alpha=0.05)
+res.05 <- results(dds, alpha = 0.05)
 table(res.05$padj < 0.05)
 ```
 
 If we want to raise the log2 fold change threshold, so that we test
 for genes that show more substantial changes due to treatment, we
 simply supply a value on the log2 scale. For example, by specifying
-`lfcThreshold=1`, we test for genes that show significant effects of
+`lfcThreshold = 1`, we test for genes that show significant effects of
 treatment on gene counts more than doubling or less than halving,
 because \(2^1=2\).
 
 ```{r}
-resLFC1 <- results(dds, lfcThreshold=1)
+resLFC1 <- results(dds, lfcThreshold = 1)
 table(resLFC1$padj < 0.1)
 ```
 
@@ -1275,7 +1277,7 @@ level for the denominator. Here we extract results for the log2 of the
 fold change of one cell line over another:
 
 ```{r}
-results(dds, contrast=c("cell", "N061011", "N61311"))
+results(dds, contrast = c("cell", "N061011", "N61311"))
 ```
 
 There are additional ways to build results tables for certain
@@ -1319,8 +1321,8 @@ adjusted p-value cutoff, and/or the number of genes to keep.
 
 ```{r edgeRcall}
 fit <- glmFit(dge, design)
-lrt <- glmLRT(fit, coef=ncol(design))
-tt <- topTags(lrt, n=nrow(dge), p.value=0.1)
+lrt <- glmLRT(fit, coef = ncol(design))
+tt <- topTags(lrt, n = nrow(dge), p.value = 0.1)
 tt10 <- topTags(lrt) # just the top 10 by default
 tt10
 ```
@@ -1329,8 +1331,8 @@ We can compare to see how the results from the two software
 overlap:
 
 ```{r}
-tt.all <- topTags(lrt, n=nrow(dge), sort.by="none")
-table(DESeq2=res$padj < 0.1, edgeR=tt.all$table$FDR < 0.1)
+tt.all <- topTags(lrt, n = nrow(dge), sort.by = "none")
+table(DESeq2 = res$padj < 0.1, edgeR = tt.all$table$FDR < 0.1)
 ```
 
 We can also compare the two lists by the ranks:
@@ -1338,8 +1340,8 @@ We can also compare the two lists by the ranks:
 ```{r}
 common <- !is.na(res$padj)
 plot(rank(res$padj[common]), 
-     rank(tt.all$table$FDR[common]), cex=.1,
-     xlab="DESeq2", ylab="edgeR")
+     rank(tt.all$table$FDR[common]), cex = .1,
+     xlab = "DESeq2", ylab = "edgeR")
 ```
 
 Also with edgeR we can test for significance relative to a fold-change 
@@ -1348,9 +1350,9 @@ log fold-change threshold to 1 (i.e., fold change threshold equal to 2), as for
 DESeq2 above. We also compare the results to those obtained with DESeq2.
 
 ```{r}
-treatres <- glmTreat(fit, coef=ncol(design), lfc=1)
-tt.treat <- topTags(treatres, n=nrow(dge), sort.by="none")
-table(DESeq2=resLFC1$padj < 0.1, edgeR=tt.treat$table$FDR < 0.1)
+treatres <- glmTreat(fit, coef = ncol(design), lfc = 1)
+tt.treat <- topTags(treatres, n = nrow(dge), sort.by = "none")
+table(DESeq2 = resLFC1$padj < 0.1, edgeR = tt.treat$table$FDR < 0.1)
 ```
 
 ## Multiple testing
@@ -1359,12 +1361,12 @@ In high-throughput biology, we are careful to not use the *p* values
 directly as evidence against the null, but to correct for
 *multiple testing*. What would happen if we were to simply threshold
 the *p* values at a low value, say 0.05? With *DESeq2*, there are
-`r sum(res$pvalue < .05, na.rm=TRUE)` genes with a *p* value
+`r sum(res$pvalue < .05, na.rm = TRUE)` genes with a *p* value
 below 0.05 among the `r sum(!is.na(res$pvalue))` genes for which the
 test succeeded in reporting a *p* value:
 
 ```{r sumres}
-sum(res$pvalue < 0.05, na.rm=TRUE)
+sum(res$pvalue < 0.05, na.rm = TRUE)
 sum(!is.na(res$pvalue))
 ```
 
@@ -1377,8 +1379,8 @@ If we just considered the list of genes with a *p* value below 0.05 as
 differentially expressed, this list should therefore be expected to
 contain up to
 `r round(sum(!is.na(res$pvalue)) * .05)` /
-`r sum(res$pvalue < .05, na.rm=TRUE)`=
-`r round(sum(!is.na(res$pvalue))*.05 / sum(res$pvalue < .05, na.rm=TRUE) * 100)`%
+`r sum(res$pvalue < .05, na.rm = TRUE)`=
+`r round(sum(!is.na(res$pvalue))*.05 / sum(res$pvalue < .05, na.rm = TRUE) * 100)`%
  false positives.
 
 *DESeq2* uses the Benjamini-Hochberg (BH) adjustment [@Benjamini1995Controlling] as implemented in
@@ -1401,7 +1403,7 @@ we can consider all genes with an adjusted *p* value below 10%=0.1
 as significant. How many such genes are there?
 
 ```{r}
-sum(res$padj < 0.1, na.rm=TRUE)
+sum(res$padj < 0.1, na.rm = TRUE)
 ```
 
 We subset the results table to these genes and then sort it by the
@@ -1416,7 +1418,7 @@ head(resSig[ order(resSig$log2FoldChange), ])
 ...and with the strongest up-regulation:
 
 ```{r}
-head(resSig[ order(resSig$log2FoldChange, decreasing=TRUE), ])
+head(resSig[ order(resSig$log2FoldChange, decreasing = TRUE), ])
 ```
 
 <a id="plots"></a>
@@ -1432,7 +1434,7 @@ counts (figure below).
 
 ```{r plotcounts}
 topGene <- rownames(res)[which.min(res$padj)]
-plotCounts(dds, gene=topGene, intgroup=c("dex"))
+plotCounts(dds, gene = topGene, intgroup = c("dex"))
 ```
 
 **Normalized counts for a single gene over treatment group.**
@@ -1440,17 +1442,17 @@ plotCounts(dds, gene=topGene, intgroup=c("dex"))
 We can also make custom plots using the *ggplot* function from the
 `r CRANpkg("ggplot2")` package (figures below).
 
-```{r ggplotcountsjitter, fig.width=4, fig.height=3}
+```{r ggplotcountsjitter, fig.width = 4, fig.height = 3}
 library("ggbeeswarm")
-geneCounts <- plotCounts(dds, gene=topGene, intgroup=c("dex","cell"),
-                         returnData=TRUE)
-ggplot(geneCounts, aes(x=dex, y=count, color=cell)) +
-  scale_y_log10() +  geom_beeswarm(cex=3)
+geneCounts <- plotCounts(dds, gene = topGene, intgroup = c("dex","cell"),
+                         returnData = TRUE)
+ggplot(geneCounts, aes(x = dex, y = count, color = cell)) +
+  scale_y_log10() +  geom_beeswarm(cex = 3)
 ```
 
-```{r ggplotcountsgroup, fig.width=4, fig.height=3}
-ggplot(geneCounts, aes(x=dex, y=count, color=cell, group=cell)) +
-  scale_y_log10() + geom_point(size=3) + geom_line()
+```{r ggplotcountsgroup, fig.width = 4, fig.height = 3}
+ggplot(geneCounts, aes(x = dex, y = count, color = cell, group = cell)) +
+  scale_y_log10() + geom_point(size = 3) + geom_line()
 ```
 
 **Normalized counts with lines connecting cell lines.**
@@ -1472,8 +1474,8 @@ Before making the MA plot, we use the
 comparison of dex treated vs untreated samples:
 
 ```{r plotma}
-res <- lfcShrink(dds, contrast=c("dex","trt","untrt"), res=res)
-DESeq2::plotMA(res, ylim=c(-5, 5))
+res <- lfcShrink(dds, contrast = c("dex","trt","untrt"), res = res)
+DESeq2::plotMA(res, ylim = c(-5, 5))
 ```
 
 **An MA plot of changes induced by treatment.**
@@ -1496,7 +1498,7 @@ fold changes, we would have instead seen the following plot:
 
 ```{r plotmaNoShr}
 res.noshr <- results(dds)
-DESeq2::plotMA(res.noshr, ylim=c(-5, 5))
+DESeq2::plotMA(res.noshr, ylim = c(-5, 5))
 ```
 
 We can label individual points on the MA plot as well. Here we use the
@@ -1505,11 +1507,11 @@ results object. Within the *with* function, only the `baseMean` and
 `log2FoldChange` values for the selected rows of `res` are used.
 
 ```{r plotmalabel}
-DESeq2::plotMA(res, ylim=c(-5,5))
+DESeq2::plotMA(res, ylim = c(-5,5))
 topGene <- rownames(res)[which.min(res$padj)]
 with(res[topGene, ], {
-  points(baseMean, log2FoldChange, col="dodgerblue", cex=2, lwd=2)
-  text(baseMean, log2FoldChange, topGene, pos=2, col="dodgerblue")
+  points(baseMean, log2FoldChange, col = "dodgerblue", cex = 2, lwd = 2)
+  text(baseMean, log2FoldChange, topGene, pos = 2, col = "dodgerblue")
 })
 ```
 
@@ -1518,8 +1520,8 @@ Another useful diagnostic plot is the histogram of the *p* values
 small counts, which otherwise generate spikes in the histogram.
 
 ```{r histpvalue2}
-hist(res$pvalue[res$baseMean > 1], breaks=0:20/20,
-     col="grey50", border="white")
+hist(res$pvalue[res$baseMean > 1], breaks = 0:20/20,
+     col = "grey50", border = "white")
 ```
 
 **Histogram of *p* values for genes with mean normalized count larger than 1.**
@@ -1529,7 +1531,7 @@ hist(res$pvalue[res$baseMean > 1], breaks=0:20/20,
 In *edgeR*, the MA plot is obtained via the `plotSmear` function. 
 
 ```{r}
-plotSmear(lrt, de.tags=tt$table$gene.id)
+plotSmear(lrt, de.tags = tt$table$gene.id)
 ```
 
 ## Gene clustering
@@ -1545,7 +1547,7 @@ counts:
 
 ```{r}
 library("genefilter")
-topVarGenes <- head(order(rowVars(assay(rld)), decreasing=TRUE), 20)
+topVarGenes <- head(order(rowVars(assay(rld)), decreasing = TRUE), 20)
 ```
 
 The heatmap becomes more interesting if we do not look at absolute
@@ -1559,7 +1561,7 @@ and plot a heatmap (figure below). We provide a *data.frame* that instructs the
 mat  <- assay(rld)[ topVarGenes, ]
 mat  <- mat - rowMeans(mat)
 anno <- as.data.frame(colData(rld)[, c("cell","dex")])
-pheatmap(mat, annotation_col=anno)
+pheatmap(mat, annotation_col = anno)
 ```
 
 **Heatmap of relative rlog-transformed values across samples.**
@@ -1588,14 +1590,14 @@ function, bin the genes by base mean using *cut*, rename the levels of
 the bins using the middle point, calculate the ratio of *p* values
 less than 0.05 for each bin, and finally plot these ratios (figure below).
 
-```{r sensitivityovermean, fig.width=6}
+```{r sensitivityovermean, fig.width = 6}
 qs <- c(0, quantile(resLFC1$baseMean[resLFC1$baseMean > 0], 0:6/6))
 bins <- cut(resLFC1$baseMean, qs)
 levels(bins) <- paste0("~", round(signif((qs[-1] + qs[-length(qs)])/2, 2)))
 fractionSig <- tapply(resLFC1$pvalue, bins, function(p)
-                          mean(p < .05, na.rm=TRUE))
-barplot(fractionSig, xlab="mean normalized count",
-                     ylab="fraction of small p values")
+                          mean(p < .05, na.rm = TRUE))
+barplot(fractionSig, xlab = "mean normalized count",
+                     ylab = "fraction of small p values")
 ```
 
 **The ratio of small *p* values for genes binned by mean normalized count.**
@@ -1656,7 +1658,7 @@ columns(org.Hs.eg.db)
 
 We can use the *mapIds* function to add individual columns to our results
 table. We provide the row names of our results table as a key, and
-specify that `keytype=ENSEMBL`. The `column` argument tells the
+specify that `keytype = ENSEMBL`. The `column` argument tells the
 *mapIds* function which information we want, and the `multiVals`
 argument tells the function what to do if there are multiple possible
 values for a single input value. Here we ask to just give us back the
@@ -1665,15 +1667,15 @@ To add the gene symbol and Entrez ID, we call *mapIds* twice.
 
 ```{r}
 res$symbol <- mapIds(org.Hs.eg.db,
-                     keys=row.names(res),
-                     column="SYMBOL",
-                     keytype="ENSEMBL",
-                     multiVals="first")
+                     keys = row.names(res),
+                     column = "SYMBOL",
+                     keytype = "ENSEMBL",
+                     multiVals = "first")
 res$entrez <- mapIds(org.Hs.eg.db,
-                     keys=row.names(res),
-                     column="ENTREZID",
-                     keytype="ENSEMBL",
-                     multiVals="first")
+                     keys = row.names(res),
+                     column = "ENTREZID",
+                     keytype = "ENSEMBL",
+                     multiVals = "first")
 ```
 
 Now the results have the desired external gene IDs:
@@ -1692,9 +1694,9 @@ then share or load with a spreadsheet program such as Excel. The call to
 processed by *write.csv*. Here, we take just the top 100 genes for
 demonstration.
 
-```{r eval=FALSE}
+```{r eval = FALSE}
 resOrderedDF <- as.data.frame(resOrdered)[1:100, ]
-write.csv(resOrderedDF, file="results.csv")
+write.csv(resOrderedDF, file = "results.csv")
 ```
 
 A more sophisticated way for exporting results the Bioconductor
@@ -1706,10 +1708,10 @@ See the *ReportingTools* vignettes for full details. The simplest
 version of creating a dynamic *ReportingTools* report is performed
 with the following code:
 
-```{r eval=FALSE}
+```{r eval = FALSE}
 library("ReportingTools")
-htmlRep <- HTMLReport(shortName="report", title="My report",
-                      reportDirectory="./report")
+htmlRep <- HTMLReport(shortName = "report", title = "My report",
+                      reportDirectory = "./report")
 publish(resOrderedDF, htmlRep)
 url <- finish(htmlRep)
 browseURL(url)
@@ -1726,7 +1728,7 @@ genomic space. While the *results* function by default returns a
 *GRangesList* output.
 
 ```{r}
-resGR <- results(dds, lfcThreshold=1, format="GRanges")
+resGR <- results(dds, lfcThreshold = 1, format = "GRanges")
 resGR
 ```
 
@@ -1774,13 +1776,13 @@ log fold change produced by *DESeq2*, which we know are only large
 when the effect is well supported by the information in the counts.
 
 ```{r gvizplot}
-options(ucscChromosomeNames=FALSE)
+options(ucscChromosomeNames = FALSE)
 g <- GenomeAxisTrack()
-a <- AnnotationTrack(resGRsub, name="gene ranges", feature=status)
-d <- DataTrack(resGRsub, data="log2FoldChange", baseline=0,
-               type="h", name="log2 fold change", strand="+")
-plotTracks(list(g, d, a), groupAnnotation="group",
-           notsig="grey", sig="hotpink")
+a <- AnnotationTrack(resGRsub, name = "gene ranges", feature = status)
+d <- DataTrack(resGRsub, data = "log2FoldChange", baseline = 0,
+               type = "h", name = "log2 fold change", strand = "+")
+plotTracks(list(g, d, a), groupAnnotation = "group",
+           notsig = "grey", sig = "hotpink")
 ```
 
 **log2 fold changes in genomic region surrounding the gene with smallest
@@ -1818,12 +1820,12 @@ surrogate variables. For more information read the manual page for the
 *svaseq* function by typing `?svaseq`.
 
 ```{r}
-dat  <- counts(dds, normalized=TRUE)
+dat  <- counts(dds, normalized = TRUE)
 idx  <- rowMeans(dat) > 1
 dat  <- dat[idx, ]
 mod  <- model.matrix(~ dex, colData(dds))
 mod0 <- model.matrix(~   1, colData(dds))
-svseq <- svaseq(dat, mod, mod0, n.sv=2)
+svseq <- svaseq(dat, mod, mod0, n.sv = 2)
 svseq$sv
 ```
 
@@ -1831,10 +1833,10 @@ Because we actually do know the cell lines, we can see how well the
 SVA method did at recovering these variables (figure below).
 
 ```{r svaplot}
-par(mfrow=c(2, 1), mar=c(3,5,3,1))
+par(mfrow = c(2, 1), mar = c(3,5,3,1))
 for (i in 1:2) {
-  stripchart(svseq$sv[, i] ~ dds$cell, vertical=TRUE, main=paste0("SV", i))
-  abline(h=0)
+  stripchart(svseq$sv[, i] ~ dds$cell, vertical = TRUE, main = paste0("SV", i))
+  abline(h = 0)
  }
 ```
 
@@ -1891,7 +1893,7 @@ give small *p* values to genes that moved up or down over time in the
 same way in both strains.
 
 ```{r fissionDE}
-ddsTC <- DESeq(ddsTC, test="LRT", reduced=~ strain + minute)
+ddsTC <- DESeq(ddsTC, test = "LRT", reduced = ~ strain + minute)
 resTC <- results(ddsTC)
 resTC$symbol <- mcols(ddsTC)$symbol
 head(resTC[order(resTC$padj),], 4)
@@ -1911,12 +1913,12 @@ differences at time 0 (figure below). Keep in mind that the interaction terms ar
 *difference* between the two groups at a given time after accounting for
 the difference at time 0.
 
-```{r fissioncounts, fig.width=6, fig.height=4.5}
+```{r fissioncounts, fig.width = 6, fig.height = 4.5}
 fiss <- plotCounts(ddsTC, which.min(resTC$padj), 
-                   intgroup=c("minute","strain"), returnData=TRUE)
+                   intgroup = c("minute","strain"), returnData = TRUE)
 ggplot(fiss,
-  aes(x=as.numeric(minute), y=count, color=strain, group=strain)) + 
-  geom_point() + geom_smooth(se=FALSE, method="loess") + scale_y_log10()
+  aes(x = as.numeric(minute), y = count, color = strain, group = strain)) + 
+  geom_point() + geom_smooth(se = FALSE, method = "loess") + scale_y_log10()
 ```
 
 **Normalized counts for a gene with condition-specific changes over time.**
@@ -1926,7 +1928,7 @@ investigated using the `test` argument to *results*:
 
 ```{r}
 resultsNames(ddsTC)
-res30 <- results(ddsTC, name="strainmut.minute30", test="Wald")
+res30 <- results(ddsTC, name = "strainmut.minute30", test = "Wald")
 res30[which.min(resTC$padj),]
 ```
 
@@ -1946,8 +1948,8 @@ mat <- betas[topGenes, -c(1,2)]
 thr <- 3 
 mat[mat < -thr] <- -thr
 mat[mat > thr] <- thr
-pheatmap(mat, breaks=seq(from=-thr, to=thr, length=101),
-         cluster_col=FALSE)
+pheatmap(mat, breaks = seq(from = -thr, to = thr, length = 101),
+         cluster_col = FALSE)
 ```
 
 **Heatmap of log2 fold changes for genes with smallest adjusted *p* value.**
