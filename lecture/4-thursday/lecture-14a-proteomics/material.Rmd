@@ -19,3 +19,186 @@ lg390@cam.ac.uk                    @lgatt0
 
 Link to slides/source.
 
+## Licence
+
+These slides are available under a creative common
+[CC-BY license](http://creativecommons.org/licenses/by/4.0/). You are
+free to share (copy and redistribute the material in any medium or
+format) and adapt (remix, transform, and build upon the material) for
+any purpose, even commercially.
+
+<img src="./Figures/cc1.jpg">
+
+## Table of content
+
+- Brief intro on how MS works
+- Raw MS data (linked to the how MS works section)
+- MS quantitation: MS1 vs MS2 (MS3), label-free vs labelled
+- Peptide identification and protein inference
+- Proteomics data processing overview
+- Some packages of interest
+
+```{r env, echo=FALSE, message=FALSE, warning=FALSE}
+library("MSnbase")
+library("RforProteomics")
+library("Pbase")
+library("cputools")
+```
+
+# Mass spectrometry
+
+## { .fullpage }
+
+![MS schematics](./Figures/SchematicMS2.png)
+
+## { .fullpage }
+
+![chromatogram](./Figures/chromatogram.png)
+
+## { .fullpage }
+
+![MS schematics](./Figures/SchematicMS2.png)
+
+## { .fullpage }
+
+![MS1 and MS2 spectra](./Figures/MS1-MS2-spectra.png)
+
+## { .fullpage }
+
+![MS data](./Figures/F02-3D-MS1-scans-400-1200-lattice.png)
+
+## { .fullpage }
+
+![MS data](./Figures/F02-3D-MS1-MS2-scans-100-1200-lattice.png)
+
+## In R
+
+```{r}
+library("msdata")
+library("mzR")
+fls <- proteomics(full = TRUE)
+basename(fl <- fls[2])
+rw <- readMSData2(fl)
+```
+
+## Some operations
+
+- filtering
+- ...
+
+# Proteomics
+
+## Proteomics
+
+- MS2 spectra are peptides
+- Use the fragmentation pattern to deduce the peptide sequence
+- De nove sequencing
+- Database search
+
+## { .fullpage }
+
+![Identification](./Figures/bibbs03.jpg)
+
+Credit `abrg.org`
+
+## Database search
+
+- Protein sequences (fasta file)
+- In silico digestion
+- Matching of expected (in silico) to observed (MS2)
+
+## { .fullpage }
+
+```{r fargments}
+library("MSnbase")
+cid <- calculateFragments("AEGKLRFK",
+                          type=c("b", "y"), z=2)
+ht(cid, n = 3)
+```
+
+## Proteomics data
+
+### Raw data:
+- MS1 and MS2 over retention time
+- MS1 or MS2 (MS3) for quantitation
+- MS2 for identitication
+
+### Protein database:
+- to match MS2 spectra against
+
+
+## Protein inference
+
+## Proteomics data
+
+| File/format   |  package  |
+|---------------|-----------|
+| Raw (`mz*ML`) | `mzR`     |
+| mzTab         | `MSnbase` |
+| `mgf`         | `MSnbase` |
+| `mzIdentML`   | `mzR`, `mzID` |
+| `mzQuantML`   | `NA``     |
+
+
+# Quantitiative proteomics
+
+## 
+
+|                | MS1         | MS2        |
+|----------------|-------------|------------|
+| **Labelled**   | SILAC, N15  | iTRAQ, TMT |
+| **Label-free** | XIC         | Spectral counting |
+
+## MSnSet
+
+![MSnSet structure](./Figures/msnset.png)
+
+
+## Packages of interest
+
+All MS and proteomics Bioc packages (from [biocViews]()):
+
+```r
+RforProteomics::proteomicsPackages()
+RforProteomics::massSpectrometryPackages()
+```
+
+- `mzR`
+- `MSnbase`
+- `MSnID`
+- `MSGFplus`
+- `MSstats`, `msmsTests`
+- Many Bioconductor packages for the statistical and downstream
+  analysis
+
+## More
+
+- Lab this afternoon
+- [Proteomics workflow](http://bioconductor.org/help/workflows/proteomics/)
+  on the Bioc site
+- `RforProteomics` package
+```{r r4p, eval=FALSE}
+library("RforProteomics")
+RforProteomics()
+RProtVis()
+citation(package = "RforProteomics")
+```
+
+
+## References
+
+- RforProteomics vignette
+- MS/proteomics workflow
+
+## Acknowledgements
+
+### Development
+
+- Sebastian Gibb
+- Johannes Rainer
+
+### Funding: 
+- BBSRC
+
+**Thank you for your attention**
+
