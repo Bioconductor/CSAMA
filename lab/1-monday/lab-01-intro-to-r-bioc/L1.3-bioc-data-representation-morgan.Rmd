@@ -617,8 +617,8 @@ differential expression analysis, e.g., through [DESeq2][] and
     plot(gc_percent, rowMeans(assay(olaps)), log="y")
     ```
    
-[biocViews]: http://bioconductor.org/packages/BiocViews.html#___Software
-[AnnotationData]: http://bioconductor.org/packages/BiocViews.html#___AnnotationData
+[biocViews]: http://bioconductor.org/packages/release/BiocViews.html#___Software
+[AnnotationData]: http://bioconductor.org/packages/release/BiocViews.html#___AnnotationData
 
 [aprof]: http://cran.r-project.org/web/packages/aprof/index.html
 [hexbin]: http://cran.r-project.org/web/packages/hexbin/index.html

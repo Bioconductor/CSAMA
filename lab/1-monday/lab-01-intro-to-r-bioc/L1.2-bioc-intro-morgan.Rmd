@@ -283,8 +283,8 @@ for classes and methods. _Bioconductor_ uses vignettes to augment
 traditional help pages; these can be very valuable in illustrating
 overall package use.
 
-[biocViews]: http://bioconductor.org/packages/BiocViews.html#___Software
-[AnnotationData]: http://bioconductor.org/packages/BiocViews.html#___AnnotationData
+[biocViews]: http://bioconductor.org/packages/release/BiocViews.html#___Software
+[AnnotationData]: http://bioconductor.org/packages/release/BiocViews.html#___AnnotationData
 
 [aprof]: http://cran.r-project.org/web/packages/aprof/index.html
 [hexbin]: http://cran.r-project.org/web/packages/hexbin/index.html
