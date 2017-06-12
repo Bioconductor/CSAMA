@@ -56,3 +56,17 @@ And if time permits, more good early usage of Git/GitHub/R/RStudio:
 -   [Existing project, GitHub first](http://happygitwithr.com/existing-github-first.html)
 -   [Clone a repo](http://happygitwithr.com/clone.html) or [Fork a repo](http://happygitwithr.com/fork.html)
 -   [Burn it all down](http://happygitwithr.com/burn.html)
+
+#### Jenny-led version
+
+I will run a session in the auditorium for anyone who would like to work through this stuff together.
+
+My plans:
+
+  * Structure our time via these slides: <https://speakerdeck.com/jennybc/happy-git-and-github-for-the-user>
+  * Visit <http://happygitwithr.com>.
+  * Visit underlying GitHub repo: <https://github.com/jennybc/happy-git-with-r>
+  * Get everyone to "react" on this issue: <https://github.com/jennybc/happy-git-with-r/issues/62>
+  * [New project, GitHub first](http://happygitwithr.com/new-github-first.html)
+  * [Test drive R Markdown](http://happygitwithr.com/rmd-test-drive.html)
+  
