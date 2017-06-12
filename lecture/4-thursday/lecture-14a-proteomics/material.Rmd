@@ -52,13 +52,9 @@ library("cputools")
 
 - Proteomics: digestions of proteins into peptides
 - Separation of moleculares: *liquid chromatography* (LC)
-- Ionisation of molecules: MS *source*
-- Separation of ions: MS *analyser*
+- Ionisation of molecules: MS *source* (MALDI, ESI, ...)
+- Separation of ions: MS *analyser* (tof, orbitraps, ...)
 - Quantitation of ions: MS *detector*
-
-## { .fullpage }
-
-![MS schematics](./Figures/SchematicMS2.png)
 
 ## { .fullpage }
 
@@ -80,7 +76,7 @@ library("cputools")
 
 ![MS data](./Figures/F02-3D-MS1-MS2-scans-100-1200-lattice.png)
 
-# Mass spectometry in R
+# Mass spec in R
 
 ## In R
 
@@ -119,8 +115,15 @@ library("MSnbase")
 ```{r msb2, cache=TRUE}
 table(msLevel(x))
 head(centroided(x))
+```
+
+
+## 
+
+```{r msb3, cache=TRUE}
 table(isCentroided(x), msLevel(x))
 centroided(x) <- isCentroided(x)
+head(centroided(x))
 ```
 
 ## 
