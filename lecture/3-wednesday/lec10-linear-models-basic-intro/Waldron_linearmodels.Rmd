@@ -514,6 +514,10 @@ $$
     1. a point mass at zero, and
     2. a Poisson or Negative Binomial count distribution
 
+* **Warning**: be aware of what your logistic model is
+    + in some implementations default includes same predictors as log-linear model, but
+    + more than intercept-only becomes hard to interpret and is probably not justified
+
 ## Additive vs. multiplicative models
 
 * Linear regression is an _additive_ model

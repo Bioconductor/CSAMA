@@ -203,7 +203,7 @@ print(fit.table, type="html")
 ```
 
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:28:10 2017 -->
+<!-- Tue Jun 13 16:51:49 2017 -->
 <table border=1>
 <tr> <th>  </th> <th> Estimate </th> <th> Std. Error </th> <th> t value </th> <th> Pr(&gt;|t|) </th>  </tr>
   <tr> <td align="right"> (Intercept) </td> <td align="right"> 0.9215 </td> <td align="right"> 0.0383 </td> <td align="right"> 24.08 </td> <td align="right"> 0.0000 </td> </tr>
@@ -238,7 +238,7 @@ print(fit.table, type="html")
 ```
 
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:28:11 2017 -->
+<!-- Tue Jun 13 16:51:50 2017 -->
 <table border=1>
 <tr> <th>  </th> <th> Estimate </th> <th> Std. Error </th> <th> t value </th> <th> Pr(&gt;|t|) </th>  </tr>
   <tr> <td align="right"> (Intercept) </td> <td align="right"> 0.6644 </td> <td align="right"> 0.0538 </td> <td align="right"> 12.34 </td> <td align="right"> 0.0000 </td> </tr>
@@ -274,7 +274,7 @@ print(fit.table, type="html")
 ```
 
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:28:11 2017 -->
+<!-- Tue Jun 13 16:51:50 2017 -->
 <table border=1>
 <tr> <th>  </th> <th> Estimate </th> <th> Std. Error </th> <th> t value </th> <th> Pr(&gt;|t|) </th>  </tr>
   <tr> <td align="right"> (Intercept) </td> <td align="right"> 1.0539 </td> <td align="right"> 0.0282 </td> <td align="right"> 37.43 </td> <td align="right"> 0.0000 </td> </tr>
@@ -529,7 +529,7 @@ fitX <- lm(friction ~ type * leg, data=spider)
 ```
 
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:28:11 2017 -->
+<!-- Tue Jun 13 16:51:50 2017 -->
 <table border=1>
 <tr> <th>  </th> <th> Estimate </th> <th> Std. Error </th> <th> t value </th> <th> Pr(&gt;|t|) </th>  </tr>
   <tr> <td align="right"> (Intercept) </td> <td align="right"> 0.9215 </td> <td align="right"> 0.0327 </td> <td align="right"> 28.21 </td> <td align="right"> 0.0000 </td> </tr>
@@ -706,6 +706,10 @@ $$
 * Or as a mixture of:
     1. a point mass at zero, and
     2. a Poisson or Negative Binomial count distribution
+
+* **Warning**: be aware of what your logistic model is
+    + in some implementations default includes same predictors as log-linear model, but
+    + more than intercept-only becomes hard to interpret and is probably not justified
 
 ## Additive vs. multiplicative models
 
