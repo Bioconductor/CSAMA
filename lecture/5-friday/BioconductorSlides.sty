@@ -1,0 +1,39 @@
+\usepackage{Sweave}
+\usepackage{color,graphics}
+\usepackage{latexsym, amsmath, amssymb}
+\hypersetup{colorlinks=TRUE, urlcolor=blue}
+
+
+%% simple macros
+\newcommand{\software}[1]{\textsl{#1}}
+\newcommand\R{\textsl{R}}
+\newcommand\Bioconductor{\textsl{Bioconductor}}
+\newcommand\Rpackage[1]{{\textsl{#1}\index{#1 (package)}}}
+\newcommand\Biocpkg[1]{%
+  {\href{http://bioconductor.org/packages/release/bioc/html/#1.html}%
+    {\textsl{#1}}}%
+  \index{#1 (package)}}
+\newcommand\Rpkg[1]{%
+  {\href{http://cran.fhcrc.org/web/packages/#1/index.html}%
+    {\textsl{#1}}}%
+  \index{#1 (package)}}
+\newcommand\Biocannopkg[1]{%
+  {\href{http://bioconductor.org/packages/release/data/annotation/html/#1.html}%
+    {\Rpackage{#1}}}}
+\newcommand\Biocdatapkg[1]{%
+  {\href{http://bioconductor.org/packages/release/data/experiment/html/#1.html}%
+    {\textsl{#1}}}%
+  \index{#1 (package)}}
+\newcommand\Robject[1]{{\small\texttt{#1}}}
+\newcommand\Rclass[1]{{\textit{#1}\index{#1 (class)}}}
+\newcommand\Rfunction[1]{{{\small\texttt{#1}}\index{#1 (function)}}}
+\newcommand\Rmethod[1]{{\texttt{#1}}}
+\newcommand\Rfunarg[1]{{\small\texttt{#1}}}
+\newcommand\Rcode[1]{{\small\texttt{#1}}}
+
+%% \AtBeginSection[]
+%% {
+%%   \begin{frame}<beamer>{Outline}
+%%     \tableofcontents
+%%   \end{frame}
+%% }
