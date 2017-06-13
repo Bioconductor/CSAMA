@@ -280,11 +280,10 @@
       ne_Set_Testing.pdf}}.
 \end{frame}
 
-
 \begin{frame}{Acknowledgments}
   \begin{itemize}
-  \item Core: Valerie Obenchain, Herv\'e Pag\`es, (Dan Tenenbaum),
-    Lori Shepherd, Marcel Ramos, Yubo Cheng.
+  \item Core: Valerie Obenchain, Herv\'e Pag\`es,
+    Lori Shepherd, Marcel Ramos, Nitesh Turaga, Daniel van Twisk.
   \item The research reported in this presentation was supported by
     the National Cancer Institute and the National Human Genome
     Research Institute of the National Institutes of Health under
