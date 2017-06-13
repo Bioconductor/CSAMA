@@ -10,14 +10,20 @@ output:
 
 ## Outline for Introduction to Linear Models
 
-Based on Love and Irizarry, [Data Analysis for the Life Sciences](https://leanpub.com/dataanalysisforthelifesciences), Chapter 5
-
 * Multiple linear regression
     + Continuous and categorical predictors
     + Interactions
 * Model formulae
 * Design matrix
-* Analysis of Variance
+* Generalized Linear Models
+    + Linear, logistic, log-Linear links
+    + Poisson, Negative Binomial error distributions
+    + Zero inflation
+
+Based on:
+
+1. Love and Irizarry, [Data Analysis for the Life Sciences](https://leanpub.com/dataanalysisforthelifesciences), Chapter 5
+2. Vittinghoff E, Glidden DV, Shiboski SC, McCulloch CE. Regression Methods in Biostatistics: Linear, Logistic, Survival, and Repeated Measures Models (Statistics for Biology and Health). Springer; 2005.
 
 # Introduction to Linear Models
 
@@ -62,22 +68,8 @@ summary(spider)
 ## What are linear models?
 
 - Linear models model a response variable $Y_i$ as a linear combination of predictors, plus randomly distributed noise.
-- Which of the following are examples of linear models?
-
-1. $y_i = \beta_0 + \beta_1 x_i + \varepsilon_i$
-2. $y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \varepsilon_i$
-3. $y_i = \beta_0 + \beta_1 x_i + \times 2^{\beta_2 x_i} + \varepsilon_i$
-
-Where: $i=1,\dots,N$
-
-Assumption: $\varepsilon_i \stackrel{iid}{\sim} N(0, \sigma_\epsilon^2)$
-
-## What are linear models?
-
-The following are examples of linear models:
-
-1. $y_i = \beta_0 + \beta_1 x_i + \varepsilon_i$ (simple linear regression)
-2. $y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \varepsilon_i$ (quadratic regression)
+- A common use case is where $Y_i$ are log-transformed microarray data
+    + predictors are treatment vs. control, male vs. female, amount of exposure, etc
 
 ## Multiple linear regression model
 
@@ -96,7 +88,7 @@ $$
 
 ## Multiple linear regression model
 
-Random part of model:
+Systematic plus random components of model:
 
 $y_i = E[y_i|x_i] + \epsilon_i$
 
@@ -413,73 +405,138 @@ summary(L3vsL2interaction)
 * Can fit coefficients **directly** to your contrast of interest
     * *e.g.*: what is the difference between push/pull friction for each spider-leg pair?
 
-# Analysis of Variance
+# Generalized Linear Models
 
-## Why Analysis of Variance?
+## Generalized Linear Models
 
-* Analysis of Variance allows inference on the inclusion of a categorical or continuous variable
-    * not just on re-coded "dummy" variables (e.g. for each spider leg pair)
+* Linear regression is a special case of a broad family of models called "Generalized Linear Models" (GLM)
+* This unifying approach allows to fit a large set of models using maximum likelihood estimation methods (MLE) (Nelder & Wedderburn, 1972)
+* Can model many types of data directly using appropriate distributions, e.g. Poisson distribution for count data
+* Transformations of $Y$ not needed
 
-```{r, fig.height=5, fig.align='center', echo=FALSE}
-boxplot(spider$friction ~ spider$type * spider$leg,
-        col=c("grey90","grey40"), las=2,
-        main="Friction coefficients of different leg pairs")
-```
+## Components of a GLM
 
-## Compare ANOVA table to regression table
+$$
+g\left( E[y|x] \right) = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi}
+$$
 
-```{r, results='asis'}
-print(xtable::xtable(summary(fit)), type="html")
-```
+* **Random component** specifies the conditional distribution for the response variable
+    + doesn’t have to be normal
+    + can be any distribution in the "exponential" family of distributions
+* **Systematic component** specifies linear function of predictors (linear predictor)
+* **Link** [denoted by g(.)] specifies the relationship between the expected value of the random component and the systematic component
+    + can be linear or nonlinear  
 
-```{r, results='asis'}
-print(xtable::xtable(anova(fit)), type="html")
-```
+## Linear Regression as GLM
 
-$F = \frac{\textrm{variability between groups}}{\textrm{variability within groups}} = \frac{\textrm{reduction in variance from adding variable}}{\textrm{variance of residuals}}$
+* Useful for binary outcomes, e.g. Single Nucleotide Polymorphisms or somatic variants
 
-## Analysis of Variance: F test
+* **The model**: $y_i = E[y|x] + \epsilon_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi} + \epsilon_i$
 
-- Compares *between* group variance to *within* group variance
-    - $F = \frac{\textrm{variability between groups}}{\textrm{variability within groups}} = \frac{\textrm{reduction in variance from adding variable}}{\textrm{variance of residuals}}$
-- The F distribution depends on both *numerator* (df1) and *denominator* (df2) degrees of freedom
-- Rejection region is in the right tail only:
+* **Random component** of $y_i$ is normally distributed:   $\epsilon_i \stackrel{iid}{\sim} N(0, \sigma_\epsilon^2)$
 
-```{r, echo=FALSE}
-x=seq(0.01, 10, by=0.01)
-y=df(x, df1=5, df2=5)
-plot(x, y, type="l", main="df(df1=5, df2=5)", xlab="F", ylab="Probability")
-Fcrit = qf(0.95, df1=5, df2=5)
-abline(v=Fcrit, lty=2)
-abline(h=0)
-arrows(x0=Fcrit, x1=Fcrit+1, y0=0.4, y1=0.4)
-text(x=Fcrit, y=0.3, label="Probability = 0.05", pos=4)
-```
+* **Systematic component** (linear predictor): $\beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi}$
+
+* **Link function** here is the _identity link_: $g(E(y | x)) = E(y | x)$.  We are modeling the mean directly, no transformation.
+
+## Logistic Regression as GLM
+
+* **The model**: 
+$$
+Logit(P(x)) = log \left( \frac{P(x)}{1-P(x)} \right) = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi}
+$$
+
+* **Random component**: $y_i$ follows a Binomial distribution (outcome is a binary variable)
+
+* **Systematic component**: linear predictor 
+$$
+\beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi}
+$$
+
+* **Link function**: _logit_ (log of the odds that the event occurs)
+
+$$
+g(P(x)) = logit(P(x)) = log\left( \frac{P(x)}{1-P(x)} \right)
+$$
+
+$$
+P(x) = g^{-1}\left( \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi}
+ \right)
+$$
+
+## Log-linear GLM
+
+The systematic part of the GLM is:
+
+$$
+log\left( E[y|x] \right) = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi} + log(t_i)
+$$
+
+* Common for count data
+    + can account for differences in sequencing depth by an *offset* $log(t_i)$
+    + guarantees non-negative expected number of counts
+    + often used in conjunction with Poisson or Negative Binomial error models
+    
+## Poisson error model
+
+$$
+f(k, \lambda) = e^{-\lambda} \frac{\lambda^k}{k!}
+$$
+
+* where $f$ is the probability of $k$ events (e.g. # of reads counted), and
+* $\lambda$ is the mean number of events, so $E[y|x]$
+* $\lambda$ is also the variance of the number of events
+
+## Negative Binomial error model
+
+* *aka* gamma–Poisson mixture distribution
+
+$$
+f(k, \lambda, \theta) = \frac{\Gamma(\frac{1}{\theta}+k)}{k! \, \Gamma(\frac{1}{\theta})} 
+    \left(\frac{\theta m}{1+\theta m}\right)^k 
+    \left(\frac{1}{1+\theta m}\right)^r 
+    \quad\text{for }k = 0, 1, 2, \dotsc
+$$
+
+* An additional **dispersion parameter** $\theta$ is estimated:
+    + $\theta \rightarrow 0$: Poisson distribution
+    + $\theta \rightarrow \infty$: Gamma distribution    
+* The Poisson model can be considered as **nested** within the Negative Binomial model
+    + A likelihood ratio test comparing the two models is possible
+
+## Zero Inflation
+
+* Can be used when count data have extra zeros generated by something other than the Poisson / Negative Binomial distribution
+* Can think of it as a two-step model:
+    1. logistic model to determine whether count is zero or Poisson/NB
+    2. Poisson or Negative Binomial distribution for observations not set to zero by *1.*
+* Or as a mixture of:
+    1. a point mass at zero, and
+    2. a Poisson or Negative Binomial count distribution
+
+## Additive vs. multiplicative models
+
+* Linear regression is an _additive_ model
+    + _e.g._ for two binary variables $\beta_1 = 1.5$, $\beta_2 = 1.5$.
+    + If $x_1=1$ and $x_2=1$, this adds 3.0 to $E(y|x)$
+* Logistic and log-linear models are _multiplicative_:
+    + If $x_1=1$ and $x_2=1$, this adds 3.0 to $log(\frac{P}{1-P})$
+    + Odds-ratio $\frac{P}{1-P}$ increases 20-fold: $exp(1.5+1.5)$ or $exp(1.5) * exp(1.5)$
+
 
 ## Summary
 
-- Linear models are the basis for identifying differential expression / differential abundance
-    - continuous $Y$; any kind of $X$ variables
-- **Assumptions**: 
-    1. normal, homoscedastic errors,
-    2. a linear relationship, and
-    3. independent observations.
-
-- Note that **t** and **F** tests are *robust* and *conservative* to violations of 1 and 2
-    - extremely so for $n>30$
-
-## Summary (cont'd)
-
-- Know the model formula interface, but
-    - use model matrices to directly fit coefficients that you want to interpret
-- **Generalized Linear Models** extend these methods to:
+- **Generalized Linear Models** extend linear regression to:
     - binary $Y$ (logistic regression)
     - count $Y$ (log-linear regression with e.g. Poisson or Negative Binomial link functions) 
+- The basis for identifying differential expression / differential abundance
+- Know the model formula interface, but
+    - use model matrices to directly fit coefficients that you want to interpret
 
 ## Links
 
 - A built [html][] version of this lecture is available.
 - The [source][] R Markdown is also available from Github.
 
-[html]: http://rpubs.com/lwaldron/CSAMA2016_IntroLinearModels
-[source]: https://github.com/waldronlab/presentations/tree/master/Waldron_2016-07-11_CSAMA_linearmodels
+[html]: http://rpubs.com/lwaldron/CSAMA2017_IntroLinearModels
+[source]: https://github.com/Bioconductor/CSAMA/tree/2017/lecture/3-wednesday/lec10-linear-models-basic-intro
