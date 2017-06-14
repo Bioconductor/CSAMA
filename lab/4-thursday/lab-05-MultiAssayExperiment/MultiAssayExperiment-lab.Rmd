@@ -8,13 +8,6 @@ output:
     toc_depth: 4
 ---
 
-```{r, warning=FALSE}
-suppressPackageStartupMessages({
-    library(MultiAssayExperiment)
-    library(S4Vectors)
-    })
-```
-
 Get started by trying out `MultiAssayExperiment` using a subset of the TCGA adrenocortical carcinoma (ACC) dataset provided with the package. This dataset provides five assays on 92 patients, although all five assays were not performed for every patient:
 
 1. **RNASeq2GeneNorm**: gene mRNA abundance by RNA-seq
@@ -24,6 +17,10 @@ Get started by trying out `MultiAssayExperiment` using a subset of the TCGA adre
 5. **miRNASeqGene**: microRNA abundance by microRNA-seq.
 
 ```{r}
+suppressPackageStartupMessages({
+    library(MultiAssayExperiment)
+    library(S4Vectors)
+})
 data(miniACC)
 miniACC
 ```
@@ -264,7 +261,7 @@ existing `MultiAssayExperiment`. The optional `sampleMap` argument allows concat
 
 ```{r}
 miniACC2 <- c(miniACC, log2rnaseq = log2(assays(miniACC)$RNASeq2GeneNorm), mapFrom=1L)
-assays(miniACC2)
+experiments(miniACC2)
 ```
 
 <p style="text-align: right;"> <a href="#header">back to top</a> </p>
@@ -333,20 +330,135 @@ For further detail, see the main MultiAssayExperiment vignette.
 
 ## Correlation between RNA-seq and copy number
 
+**Part 1**
+
 For all genes where there is both recurrent copy number (gistict assay) and RNA-seq, calculate the correlation between log2(RNAseq + 1) and copy number. Create a histogram of these correlations. Compare this with the histogram of correlations between all *unmatched* gene - copy number pairs.
 
-One solution:
-```{r, eval=FALSE}
+**Solution**
+
+First, narrow down `miniACC` to only the assays needed:
+
+```{r}
 subacc <- miniACC[, , c("RNASeq2GeneNorm", "gistict")]
+```
+
+Align the rows and columns, keeping only samples with both assays available:
+```{r}
 subacc <- intersectColumns(subacc)
 subacc <- intersectRows(subacc)
-subacc <- assays(subacc)
-subacc[[1]] <- log2(subacc[[1]] + 1)
-subacc <- lapply(subacc, t)
-corres <- cor(subacc[[1]], subacc[[2]])
+```
+
+Create a list of numeric matrices:
+```{r}
+subacc.list <- assays(subacc)
+```
+
+Log-transform the RNA-seq assay:
+```{r}
+subacc.list[[1]] <- log2(subacc.list[[1]] + 1)
+```
+
+Transpose both, so genes are in columns:
+```{r}
+subacc.list <- lapply(subacc.list, t)
+```
+
+Calculate the correlation between columns in the first matrix and columns in the second matrix:
+```{r}
+corres <- cor(subacc.list[[1]], subacc.list[[2]])
+```
+
+And finally, create the histograms:
+```{r}
 hist(diag(corres))
 hist(corres[upper.tri(corres)])
 ```
+
+**Part 2**
+
+For the gene with highest correlation to copy number, make a box plot of log2 expression against copy number.
+
+**Solution**
+
+First, identify the gene with highest correlation between expression and copy number:
+```{r}
+which.max(diag(corres))
+```
+
+You could now make the plot by taking the EIF4E columns from each element of the list subacc.list *list* that was extracted from the subacc *MultiAssayExperiment*, but let's do it by subsetting and extracting from the *MultiAssayExperiment*:
+
+```{r}
+df <- wideFormat(subacc["EIF4E", , ])
+head(df)
+```
+
+```{r}
+boxplot(RNASeq2GeneNorm_EIF4E ~ gistict_EIF4E, 
+        data=df, varwidth=TRUE,
+        xlab="GISTIC Relative Copy Number Call",
+        ylab="RNA-seq counts")
+```
+
+<p style="text-align: right;"> <a href="#header">back to top</a> </p>
+
+## Identifying correlated principal components
+
+Perform Principal Components Analysis of each of the five assays, using samples available on each assay, log-transforming RNA-seq data first.  Using the first 10 components, calculate Pearson correlation between all scores and plot these correlations as a heatmap to identify correlated components across assays.
+
+**Solution**
+
+Here's a function to simplify doing the PCAs:
+```{r}
+getLoadings <- function(x, ncomp=10, dolog=FALSE, center=TRUE, scale.=TRUE){
+  if(dolog){
+    x <- log2(x + 1)
+  }
+  pc = prcomp(x, center=center, scale.=scale.) 
+  return(t(pc$rotation[, 1:10]))
+}
+```
+
+Although it would be possible to do the following with a loop, the different data types do require different options for PCA (e.g. mutations are a 0/1 matrix with 1 meaning there is a somatic mutation, and gistict varies between -2 for homozygous loss and 2 for a genome doubling, so neither make sense to scale and center). So it is just as well to do the following one by one, concatenating each PCA results to the MultiAssayExperiment:
+
+```{r}
+miniACC2 <- intersectColumns(miniACC)
+miniACC2 <- c(miniACC2, rnaseqPCA=getLoadings(assays(miniACC2)[[1]], dolog=TRUE), mapFrom=1L)
+miniACC2 <- c(miniACC2, gistictPCA=getLoadings(assays(miniACC2)[[2]], center=FALSE, scale.=FALSE), mapFrom=2L)
+miniACC2 <- c(miniACC2, proteinPCA=getLoadings(assays(miniACC2)[[3]]), mapFrom=3L)
+miniACC2 <- c(miniACC2, mutationsPCA=getLoadings(assays(miniACC2)[[4]], center=FALSE, scale.=FALSE), mapFrom=4L)
+miniACC2 <- c(miniACC2, miRNAPCA=getLoadings(assays(miniACC2)[[5]]), mapFrom=5L)
+```
+
+Now subset to keep *only* the PCA results:
+```{r}
+miniACC2 <- miniACC2[, , 6:10]
+experiments(miniACC2)
+```
+
+Note, it would be equally easy (and maybe better) to do PCA on all samples available for each assay, then do intersectColumns at this point instead.
+
+Now, steps for calculating the correlations and plotting a heatmap:
+* Use *wideFormat* to paste these together, which has the nice property of adding assay names to the column names. 
+* The first column always contains the sample identifier, so remove it. * Coerce to a matrix
+* Calculate the correlations, and take the absolute value (since signs of principal components are arbitrary)
+* Set the diagonals to NA (each variable has a correlation of 1 to itself).
+```{r}
+df <- wideFormat(miniACC2)[, -1]
+mycors <- cor(as.matrix(df))
+mycors <- abs(mycors)
+diag(mycors) <- NA
+```
+
+To simplify the heatmap, show only components that have at least one correlation greater than 0.5.
+```{r}
+has.high.cor <- apply(mycors, 2, max, na.rm=TRUE) > 0.5
+mycors <- mycors[has.high.cor, has.high.cor]
+pheatmap::pheatmap(mycors)
+```
+
+The highest correlation present is between PC2 of the RNA-seq assay, and PC1 of the protein assay.
+
+<p style="text-align: right;"> <a href="#header">back to top</a> </p>
 
 ## Annotating with ranges
 
@@ -402,7 +514,7 @@ Note that the class of experiments 1-4 is now `RangedSummarizedExperiment`:
 experiments(seACC)
 ```
 
-
+<p style="text-align: right;"> <a href="#header">back to top</a> </p>
 
 # Session info
 
