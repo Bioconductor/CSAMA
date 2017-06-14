@@ -289,24 +289,24 @@ Create a Kaplan-meier plot, using pathology_N_stage as a stratifying variable.
 
 **Solution**
 
-The colData provides clinical data for things like a Kaplan-Meier plot for overall survival stratified by nodal stage. To simplify things, first add a "y" column to the colData, containing the `Surv` object for survival analysis:
+The colData provides clinical data for things like a Kaplan-Meier plot for overall survival stratified by nodal stage. 
 
 ```{r}
 suppressPackageStartupMessages({
   library(survival)
   library(survminer)
 })
-miniACC$y <- Surv(miniACC$days_to_death, miniACC$vital_status)
+Surv(miniACC$days_to_death, miniACC$vital_status)
 ```
 
 And remove any patients missing overall survival information:
 ```{r}
-miniACC <- miniACC[, complete.cases(miniACC$y), ]
+miniACCsurv <- miniACC[, complete.cases(miniACC$days_to_death, miniACC$vital_status), ]
 ```
 
 ```{r}
-fit <- survfit(y ~ pathology_N_stage, data = colData(miniACC))
-ggsurvplot(fit, data = colData(miniACC), risk.table = TRUE)
+fit <- survfit(Surv(days_to_death, vital_status) ~ pathology_N_stage, data = colData(miniACCsurv))
+ggsurvplot(fit, data = colData(miniACCsurv), risk.table = TRUE)
 ```
 
 ## Multivariate Cox regression including RNA-seq, copy number, and pathology
@@ -399,8 +399,9 @@ for (i in 1:4){
 
 Note that the class of experiments 1-4 is now `RangedSummarizedExperiment`:
 ```{r}
-seACC
+experiments(seACC)
 ```
+
 
 
 # Session info
