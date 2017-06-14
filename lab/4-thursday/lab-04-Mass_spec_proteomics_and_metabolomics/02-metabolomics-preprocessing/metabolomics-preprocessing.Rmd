@@ -45,6 +45,13 @@ This workflow requires R version >= 3.4 and the following packages:
     using the `doParallel` package and using this in `BiocParallel` seems to avoid
     such problems.
 
+Below we ensure that the packages are installed in the required versions:
+
+```{r  version-check, message = FALSE, results = "hide" }
+source("http://192.168.0.9/lab4_packages.R")
+ 
+```
+
 ```{r  setup, message = FALSE, results = "hide" }
 ## Style
 library(BiocStyle)
