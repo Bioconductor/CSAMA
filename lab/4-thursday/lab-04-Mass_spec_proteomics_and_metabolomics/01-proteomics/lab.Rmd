@@ -1438,6 +1438,10 @@ available via the `r Biocpkg("hpar")` package.
 
 # Session Information
 
+```{r maxprint, echo=FALSE}
+options("max.print" = 1e3)
+```
+
 ```{r si}
 sessionInfo()
 ```
