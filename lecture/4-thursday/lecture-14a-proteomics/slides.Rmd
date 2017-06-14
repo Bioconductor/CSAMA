@@ -192,19 +192,18 @@ ht(cid, n = 3)
 
 ## Identification in R
 
-```{r}
+```{r id1}
 idf <- system.file("mzid", "Tandem.mzid.gz", package = "msdata")
 id <- openIDfile(idf)
 softwareInfo(id)
 enzymes(id)
-str(psms(id))
 ```
 
-## Searching in R
+## 
 
-- `r Biocpkg("MSGFplus")`
-- `r Biocpkg("rTANDEM")`
-
+```{r id2}
+str(psms(id))
+```
 
 ## Protein inference
 
@@ -225,6 +224,17 @@ See also
 
 ![Peptide evidence classes](./Figures/nbt0710-647-F2.gif)
 
+## Quant and ident
+
+```{r addid}
+quantFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
+                 full.name = TRUE, pattern = "mzXML$")
+identFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
+                 full.name = TRUE, pattern = "dummyiTRAQ.mzid")
+x <- readMSData(quantFile)
+x <- addIdentificationData(x, identFile)
+fData(x)$pepseq
+```
 
 # Proteomics data
 
@@ -251,6 +261,7 @@ See also
 
 # Quantitiative proteomics
 
+
 ## 
 
 |                | MS1         | MS2        |
@@ -262,24 +273,24 @@ See also
 
 ![MSnSet structure](./Figures/msnset.png)
 
-## 
-
-```{r addid}
-quantFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
-                 full.name = TRUE, pattern = "mzXML$")
-identFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
-                 full.name = TRUE, pattern = "dummyiTRAQ.mzid")
-x <- readMSData(quantFile)
-x <- addIdentificationData(x, identFile)
-fData(x)$pepseq
-```
 
 ## 
 
 ```{r qnt}
 xq <- quantify(x, reporters = iTRAQ4, method = "max")
 exprs(xq)
+```
+
+## 
+
+```{r fdat}
 head(fData(xq))
+```
+
+## 
+
+```{r pdat}
+pData(xq)
 ```
 
 ## 
