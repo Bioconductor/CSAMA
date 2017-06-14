@@ -136,11 +136,16 @@ x2 <- x %>%
 x2
 ```
 
+## 
+
+```{r extractsp}
+data(itraqdata)
+itraqdata[[22]]
+```
 
 ## 
 
 ```{r plotrw}
-data(itraqdata)
 plot(itraqdata[[22]], full = TRUE, reporters = iTRAQ4)
 ```
 

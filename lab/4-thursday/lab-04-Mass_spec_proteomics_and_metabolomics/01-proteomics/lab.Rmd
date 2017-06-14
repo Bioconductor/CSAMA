@@ -94,6 +94,31 @@ particular, the vignettes included in the
 `r Biocannopkg("RforProteomics")`
 package also contains relevant material.
 
+### Other material {-}
+
+This workflow provides a *general* introduction to Bioconductor software
+for mass spectrometry and proteomics. If you are interested in 
+
+- Application of machine learning to proteomics data, in particular
+  spatial proteomics (i.e. the sub-cellular localisation), follow the
+  tutorial vignette from `r Biocpkg("pRoloc")` package, accessible
+  with `vignette("pRoloc-tutorial", package = "pRoloc")` or
+  [online](https://bioconductor.org/packages/devel/bioc/vignettes/pRoloc/inst/doc/pRoloc-tutorial.html).
+- The analysis of identification data to retain the most reliable
+  PSMs, see the `r Biocpkg("MSnID")`
+  vignette^[Section *Analysing search results* below is a summary of that vignette.],
+  accessible with `vignette("msnid_vignette", package = "MSnID")` or
+  [online](https://bioconductor.org/packages/release/bioc/vignettes/MSnID/inst/doc/msnid_vignette.pdf). In
+  addition, the vignettes of the `r Biocpkg("msmsTest")` package
+  describe how to analyse spectral counting data using packages
+  dedicated for the analysis of high throughput sequencing data.
+- The analysis of MS^E^ data independent acquisition (DIA), see the
+  vignettes in the `r Biocpkg("synapter")` package.
+- The processing and analysis of MALDI-MS data, read the 
+  `r CRANpkg("MALDIquant")` introduction accessible with
+  `vignette("MALDIquant-intro", package = "MALDIquant")` and available
+  [online](https://cran.r-project.org/web/packages/MALDIquant/).
+
 ## Setup { - }
 
 The follow packages will be used throughout this documents. R version
