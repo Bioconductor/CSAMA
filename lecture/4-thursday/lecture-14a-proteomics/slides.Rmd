@@ -1,0 +1,324 @@
+---
+title: "Mass spectrometry and proteomics using Bioconductor"
+author: "Laurent Gatto"
+output:
+  rmdshower::shower_presentation:
+    theme: material
+    self_contained: true
+    ratio: 16x10
+---
+
+
+## Mass spectrometry and proteomics using Bioconductor
+
+```
+Laurent Gatto                      Computational Proteomics Unit
+https://lgatto.github.io           University of Cambridge
+lg390@cam.ac.uk                    @lgatt0
+```
+
+Link to slides/source.
+
+## Licence
+
+These slides are available under a creative common
+[CC-BY license](http://creativecommons.org/licenses/by/4.0/). You are
+free to share (copy and redistribute the material in any medium or
+format) and adapt (remix, transform, and build upon the material) for
+any purpose, even commercially.
+
+<img src="./Figures/cc1.jpg">
+
+## Table of content
+
+- Mass spectrometry
+- Raw MS data (linked to the how MS works section)
+- MS quantitation: MS1 vs MS2 (MS3), label-free vs labelled
+- Peptide identification and protein inference
+- Proteomics data processing overview
+- Some packages of interest
+
+```{r env, echo=FALSE, message=FALSE, warning=FALSE}
+library("BiocStyle")
+library("MSnbase")
+library("RforProteomics")
+library("Pbase")
+library("cputools")
+```
+
+# Mass spectrometry
+
+## Mass spectrometry
+
+- Proteomics: digestions of proteins into peptides
+- Separation of moleculares: *liquid chromatography* (LC)
+- Ionisation of molecules: MS *source* (MALDI, ESI, ...)
+- Separation of ions: MS *analyser* (tof, orbitraps, ...)
+- Quantitation of ions: MS *detector*
+
+## { .fullpage }
+
+![chromatogram](./Figures/chromatogram.png)
+
+## { .fullpage }
+
+![MS schematics](./Figures/SchematicMS2.png)
+
+## { .fullpage }
+
+![MS1 and MS2 spectra](./Figures/MS1-MS2-spectra.png)
+
+## { .fullpage }
+
+![MS data](./Figures/F02-3D-MS1-scans-400-1200-lattice.png)
+
+## { .fullpage }
+
+![MS data](./Figures/F02-3D-MS1-MS2-scans-100-1200-lattice.png)
+
+# Mass spec in R
+
+## In R
+
+```{r mzr1, eval=TRUE}
+library("msdata")
+library("mzR")
+fls <- proteomics(full = TRUE)
+basename(fl <- fls[2])
+rw <- openMSfile(fl)
+rw
+```
+
+## Accessors 
+
+```{r mzr2}
+softwareInfo(rw)
+str(spectra(rw, 10:11))
+str(header(rw))
+```
+
+## `MSnExp`
+
+Using `MSnExp` objects from the `r Biocpkg("MSnbase")` package to
+conveniently and efficiently manage raw MS experiments.
+
+## 
+
+
+```{r msb, message=FALSE}
+library("MSnbase")
+(x <- readMSData2(fl))
+```
+
+## 
+
+```{r msb2, cache=TRUE}
+table(msLevel(x))
+head(centroided(x))
+```
+
+
+## 
+
+```{r msb3, cache=TRUE}
+table(iscent <- isCentroided(x), msLevel(x))
+centroided(x) <- iscent
+head(centroided(x))
+```
+
+## 
+
+```{r}
+library("magrittr")
+x2 <- x %>%
+    filterMsLevel(2L) %>%
+    filterMz(c(126, 132))
+x2
+```
+
+
+## 
+
+```{r plotrw}
+data(itraqdata)
+plot(itraqdata[[22]], full = TRUE, reporters = iTRAQ4)
+```
+
+##
+
+```{r plotrw2}
+itraqdata2 <- pickPeaks(itraqdata)
+plot(itraqdata2[[22]], itraqdata2[[26]])
+```
+
+# Proteomics
+
+## Proteomics
+
+- Peaks in MS1 are peptides
+- MS2 spectra are peptides fragments
+- Use the fragmentation pattern to deduce the peptide sequence
+- De nove sequencing
+- Database search
+
+## { .fullpage }
+
+![Identification](./Figures/bibbs03.jpg)
+
+<br/>
+<div style="font-size:70%">
+Credit `abrg.org`
+</div>
+
+## Database search
+
+- Protein sequences (fasta file)
+- In silico digestion
+- Matching of expected (in silico) to observed (MS2)
+
+## { .fullpage }
+
+```{r fargments}
+library("MSnbase")
+cid <- calculateFragments("AEGKLRFK",
+                          type=c("b", "y"), z=2)
+ht(cid, n = 3)
+```
+
+## Identification in R
+
+```{r}
+idf <- system.file("mzid", "Tandem.mzid.gz", package = "msdata")
+id <- openIDfile(idf)
+softwareInfo(id)
+enzymes(id)
+str(psms(id))
+```
+
+## Searching in R
+
+- `r Biocpkg("MSGFplus")`
+- `r Biocpkg("rTANDEM")`
+
+
+## Protein inference
+
+- Keep only reliable peptides
+- From these peptides, infer proteins
+- If proteins can't be resolved due to shared peptides, merge them
+  into protein groups of indistinguishable or non-differentiable
+  proteins.
+
+
+Next figure from
+[Qeli and Ahrens (2010)](http://www.ncbi.nlm.nih.gov/pubmed/20622826).
+See also
+[Nesvizhskii and Aebersold (2005)](http://www.ncbi.nlm.nih.gov/pubmed/16009968).
+
+
+## { .fullpage }
+
+![Peptide evidence classes](./Figures/nbt0710-647-F2.gif)
+
+
+# Proteomics data
+
+## Proteomics data
+
+### Raw data:
+- MS1 and MS2 over retention time
+- MS1 or MS2 (MS3) for quantitation
+- MS2 for identitication
+
+### Protein database:
+- to match MS2 spectra against
+
+## Proteomics data
+
+| File/format   |  package  |
+|---------------|-----------|
+| Raw (`mz*ML`) | `mzR`, `MSnbase` |
+| mzTab         | `MSnbase` |
+| `mgf`         | `MSnbase` |
+| `mzIdentML`   | `mzR`, `mzID` |
+| `mzQuantML`   | `NA`     |
+
+
+# Quantitiative proteomics
+
+## 
+
+|                | MS1         | MS2        |
+|----------------|-------------|------------|
+| **Labelled**   | SILAC, N15  | iTRAQ, TMT |
+| **Label-free** | XIC         | Spectral counting |
+
+## MSnSet
+
+![MSnSet structure](./Figures/msnset.png)
+
+## 
+
+```{r addid}
+quantFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
+                 full.name = TRUE, pattern = "mzXML$")
+identFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
+                 full.name = TRUE, pattern = "dummyiTRAQ.mzid")
+x <- readMSData(quantFile)
+x <- addIdentificationData(x, identFile)
+fData(x)$pepseq
+```
+
+## 
+
+```{r qnt}
+xq <- quantify(x, reporters = iTRAQ4, method = "max")
+exprs(xq)
+head(fData(xq))
+```
+
+## 
+
+```{r eval=FALSE}
+qt <- quantify(rx, reporters = TMT6)
+## qt <- readMSnSet("quantdata.csv", ecols = 5:11)
+nqt <- normalise(qt, method = "vsn")
+boxplot(exprs(nqt))
+MAplot(nqt[, 1:2])
+```
+
+## { .fullpage }
+
+![vsn boxplot](./Figures/vsn-boxplot.png)
+
+
+# Conclusions
+
+## More examples
+
+- [Proteomics workflow](http://bioconductor.org/help/workflows/proteomics/)
+  on the Bioc site
+- `RforProteomics` package
+```{r r4p, eval=FALSE}
+library("RforProteomics")
+RforProteomics()
+RProtVis()
+citation(package = "RforProteomics")
+```
+- Lab this afternoon
+
+## Lab vignette
+
+![The lab material](./Figures/lab.png)
+
+## Acknowledgements
+
+### Development
+
+- Sebastian Gibb, Johannes Rainer
+
+### Funding: 
+- BBSRC
+
+**Thank you for your attention**
+

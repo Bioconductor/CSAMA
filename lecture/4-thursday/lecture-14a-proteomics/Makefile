@@ -1,5 +1,4 @@
-%.md: %.Rmd
-	Rscript -e "knitr::knit('$^')"
+SLIDES = /home/lg390/Documents/Teaching/bioc-ms-prot/slides.* \
 
-%.html: %.md
-	Rscript -e "rmarkdown::render('$^')"
+slides:
+	cp $(SLIDES) .
