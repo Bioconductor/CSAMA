@@ -36,6 +36,7 @@
 
 ** Talk content
 
++ Very short introduction to metabolomics data analysis.
 + Focus on pre-processing of LCMS data.
 + Focus on the =xcms= package (/new/ user interface), but other exist too
   (e.g. =yamss=).
@@ -46,7 +47,7 @@
 + Is the large-scale study of small molecules (metabolites) in a system (cell,
   tissue or organism).
 + Metabolites are intermediates and products of cellular processes (metabolism).
-+ From Genome to Metabolome:
++ Simple definition:
   - *Genome*: what can happen.
   - *Transcriptome*: what appears to be happening.
   - *Proteome*: what makes it happen.
@@ -71,8 +72,7 @@
 
 + Combines physical separation via LC with MS for mass analysis.
 + Additional time dimension to separate different ions with same m/z.
-+ Also used: Gas-chromatography (GC) instead of LC.
-+ Additional complication: targeted/untargeted metabolomics.
++ LCMS metabolomics: identify peaks in the m/z - rt plane.
 
 ** LCMS-based metabolomics data pre-processing
 
@@ -195,7 +195,7 @@
 + Assumptions: 
   - Samples relatively similar (either similar chromatograms or a
     set of common metabolites present in all).
-  - Warping methods: analyte elution order is same in all samples.
+  - Analyte elution order same in all samples.
 
 ** LCMS pre-processing: Alignment
 
@@ -212,6 +212,7 @@
 ** LCMS pre-processing: Correspondence
 
 + *Goal*: Group detected chromatographic peaks across samples.
++ Peaks that are close in rt (and m/z) are grouped to a /feature/.
 + =xcms=: /peak density/ method:
   #+BEGIN_SRC R :results output graphics :file images/_peak-density-plot.png :exports results :width 12 :height 8 :units cm :res 300 :pointsize 4
     ## mz slice to plot
@@ -233,7 +234,6 @@
 
   #+END_SRC
 
-+ Peaks that are close in rt are grouped to a /feature/.
 
 ** LCMS pre-processing: Correspondence
 
@@ -244,23 +244,15 @@
 
   #+END_SRC
 
-+ Extract results: =featureDefinitions=: extract the definition of features.
-  #+BEGIN_SRC R :results output verbatim :exports both
-    ## Definitions of the features:
-    featureDefinitions(faahKO)
-
-  #+END_SRC
-
-** LCMS pre-processing: Correspondence
-
 + =featureValues=: extract /values/ for each feature from each sample.
   #+BEGIN_SRC R :results output verbatim :exports both
     ## Access feature intensities
     head(featureValues(faahKO, value = "into"))
 
   #+END_SRC
++ /Fill-in/ values for missing peaks: =fillChromPeaks=.
 
-** LCMS pre-processing
+** LCMS pre-processing                                             :noexport:
 
 + Final note: =XCMSnExp= object tracks all analysis steps.  
   #+BEGIN_SRC R :results output :exports both
@@ -269,7 +261,7 @@
   #+END_SRC
 
 
-** What next? Missing values
+** What next? Missing values                                       :noexport:
 
 + =xcms= provides the possibility to read data from raw files to fill-in missing
   peaks (=fillChromPeaks=).
@@ -277,17 +269,16 @@
 
 ** What next? Data normalization
 
-+ Adjust within batch and between batch differences.
++ Adjust within and between batch differences.
++ =MetNorm= RUV for metabolomics (Livera et al. /Anal Chem/ 2015).
 + Injection order dependent signal drift (Wehrens et al. /Metabolomics/ 2016).
   [[./images/signal-drift.png]]
-+ =MetNorm= RUV for metabolomics (Livera et al. /Anal Chem/ 2015).
 
 ** What next? Identification
 
 + Annotate features to metabolites.
-+ Features are *not* chemical compounds.
-+ Features from the same compound are co-eluting and can be related (isotopes,
-  adducts).
++ Each metabolite can be represented by multiple features (ion adducts,
+  isotopes).
 + Starting point: =CAMERA= package.
 + On-line spectra databases (e.g. =MassBank=).
   
@@ -305,6 +296,11 @@
 #+RESULTS: peak-grouping
 
 ** Notes on methods                                                :noexport:
+
+*** LCMS
+
+Separation based on certain properties of the analytes (metabolites),
+e.g. whether they are hydrophobic or hydrophile.
 
 *** centWave:
 
