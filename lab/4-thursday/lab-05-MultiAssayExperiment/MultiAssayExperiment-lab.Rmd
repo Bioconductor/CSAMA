@@ -1,0 +1,413 @@
+---
+title: "MultiAssayExperiment Lab"
+date: "June 15, 2017"
+output:
+  BiocStyle::html_document:
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+---
+
+```{r, warning=FALSE}
+suppressPackageStartupMessages({
+    library(MultiAssayExperiment)
+    library(S4Vectors)
+    })
+```
+
+Get started by trying out `MultiAssayExperiment` using a subset of the TCGA adrenocortical carcinoma (ACC) dataset provided with the package. This dataset provides five assays on 92 patients, although all five assays were not performed for every patient:
+
+1. **RNASeq2GeneNorm**: gene mRNA abundance by RNA-seq
+2. **gistict**: GISTIC genomic copy number by gene
+3. **RPPAArray**: protein abundance by Reverse Phase Protein Array
+4. **Mutations**: non-silent somatic mutations by gene
+5. **miRNASeqGene**: microRNA abundance by microRNA-seq.
+
+```{r}
+data(miniACC)
+miniACC
+```
+
+# Component slots
+
+## colData - information biological units
+
+This slot is a `DataFrame` describing the characteristics of biological units, for example clinical data for patients. In the prepared datasets from
+[The Cancer Genome Atlas][], each row is one patient and each column is a clinical, pathological, subtype, or other variable. The `$` function provides a shortcut for accessing or setting `colData` columns.
+
+
+```{r}
+colData(miniACC)[1:4, 1:4]
+table(miniACC$race)
+```
+
+*Key points:*
+
+* One row per patient
+* Each row maps to zero or more observations in each experiment in the `ExperimentList`, below.
+
+## ExperimentList - experiment data
+
+A base `list` or `ExperimentList` object containing the experimental datasets
+for the set of samples collected. This gets converted into a class
+`ExperimentList` during construction.
+
+```{r}
+experiments(miniACC)
+```
+
+*Key points:*
+
+* One matrix-like dataset per list element (although they do not even need to be matrix-like, see for example the `RaggedExperiment` package)
+* One matrix column per assayed specimen. Each matrix column must correspond to exactly one row of `colData`: in other words, you must know which patient or cell line the observation came from. However, multiple columns can come from the same patient, or there can be no data for that patient.
+* Matrix rows correspond to variables, e.g. genes or genomic ranges
+* `ExperimentList` elements can be genomic range-based (e.g. `SummarizedExperiment::RangedSummarizedExperiment-class` or `RaggedExperiment::RaggedExperiment-class`) or ID-based data (e.g. `SummarizedExperiment::SummarizedExperiment-class`, `Biobase::eSet-class` `base::matrix-class`, `DelayedArray::DelayedArray-class`, and derived classes)
+* Any data class can be included in the `ExperimentList`, as long as it supports: single-bracket subsetting (`[`), `dimnames`, and `dim`. Most data classes defined in Bioconductor meet these requirements.
+
+
+## sampleMap - relationship graph
+
+`sampleMap` is a graph representation of the relationship between biological units and experimental results. In simple cases where the column names of `ExperimentList` data matrices match the row names of `colData`, the user won't need to specify or think about a sample map, it can be created automatically by the `MultiAssayExperiment` constructor.  `sampleMap` is a simple three-column `DataFrame`:
+
+1. `assay` column: the name of the assay, and found in the names of `ExperimentList` list names
+2. `primary` column: identifiers of patients or biological units, and found in the row names of `colData`
+3.  `colname` column: identifiers of assay results, and found in the column names of `ExperimentList` elements
+Helper functions are available for creating a map from a list. See `?listToMap`
+
+```{r}
+sampleMap(miniACC)
+```
+
+
+*Key points:*
+
+* relates experimental observations (`colnames`) to `colData`
+* permits experiment-specific sample naming, missing, and replicate observations
+
+<p style="text-align: right;"> <a href="#header">back to top</a> </p>
+
+## metadata
+
+Metadata can be used to keep additional information about patients, assays performed on individuals or on the entire cohort, or features such as genes, proteins, and genomic ranges. There are many options available for storing metadata. First, `MultiAssayExperiment` has its own metadata for describing the entire experiment:
+
+```{r}
+metadata(miniACC)
+```
+
+Additionally, the `DataFrame` class used by `sampleMap` and `colData`, as well as the `ExperimentList` class, similarly support metadata. Finally, many experimental data objects that can be used in the `ExperimentList` support metadata. These provide flexible options to users and to developers of derived classes. 
+
+# Subsetting
+
+## Single bracket `[`
+
+In pseudo code below, the subsetting operations work on the rows of the following indices:
+1. _i_ experimental data rows
+2. _j_ the primary names or the column names (entered as a `list` or `List`)
+3. _k_ assay
+
+```
+multiassayexperiment[i = rownames, j = primary or colnames, k = assay]
+```
+
+Subsetting operations always return another `MultiAssayExperiment`. For example, the following will return any rows named "MAPK14" or "IGFBP2", and remove any assays where no rows match:
+
+```{r, results='hide'}
+miniACC[c("MAPK14", "IGFBP2"), , ]
+```
+
+The following will keep only patients of pathological stage iv, and all their associated assays:
+```{r, results='hide'}
+miniACC[, miniACC$pathologic_stage == "stage iv", ]
+```
+
+And the following will keep only the RNA-seq dataset, and only patients for which this assay is available:
+```{r, results='hide'}
+miniACC[, , "RNASeq2GeneNorm"]
+```
+
+### Subsetting by genomic ranges
+
+If any ExperimentList objects have features represented by genomic ranges (e.g. `RangedSummarizedExperiment`, `RaggedExperiment`), then a `GRanges` object in the first subsetting position will subset these objects as in `GenomicRanges::findOverlaps()`.
+
+
+## Double bracket `[[`
+
+The "double bracket" method (`[[`) is a convenience function for extracting
+a single element of the `MultiAssayExperiment` `ExperimentList`. It avoids
+the use of `experiments(mae)[[1L]]`. For example, both of the following extract the `ExpressionSet` object containing RNA-seq data:
+
+```{r}
+miniACC[[1L]]  #or equivalently, miniACC[["RNASeq2GeneNorm"]]
+```
+
+## Patients with complete data
+
+`complete.cases()` shows which patients have complete data for all assays:
+
+```{r}
+summary(complete.cases(miniACC))
+```
+
+The above logical vector could be used for patient subsetting. More simply, `intersectColumns()` will select complete cases and rearrange each `ExperimentList` element so its columns correspond exactly to rows of `colData` in the same order:
+
+```{r}
+accmatched = intersectColumns(miniACC)
+```
+
+Note, the column names of the assays in `accmatched` are not the same because of assay-specific identifiers, but they have been automatically re-arranged to correspond to the same patients. In these TCGA assays, the first three `-` delimited positions correspond to patient, ie the first patient is *TCGA-OR-A5J2*:
+
+```{r}
+colnames(accmatched)
+```
+
+## Row names that are common across assays
+
+`intersectRows()` keeps only rows that are common to each assay, and aligns them in identical order. For example, to keep only genes where data are available for RNA-seq, GISTIC copy number, and somatic mutations:
+
+```{r}
+accmatched2 <- intersectRows(miniACC[, , c("RNASeq2GeneNorm", "gistict", "Mutations")])
+rownames(accmatched2)
+```
+
+<p style="text-align: right;"> <a href="#header">back to top</a> </p>
+
+# Extraction
+
+## assay and assays
+
+The `assay` and `assays` methods follow `SummarizedExperiment` convention.
+The `assay` (singular) method will extract the first element of the
+`ExperimentList` and will return a `matrix`. 
+
+```{r}
+class(assay(miniACC))
+```
+
+The `assays` (plural) method will return a `SimpleList` of the data with each
+element being a `matrix`.
+
+```{r}
+assays(miniACC)
+```
+
+*Key point:*
+
+* Whereas the `[[` returned an assay as its original class, `assay()` and `assays()` convert the assay data to matrix form.
+
+<p style="text-align: right;"> <a href="#header">back to top</a> </p>
+
+# Summary of slots and accessors
+
+Slot in the `MultiAssayExperiment` can be accessed or set using their accessor functions:
+
+| Slot | Accessor |
+|------|----------|
+| `ExperimentList` | `experiments()`|
+| `colData` | `colData()` and `$` * |
+| `sampleMap` | `sampleMap()` |
+| `metadata` | `metadata()` |
+
+__*__ The `$` operator on a `MultiAssayExperiment` returns a single
+column of the `colData`.
+
+# Transformation / reshaping
+
+The `longFormat` or `wideFormat` functions will "reshape" and combine experiments with each other and with `colData`
+into one `DataFrame`. These functions provide compatibility with most of the common R/Bioconductor functions for regression, machine learning, and visualization.
+
+## `longFormat`
+
+In _long_ format a single column provides all assay results, with additional optional `colData` columns whose values are repeated as necessary. Here *assay* is the name of the ExperimentList element, *primary* is the patient identifier (rowname of colData), *rowname* is the assay rowname (in this case genes), *colname* is the assay-specific identifier (column name), *value* is the numeric measurement (gene expression, copy number, presence of a non-silent mutation, etc), and following these are the *vital_status* and *days_to_death* colData columns that have been added:
+
+```{r}
+longFormat(miniACC[c("TP53", "CTNNB1"), , ], 
+           colDataCols = c("vital_status", "days_to_death"))
+```
+
+## `wideFormat`
+
+In _wide_ format, each feature from each assay goes in a separate column, with one row per primary identifier (patient). Here, each variable becomes a new column:
+
+```{r}
+wideFormat(miniACC[c("TP53", "CTNNB1"), , ], 
+           colDataCols = c("vital_status", "days_to_death"))
+```
+
+# MultiAssayExperiment class construction and concatenation
+
+## MultiAssayExperiment constructor function
+The `MultiAssayExperiment` constructor function can take three arguments:
+
+1. `experiments` - An `ExperimentList` or `list` of data
+2. `colData` - A `DataFrame` describing the patients (or cell lines, or other biological units)
+3. `sampleMap` - A `DataFrame` of `assay`, `primary`, and `colname` identifiers
+
+The miniACC object can be reconstructed as follows:
+```{r}
+MultiAssayExperiment(experiments=experiments(miniACC),
+                     colData=colData(miniACC),
+                     sampleMap=sampleMap(miniACC),
+                     metadata=metadata(miniACC))
+```
+
+
+## `prepMultiAssay` - Constructor function helper
+
+The `prepMultiAssay` function allows the user to diagnose typical problems
+when creating a `MultiAssayExperiment` object. See `?prepMultiAssay` for more
+details.
+
+## `c` - concatenate to MultiAssayExperiment
+
+The `c` function allows the user to concatenate an additional experiment to an
+existing `MultiAssayExperiment`. The optional `sampleMap` argument allows concatenating an assay whose column names do not match the row names of `colData`. For convenience, the _mapFrom_ argument allows the user to map from a particular experiment **provided** that the **order** of the colnames is in the **same**. A `warning` will be issued to make the user aware of this assumption. For example, to concatenate a matrix of log2-transformed RNA-seq results:
+
+```{r}
+miniACC2 <- c(miniACC, log2rnaseq = log2(assays(miniACC)$RNASeq2GeneNorm), mapFrom=1L)
+assays(miniACC2)
+```
+
+<p style="text-align: right;"> <a href="#header">back to top</a> </p>
+
+# Exercises
+
+## How many samples have data for each combination of assays?
+
+**Solution**
+
+The built-in `upsetSamples` creates an "upset" Venn diagram to answer this question:
+
+```{r}
+upsetSamples(miniACC)
+```
+
+In this dataset only 43 samples have all 5 assays, 32 are missing reverse-phase protein (RPPAArray), 2 are missing Mutations, 1 is missing gistict, 12 have only mutations and gistict, etc.
+
+## Kaplan-meier plot stratified by pathology_N_stage
+
+Create a Kaplan-meier plot, using pathology_N_stage as a stratifying variable.
+
+**Solution**
+
+The colData provides clinical data for things like a Kaplan-Meier plot for overall survival stratified by nodal stage. To simplify things, first add a "y" column to the colData, containing the `Surv` object for survival analysis:
+
+```{r}
+suppressPackageStartupMessages({
+  library(survival)
+  library(survminer)
+})
+miniACC$y <- Surv(miniACC$days_to_death, miniACC$vital_status)
+```
+
+And remove any patients missing overall survival information:
+```{r}
+miniACC <- miniACC[, complete.cases(miniACC$y), ]
+```
+
+```{r}
+fit <- survfit(y ~ pathology_N_stage, data = colData(miniACC))
+ggsurvplot(fit, data = colData(miniACC), risk.table = TRUE)
+```
+
+## Multivariate Cox regression including RNA-seq, copy number, and pathology
+
+Choose the *EZH2* gene for demonstration. This subsetting will drop assays with no row named EZH2:
+```{r}
+wideacc = wideFormat(miniACC["EZH2", , ], 
+    colDataCols=c("vital_status", "days_to_death", "pathology_N_stage"))
+wideacc$y = Surv(wideacc$days_to_death, wideacc$vital_status)
+head(wideacc)
+```
+
+Perform a multivariate Cox regression with *EZH2* copy number (gistict), log2-transformed *EZH2* expression (RNASeq2GeneNorm), and nodal status (pathology_N_stage) as predictors:
+```{r}
+coxph(Surv(days_to_death, vital_status) ~ gistict_EZH2 + log2(RNASeq2GeneNorm_EZH2) + pathology_N_stage, 
+      data=wideacc)
+```
+
+We see that *EZH2* expression is significantly associated with overal survival (p < 0.001), but *EZH2* copy number and nodal status are not. This analysis could easily be extended to the whole genome for discovery of prognostic features by repeated univariate regressions over columns, penalized multivariate regression, etc.
+
+For further detail, see the main MultiAssayExperiment vignette.
+
+<p style="text-align: right;"> <a href="#header">back to top</a> </p>
+
+## Correlation between RNA-seq and copy number
+
+For all genes where there is both recurrent copy number (gistict assay) and RNA-seq, calculate the correlation between log2(RNAseq + 1) and copy number. Create a histogram of these correlations. Compare this with the histogram of correlations between all *unmatched* gene - copy number pairs.
+
+One solution:
+```{r, eval=FALSE}
+subacc <- miniACC[, , c("RNASeq2GeneNorm", "gistict")]
+subacc <- intersectColumns(subacc)
+subacc <- intersectRows(subacc)
+subacc <- assays(subacc)
+subacc[[1]] <- log2(subacc[[1]] + 1)
+subacc <- lapply(subacc, t)
+corres <- cor(subacc[[1]], subacc[[2]])
+hist(diag(corres))
+hist(corres[upper.tri(corres)])
+```
+
+## Annotating with ranges
+
+Convert all the `ExperimentList` elements in `miniACC`  to `SummarizedExperiment` objects.  Then use `rowRanges` to annotate these objects with genomic ranges. For the microRNA assay, annotate instead with the genomic coordinates of predicted targets.
+
+**Solution**
+
+First, make a new object and convert its experiments to SummarizedExperiment objects:
+
+```{r}
+library(SummarizedExperiment)
+seACC <- miniACC
+for (i in seq_along(experiments(seACC))){
+  seACC[[i]] <- SummarizedExperiment(seACC[[i]])
+}
+seACC
+```
+
+
+The following shortcut function takes a list of human gene symbols and uses `AnnotationFilter` and `EnsDb.Hsapiens.v86` to look up the ranges, and return these as a GRangesList which can be used to replace the rowRanges of the SummarizedExperiment objects:
+
+```{r}
+getrr <- function(identifiers, EnsDbFilterFunc="SymbolFilter"){
+    library(AnnotationFilter)
+    library(EnsDb.Hsapiens.v86)
+    FUN <- get(EnsDbFilterFunc)
+    edb <- EnsDb.Hsapiens.v86
+    afl <- AnnotationFilterList(FUN(identifiers),
+                                SeqNameFilter(c(1:21, "X", "Y")),
+                                TxBiotypeFilter("protein_coding"))
+    gr <- genes(edb, filter=afl)
+    grl <- split(gr, factor(identifiers))
+    grl <- grl[match(identifiers, names(grl))]
+    stopifnot(identical(names(grl), identifiers))
+    return(grl)
+}
+```
+
+For example:
+```{r}
+getrr(rownames(seACC)[[1]])
+```
+
+Use this to set the rowRanges of experiments 1-4 with these GRangesList objects
+```{r}
+for (i in 1:4){
+  rowRanges(seACC[[i]]) <- getrr(rownames(seACC[[i]]))
+}
+```
+
+Note that the class of experiments 1-4 is now `RangedSummarizedExperiment`:
+```{r}
+seACC
+```
+
+
+# Session info
+
+```{r}
+sessionInfo()
+```
+
+
+[The Cancer Genome Atlas]: https://cancergenome.nih.gov/
