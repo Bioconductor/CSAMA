@@ -42,6 +42,12 @@ themselves with R and Bioconductor infrastructure.
 
 # Introduction
 
+> **CSAMA 2017** Some part of this workshop require online access. The
+> most bandwidth expensive operations are files downloads. Please copy
+> the files from the local network and place them in your working
+> directory^[If you are not sure what your working directory is, type `getwd()` or ask a helper.]. This
+> will stop them from being downloaded again.
+
 Before we start:
 
 > If you identify typos, if there are parts that you would like to see
@@ -120,6 +126,9 @@ for mass spectrometry and proteomics. If you are interested in
   [online](https://cran.r-project.org/web/packages/MALDIquant/).
 
 ## Setup { - }
+
+> **CSAMA 2017** This section is not relevant, as you should already
+> have installed all required packages.
 
 The follow packages will be used throughout this documents. R version
 `3.3.1` or higher is required to install all the packages using
@@ -219,8 +228,8 @@ quantitative data, as opposed as the name suggests),
 [PASSEL](http://www.peptideatlas.org/passel/) at the ISB for Selected
 Reaction Monitoring (SRM, i.e. targeted) data and the
 [MassIVE](http://massive.ucsd.edu/ProteoSAFe/static/massive.jsp)
-resource. These data can be downloaded within R using the `r
-Biocpkg("rpx")` package.
+resource. These data can be downloaded within R using the 
+`r Biocpkg("rpx")` package.
 
 
 ```{r rpx}
@@ -261,6 +270,11 @@ mzf
 
 
 ## From AnnotationHub
+
+> **CSAMA 2017** Executing this section will cause raw data file to be
+> downloaded and stored as part of the AnnotationHub's local
+> resource. The `mzML` file that is available on the local network is
+> identical to the one accessed here.
 
 `r Biocpkg("AnnotationHub")` is a cloud resource set up and managed by
 the Bioconductor project that serves various omics datasets. It is
