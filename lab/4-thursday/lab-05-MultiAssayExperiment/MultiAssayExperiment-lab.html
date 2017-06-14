@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li><a href="#correlation-between-rna-seq-and-copy-number">Correlation between RNA-seq and copy number</a></li>
 <li><a href="#identifying-correlated-principal-components">Identifying correlated principal components</a></li>
 <li><a href="#annotating-with-ranges">Annotating with ranges</a></li>
+<li><a href="#shiny-app">Shiny app</a></li>
 </ul></li>
 <li><a href="#session-info">Session info</a></li>
 </ul>
@@ -789,6 +790,15 @@ seACC</code></pre>
 ##  [3] RPPAArray: RangedSummarizedExperiment with 33 rows and 46 columns 
 ##  [4] Mutations: RangedSummarizedExperiment with 97 rows and 90 columns 
 ##  [5] miRNASeqGene: SummarizedExperiment with 471 rows and 80 columns</code></pre>
+<p style="text-align: right;">
+<a href="#header">back to top</a>
+</p>
+</div>
+<div id="shiny-app" class="section level2">
+<h2>Shiny app</h2>
+<p>The <em>maeView.R</em> script in this directory opens a Shiny app for similar TCGA objects, to identify and visualize relationships between RNA-seq expression, GISTIC copy number peaks, and microRNA expression. For a specified gene, you can view a boxplot of expression vs. copy number, and use <em>limma</em> to identify microRNA correlated to expression of that gene.</p>
+<pre class="r"><code>source(&quot;maeView.R&quot;)
+maeView(miniACC)</code></pre>
 <p style="text-align: right;">
 <a href="#header">back to top</a>
 </p>

@@ -516,6 +516,17 @@ experiments(seACC)
 
 <p style="text-align: right;"> <a href="#header">back to top</a> </p>
 
+## Shiny app
+
+The *maeView.R* script in this directory opens a Shiny app for similar TCGA objects, to identify and visualize relationships between RNA-seq expression, GISTIC copy number peaks, and microRNA expression.  For a specified gene, you can view a boxplot of expression vs. copy number, and use *limma* to identify microRNA correlated to expression of that gene.
+
+```{r, eval=FALSE}
+source("maeView.R")
+maeView(miniACC)
+```
+
+<p style="text-align: right;"> <a href="#header">back to top</a> </p>
+
 # Session info
 
 ```{r}
