@@ -105,7 +105,7 @@ package also contains relevant material.
 This workflow provides a *general* introduction to Bioconductor software
 for mass spectrometry and proteomics. If you are interested in 
 
-- Application of machine learning to proteomics data, in particular
+- The application of machine learning to proteomics data, in particular
   spatial proteomics (i.e. the sub-cellular localisation), follow the
   tutorial vignette from `r Biocpkg("pRoloc")` package, accessible
   with `vignette("pRoloc-tutorial", package = "pRoloc")` or
@@ -124,6 +124,10 @@ for mass spectrometry and proteomics. If you are interested in
   `r CRANpkg("MALDIquant")` introduction accessible with
   `vignette("MALDIquant-intro", package = "MALDIquant")` and available
   [online](https://cran.r-project.org/web/packages/MALDIquant/).
+- The processing and analysis of imaging mass spectrometry (IMS), read
+  the `r Biocpkg("Carinal")` walkthrough vignette accessible
+  with `vignette("Cardinal-walkthrough", package = "Cardinal")` and
+  [online](https://bioconductor.org/packages/release/bioc/vignettes/Cardinal/inst/doc/Cardinal-walkthrough.pdf).
 
 ## Setup { - }
 
@@ -1464,7 +1468,7 @@ available via the `r Biocpkg("hpar")` package.
   and DIA for Label-free or Label-based Proteomics Experiments
 
 
-### Data Independent Acquisition
+### Data Independent Acquisition {-}
 
 - Analysis of label-free data from a Synapt G2 (including ion
   mobility) with `r Biocpkg("synapter")`.
