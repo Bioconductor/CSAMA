@@ -110,6 +110,10 @@ library("MSnbase")
 (x <- readMSData2(fl))
 ```
 
+## { .fullpage }
+
+![profile and centroided](./Figures/mode.png)
+
 ## 
 
 ```{r msb2, cache=TRUE}
