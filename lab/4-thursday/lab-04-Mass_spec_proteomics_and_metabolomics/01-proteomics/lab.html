@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2017-06-14" />
+<meta name="date" content="2017-06-15" />
 
 <title>Bioconductor tools for mass spectrometry and proteomics</title>
 
@@ -210,12 +210,12 @@ div.tocify {
 <h1 class="title toc-ignore">Bioconductor tools for mass spectrometry and proteomics</h1>
 <p class="author-name">Laurent Gatto<span class="affil-mark">1</span></p>
 <p class="author-affiliation"><span class="affil-mark">1</span>Computational Proteomics Unit, Cambridge, UK</p>
-<h4 class="date"><em>14 June 2017</em></h4>
+<h4 class="date"><em>15 June 2017</em></h4>
 
 </div>
 
 
-<p><strong>Modified:</strong> 2017-06-14 22:35:35<br /> <strong>Compiled</strong>: Wed Jun 14 22:35:48 2017</p>
+<p><strong>Modified:</strong> 2017-06-15 05:35:53<br /> <strong>Compiled</strong>: Thu Jun 15 05:38:03 2017</p>
 <p><strong>Abstract</strong> In this workflow, we will use R/Bioconductor packages to explore, process, visualise and understand mass spectrometry-based proteomics data, starting with raw data, and proceeding with identification and quantitation data, discussing some of their peculiarities compared to sequencing data along the way. The workflow is aimed at a beginner to intermediate level, such as, for example, seasoned R users who want to get started with mass spectrometry and proteomics, or proteomics practitioners who want to familiarise themselves with R and Bioconductor infrastructure.</p>
 <blockquote>
 <p>This material available under a <a href="http://creativecommons.org/licenses/by/4.0/"><strong>creative common CC-BY</strong></a> license. You are free to <strong>share</strong> (copy and redistribute the material in any medium or format) and <strong>adapt</strong> (remix, transform, and build upon the material) for any purpose, even commercially.</p>
@@ -255,10 +255,11 @@ div.tocify {
 <h3>Other material</h3>
 <p>This workflow provides a <em>general</em> introduction to Bioconductor software for mass spectrometry and proteomics. If you are interested in</p>
 <ul>
-<li>Application of machine learning to proteomics data, in particular spatial proteomics (i.e. the sub-cellular localisation), follow the tutorial vignette from <em><a href="http://bioconductor.org/packages/pRoloc">pRoloc</a></em> package, accessible with <code>vignette(&quot;pRoloc-tutorial&quot;, package = &quot;pRoloc&quot;)</code> or <a href="https://bioconductor.org/packages/devel/bioc/vignettes/pRoloc/inst/doc/pRoloc-tutorial.html">online</a>.</li>
+<li>The application of machine learning to proteomics data, in particular spatial proteomics (i.e. the sub-cellular localisation), follow the tutorial vignette from <em><a href="http://bioconductor.org/packages/pRoloc">pRoloc</a></em> package, accessible with <code>vignette(&quot;pRoloc-tutorial&quot;, package = &quot;pRoloc&quot;)</code> or <a href="https://bioconductor.org/packages/devel/bioc/vignettes/pRoloc/inst/doc/pRoloc-tutorial.html">online</a>.</li>
 <li>The analysis of identification data to retain the most reliable PSMs, see the <em><a href="http://bioconductor.org/packages/MSnID">MSnID</a></em> vignette<label for="sidenote-2" class="margin-toggle sidenote-number">2</label><input type="checkbox" id="sidenote-2" class="margin-toggle"><span class="sidenote"><span class="sidenote-number">2</span> Section <em>Analysing search results</em> below is a summary of that vignette.</span>, accessible with <code>vignette(&quot;msnid_vignette&quot;, package = &quot;MSnID&quot;)</code> or <a href="https://bioconductor.org/packages/release/bioc/vignettes/MSnID/inst/doc/msnid_vignette.pdf">online</a>. In addition, the vignettes of the <em><a href="http://bioconductor.org/packages/msmsTest">msmsTest</a></em> package describe how to analyse spectral counting data using packages dedicated for the analysis of high throughput sequencing data.</li>
 <li>The analysis of MS<sup>E</sup> data independent acquisition (DIA), see the vignettes in the <em><a href="http://bioconductor.org/packages/synapter">synapter</a></em> package.</li>
 <li>The processing and analysis of MALDI-MS data, read the <em><a href="https://CRAN.R-project.org/package=MALDIquant">MALDIquant</a></em> introduction accessible with <code>vignette(&quot;MALDIquant-intro&quot;, package = &quot;MALDIquant&quot;)</code> and available <a href="https://cran.r-project.org/web/packages/MALDIquant/">online</a>.</li>
+<li>The processing and analysis of imaging mass spectrometry (IMS), read the <em><a href="http://bioconductor.org/packages/Carinal">Carinal</a></em> walkthrough vignette accessible with <code>vignette(&quot;Cardinal-walkthrough&quot;, package = &quot;Cardinal&quot;)</code> and <a href="https://bioconductor.org/packages/release/bioc/vignettes/Cardinal/inst/doc/Cardinal-walkthrough.pdf">online</a>.</li>
 </ul>
 </div>
 <div id="setup" class="section level2 unnumbered">
@@ -814,8 +815,8 @@ msexp</code></pre>
 ##  Number of spectra: 5 
 ##  MSn retention times: 25:1 - 25:2 minutes
 ## - - - Processing information - - -
-## Data loaded [Wed Jun 14 22:36:19 2017] 
-## Filter: select MS level(s) 2 [Wed Jun 14 22:36:19 2017] 
+## Data loaded [Thu Jun 15 05:39:33 2017] 
+## Filter: select MS level(s) 2 [Thu Jun 15 05:39:33 2017] 
 ##  MSnbase version: 2.3.3 
 ## - - - Meta data  - - -
 ## phenoData
@@ -841,8 +842,8 @@ msexp</code></pre>
 ##  Number of spectra: 2 
 ##  MSn retention times: 25:1 - 25:2 minutes
 ## - - - Processing information - - -
-## Data loaded [Wed Jun 14 22:36:19 2017] 
-## Filter: select MS level(s) 2 [Wed Jun 14 22:36:19 2017] 
+## Data loaded [Thu Jun 15 05:39:33 2017] 
+## Filter: select MS level(s) 2 [Thu Jun 15 05:39:33 2017] 
 ##  MSnbase version: 2.3.3 
 ## - - - Meta data  - - -
 ## phenoData
@@ -967,8 +968,8 @@ fvarLabels(msexp)</code></pre>
 ##  Number of spectra: 3 
 ##  MSn retention times: 25:1 - 25:2 minutes
 ## - - - Processing information - - -
-## Data loaded [Wed Jun 14 22:36:19 2017] 
-## Filter: select MS level(s) 2 [Wed Jun 14 22:36:19 2017] 
+## Data loaded [Thu Jun 15 05:39:33 2017] 
+## Filter: select MS level(s) 2 [Thu Jun 15 05:39:33 2017] 
 ##  MSnbase version: 2.3.3 
 ## - - - Meta data  - - -
 ## phenoData
@@ -1287,7 +1288,7 @@ pData(msset)</code></pre>
 <p>Another useful slot is <code>processingData</code>, accessed with <code>processingData(.)</code>, that records all the processing that objects have undergone since their creation.</p>
 <pre class="r"><code>processingData(msset)</code></pre>
 <pre><code>## - - - Processing information - - -
-## Fast iTRAQ4 quantitation by max [Wed Jun 14 22:36:43 2017] 
+## Fast iTRAQ4 quantitation by max [Thu Jun 15 05:41:04 2017] 
 ##  MSnbase version: 2.3.3</code></pre>
 <p><strong>See also</strong> The <em><a href="http://bioconductor.org/packages/isobar">isobar</a></em> package supports quantitation from centroided <code>mgf</code> peak lists or its own tab-separated files that can be generated from Mascot and Phenyx vendor files.</p>
 </div>
@@ -1416,8 +1417,8 @@ processingData(qnt)</code></pre>
 <pre><code>## - - - Processing information - - -
 ## Data loaded: Wed May 11 18:54:39 2011 
 ## Updated from version 0.3.0 to 0.3.1 [Fri Jul  8 20:23:25 2016] 
-## iTRAQ4 quantification by trapezoidation: Wed Jun 14 22:36:50 2017 
-## Purity corrected: Wed Jun 14 22:36:50 2017 
+## iTRAQ4 quantification by trapezoidation: Thu Jun 15 05:41:21 2017 
+## Purity corrected: Thu Jun 15 05:41:21 2017 
 ##  MSnbase version: 1.1.22</code></pre>
 <p>Various normalisation methods can be applied the <code>MSnSet</code> instances using the <code>normalise</code> method: variance stabilisation (<code>vsn</code>), quantile (<code>quantiles</code>), median or mean centring (<code>center.media</code> or <code>center.mean</code>), …</p>
 <pre class="r"><code>qnt &lt;- normalise(qnt, &quot;quantiles&quot;)
@@ -1425,9 +1426,9 @@ processingData(qnt)</code></pre>
 <pre><code>## - - - Processing information - - -
 ## Data loaded: Wed May 11 18:54:39 2011 
 ## Updated from version 0.3.0 to 0.3.1 [Fri Jul  8 20:23:25 2016] 
-## iTRAQ4 quantification by trapezoidation: Wed Jun 14 22:36:50 2017 
-## Purity corrected: Wed Jun 14 22:36:50 2017 
-## Normalised (quantiles): Wed Jun 14 22:36:50 2017 
+## iTRAQ4 quantification by trapezoidation: Thu Jun 15 05:41:21 2017 
+## Purity corrected: Thu Jun 15 05:41:21 2017 
+## Normalised (quantiles): Thu Jun 15 05:41:21 2017 
 ##  MSnbase version: 1.1.22</code></pre>
 <p>The <code>combineFeatures</code> method combines spectra/peptides quantitation values into protein data. The grouping is defined by the <code>groupBy</code> parameter, which is generally taken from the feature metadata (protein accessions, for example).</p>
 <pre class="r"><code>gb &lt;- fData(qnt)$ProteinDescription
@@ -1436,10 +1437,10 @@ processingData(prt)</code></pre>
 <pre><code>## - - - Processing information - - -
 ## Data loaded: Wed May 11 18:54:39 2011 
 ## Updated from version 0.3.0 to 0.3.1 [Fri Jul  8 20:23:25 2016] 
-## iTRAQ4 quantification by trapezoidation: Wed Jun 14 22:36:50 2017 
-## Purity corrected: Wed Jun 14 22:36:50 2017 
-## Normalised (quantiles): Wed Jun 14 22:36:50 2017 
-## Combined 55 features into 39 using median: Wed Jun 14 22:36:50 2017 
+## iTRAQ4 quantification by trapezoidation: Thu Jun 15 05:41:21 2017 
+## Purity corrected: Thu Jun 15 05:41:21 2017 
+## Normalised (quantiles): Thu Jun 15 05:41:21 2017 
+## Combined 55 features into 39 using median: Thu Jun 15 05:41:22 2017 
 ##  MSnbase version: 2.3.3</code></pre>
 <div id="missing-values" class="section level3 unnumbered">
 <h3>Missing values</h3>
@@ -1462,9 +1463,9 @@ table(is.na(naset))</code></pre>
 tmp &lt;- filterNA(naset)
 processingData(tmp)</code></pre>
 <pre><code>## - - - Processing information - - -
-## Subset [689,16][301,16] Wed Jun 14 22:36:51 2017 
-## Removed features with more than 0 NAs: Wed Jun 14 22:36:51 2017 
-## Dropped featureData's levels Wed Jun 14 22:36:51 2017 
+## Subset [689,16][301,16] Thu Jun 15 05:41:22 2017 
+## Removed features with more than 0 NAs: Thu Jun 15 05:41:23 2017 
+## Dropped featureData's levels Thu Jun 15 05:41:23 2017 
 ##  MSnbase version: 1.15.6</code></pre>
 <p>It is of course possible to impute missing values (<code>?impute</code>). This is however not a straightforward thing, as is likely to dramatically fail when a high proportion of data is missing (10s of %)<label for="sidenote-8" class="margin-toggle sidenote-number">8</label><input type="checkbox" id="sidenote-8" class="margin-toggle"><span class="sidenote"><span class="sidenote-number">8</span> Note that when using <em><a href="http://bioconductor.org/packages/limma">limma</a></em> for instance, downstream analyses can handle missing values. Still, it is recommended to explore missingness as part of the exploratory data analysis.</span>. But also, there are two types of mechanisms resulting in missing values in LC/MSMS experiments.</p>
 <ul>
@@ -1487,7 +1488,7 @@ tmp &lt;- impute(naset, method = &quot;knn&quot;)</code></pre>
 ##  mean imputation used for these rows</code></pre>
 <pre class="r"><code>processingData(tmp)</code></pre>
 <pre><code>## - - - Processing information - - -
-## Data imputation using knn Wed Jun 14 22:36:53 2017 
+## Data imputation using knn Thu Jun 15 05:41:25 2017 
 ##   Using default parameters 
 ##  MSnbase version: 1.15.6</code></pre>
 <p>There are various methods to perform data imputation, as described in <code>?impute</code>.</p>
