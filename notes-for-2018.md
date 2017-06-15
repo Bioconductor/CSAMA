@@ -17,4 +17,10 @@ Machine-learning:
 - Reduce Intro to R and Bioc to one lecture (to save time for the above) ?
 - Visualisation lecture on first day ? 
 
+Proteomics
+- start-to-end workflow about one specific proteomcis experiment
+
+Annotation across omics domains
+- example: KEGG for genes and metabolite
+- EndDB: proteins and genes/transcripts
 
