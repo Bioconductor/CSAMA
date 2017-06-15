@@ -1,7 +1,8 @@
 
 ---
 title: "Resampling Methods"
-author: "Levi Waldron, CUNY School of Public Health"
+author: "Levi Waldron, CUNY School of Public Health <p> levi.waldron@sph.cuny.edu <p>
+waldronlab.github.io / waldronlab.org"
 date: "June 15, 2017"
 output:
   slidy_presentation: null
@@ -71,20 +72,6 @@ ISLR Chapter 5: James, G. _et al._ An Introduction to Statistical Learning: with
 
 ![Variability of 2-fold cross-validation (ISLR Figure 5.2)](images/ISLR_Fig52.png)
 
-
-## Bias-variance trade-off in cross-validation
-
-* *Key point:* we are talking about bias and variance of the overall accuracy estimate, not between the folds.
-* 2-fold CV produces a _high-bias_, _low-variance_ estimate:
-     - training on fewer samples causes upward bias in error rate
-     - low correlation between models means low variance in average error rate
-* Leave-on-out CV produces a _low-bias_, _high-variance_ estimate:
-     - training on $n-1$ samples is almost as good as on $n$ samples (almost no bias in prediction error)
-     - models are almost identical, so average has a high variance
-
-* Computationally, $K$ models must be fitted
-     - 5 or 10-fold CV are very popular compromises
-     
 ## Cross-validation summary
 
 * In prediction modeling, we think of data as _training_ or _test_
@@ -92,6 +79,9 @@ ISLR Chapter 5: James, G. _et al._ An Introduction to Statistical Learning: with
 * Training set error always decreases with more complex (flexible) models
 * Test set error as a function of model flexibility tends to be U-shaped
      - The low point of the U represents the optimal bias-variance trade-off, or the most appropriate amount of model flexibility
+* Computationally, $K$ models must be fitted
+     - 5 or 10-fold CV are popular choices
+     - can be repeated for smoothing (e.g. see Braga-Neto et al 2004. Is cross-validation valid for small-sample microarray classification?. Bioinformatics, 20(3), 374-380.)
 
 ## Cross-validation caveats
 

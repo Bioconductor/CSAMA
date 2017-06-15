@@ -8,6 +8,10 @@ output:
     toc_depth: 4
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
 Get started by trying out `MultiAssayExperiment` using a subset of the TCGA adrenocortical carcinoma (ACC) dataset provided with the package. This dataset provides five assays on 92 patients, although all five assays were not performed for every patient:
 
 1. **RNASeq2GeneNorm**: gene mRNA abundance by RNA-seq
@@ -469,7 +473,7 @@ Convert all the `ExperimentList` elements in `miniACC`  to `SummarizedExperiment
 First, make a new object and convert its experiments to SummarizedExperiment objects:
 
 ```{r}
-library(SummarizedExperiment)
+suppressPackageStartupMessages(library(SummarizedExperiment))
 seACC <- miniACC
 for (i in seq_along(experiments(seACC))){
   seACC[[i]] <- SummarizedExperiment(seACC[[i]])
@@ -482,8 +486,10 @@ The following shortcut function takes a list of human gene symbols and uses `Ann
 
 ```{r}
 getrr <- function(identifiers, EnsDbFilterFunc="SymbolFilter"){
+  suppressPackageStartupMessages({
     library(AnnotationFilter)
     library(EnsDb.Hsapiens.v86)
+  })
     FUN <- get(EnsDbFilterFunc)
     edb <- EnsDb.Hsapiens.v86
     afl <- AnnotationFilterList(FUN(identifiers),
@@ -513,6 +519,14 @@ Note that the class of experiments 1-4 is now `RangedSummarizedExperiment`:
 ```{r}
 experiments(seACC)
 ```
+
+With ranged objects in the MultiAssayExperiment, you can then do subsetting by ranges. For example, select all genes on chromosome 1 for the four 
+*rangedSummarizedExperiment* objects:
+```{r}
+seACC[GRanges(seqnames="1:1-1e9"), , 1:4]
+```
+
+*Note about microRNA*: You can set ranges for the microRNA assay according to the genomic location of those microRNA, or the locations of their predicted targets, but we don't do it here. Assigning genomic ranges of microRNA targets would be an easy way to subset them according to their targets.
 
 <p style="text-align: right;"> <a href="#header">back to top</a> </p>
 
