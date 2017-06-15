@@ -678,32 +678,8 @@ pheatmap::pheatmap(mycors)</code></pre>
 <p>Convert all the <code>ExperimentList</code> elements in <code>miniACC</code> to <code>SummarizedExperiment</code> objects. Then use <code>rowRanges</code> to annotate these objects with genomic ranges. For the microRNA assay, annotate instead with the genomic coordinates of predicted targets.</p>
 <p><strong>Solution</strong></p>
 <p>First, make a new object and convert its experiments to SummarizedExperiment objects:</p>
-<pre class="r"><code>library(SummarizedExperiment)</code></pre>
-<pre><code>## Loading required package: GenomicRanges</code></pre>
-<pre><code>## Loading required package: IRanges</code></pre>
-<pre><code>## Loading required package: GenomeInfoDb</code></pre>
-<pre><code>## Loading required package: Biobase</code></pre>
-<pre><code>## Welcome to Bioconductor
-## 
-##     Vignettes contain introductory material; view with
-##     'browseVignettes()'. To cite Bioconductor, see
-##     'citation(&quot;Biobase&quot;)', and for packages 'citation(&quot;pkgname&quot;)'.</code></pre>
-<pre><code>## Loading required package: DelayedArray</code></pre>
-<pre><code>## Loading required package: matrixStats</code></pre>
-<pre><code>## 
-## Attaching package: 'matrixStats'</code></pre>
-<pre><code>## The following objects are masked from 'package:Biobase':
-## 
-##     anyMissing, rowMedians</code></pre>
-<pre><code>## 
-## Attaching package: 'DelayedArray'</code></pre>
-<pre><code>## The following objects are masked from 'package:matrixStats':
-## 
-##     colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges</code></pre>
-<pre><code>## The following object is masked from 'package:base':
-## 
-##     apply</code></pre>
-<pre class="r"><code>seACC &lt;- miniACC
+<pre class="r"><code>suppressPackageStartupMessages(library(SummarizedExperiment))
+seACC &lt;- miniACC
 for (i in seq_along(experiments(seACC))){
   seACC[[i]] &lt;- SummarizedExperiment(seACC[[i]])
 }
@@ -725,8 +701,10 @@ seACC</code></pre>
 ##  assays() - convert ExperimentList to a SimpleList of matrices</code></pre>
 <p>The following shortcut function takes a list of human gene symbols and uses <code>AnnotationFilter</code> and <code>EnsDb.Hsapiens.v86</code> to look up the ranges, and return these as a GRangesList which can be used to replace the rowRanges of the SummarizedExperiment objects:</p>
 <pre class="r"><code>getrr &lt;- function(identifiers, EnsDbFilterFunc=&quot;SymbolFilter&quot;){
+  suppressPackageStartupMessages({
     library(AnnotationFilter)
     library(EnsDb.Hsapiens.v86)
+  })
     FUN &lt;- get(EnsDbFilterFunc)
     edb &lt;- EnsDb.Hsapiens.v86
     afl &lt;- AnnotationFilterList(FUN(identifiers),
@@ -740,9 +718,6 @@ seACC</code></pre>
 }</code></pre>
 <p>For example:</p>
 <pre class="r"><code>getrr(rownames(seACC)[[1]])</code></pre>
-<pre><code>## Loading required package: ensembldb</code></pre>
-<pre><code>## Loading required package: GenomicFeatures</code></pre>
-<pre><code>## Loading required package: AnnotationDbi</code></pre>
 <pre><code>## GRangesList object of length 198:
 ## $DIRAS3 
 ## GRanges object with 1 range and 7 metadata columns:
@@ -790,6 +765,23 @@ seACC</code></pre>
 ##  [3] RPPAArray: RangedSummarizedExperiment with 33 rows and 46 columns 
 ##  [4] Mutations: RangedSummarizedExperiment with 97 rows and 90 columns 
 ##  [5] miRNASeqGene: SummarizedExperiment with 471 rows and 80 columns</code></pre>
+<p>With ranged objects in the MultiAssayExperiment, you can then do subsetting by ranges. For example, select all genes on chromosome 1 for the four <em>rangedSummarizedExperiment</em> objects:</p>
+<pre class="r"><code>seACC[GRanges(seqnames=&quot;1:1-1e9&quot;), , 1:4]</code></pre>
+<pre><code>## A MultiAssayExperiment object of 4 listed
+##  experiments with user-defined names and respective classes. 
+##  Containing an ExperimentList class object of length 4: 
+##  [1] RNASeq2GeneNorm: RangedSummarizedExperiment with 22 rows and 79 columns 
+##  [2] gistict: RangedSummarizedExperiment with 22 rows and 90 columns 
+##  [3] RPPAArray: RangedSummarizedExperiment with 3 rows and 46 columns 
+##  [4] Mutations: RangedSummarizedExperiment with 11 rows and 90 columns 
+## Features: 
+##  experiments() - obtain the ExperimentList instance 
+##  colData() - the primary/phenotype DataFrame 
+##  sampleMap() - the sample availability DataFrame 
+##  `$`, `[`, `[[` - extract colData columns, subset, or experiment 
+##  *Format() - convert into a long or wide DataFrame 
+##  assays() - convert ExperimentList to a SimpleList of matrices</code></pre>
+<p><em>Note about microRNA</em>: You can set ranges for the microRNA assay according to the genomic location of those microRNA, or the locations of their predicted targets, but we don’t do it here. Assigning genomic ranges of microRNA targets would be an easy way to subset them according to their targets.</p>
 <p style="text-align: right;">
 <a href="#header">back to top</a>
 </p>
@@ -819,7 +811,7 @@ maeView(miniACC)</code></pre>
 ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
 ## 
 ## attached base packages:
-## [1] parallel  stats4    stats     graphics  grDevices utils     datasets 
+## [1] stats4    parallel  stats     graphics  grDevices utils     datasets 
 ## [8] methods   base     
 ## 
 ## other attached packages:
@@ -863,15 +855,16 @@ maeView(miniACC)</code></pre>
 ## [49] shinydashboard_0.6.0          lattice_0.20-35              
 ## [51] Biostrings_2.45.2             splines_3.4.0                
 ## [53] knitr_1.16                    reshape2_1.4.2               
-## [55] biomaRt_2.32.0                XML_3.98-1.7                 
-## [57] evaluate_0.10                 data.table_1.10.4            
-## [59] httpuv_1.3.3                  gtable_0.2.0                 
-## [61] tidyr_0.6.3                   km.ci_0.5-2                  
-## [63] assertthat_0.2.0              mime_0.5                     
-## [65] xtable_1.8-2                  broom_0.4.2                  
-## [67] tibble_1.3.3                  pheatmap_1.0.8               
-## [69] GenomicAlignments_1.12.1      memoise_1.1.0                
-## [71] KMsurv_0.1-5                  interactiveDisplayBase_1.15.0</code></pre>
+## [55] codetools_0.2-15              biomaRt_2.32.0               
+## [57] XML_3.98-1.7                  evaluate_0.10                
+## [59] data.table_1.10.4             httpuv_1.3.3                 
+## [61] gtable_0.2.0                  tidyr_0.6.3                  
+## [63] km.ci_0.5-2                   assertthat_0.2.0             
+## [65] mime_0.5                      xtable_1.8-2                 
+## [67] broom_0.4.2                   tibble_1.3.3                 
+## [69] pheatmap_1.0.8                GenomicAlignments_1.12.1     
+## [71] memoise_1.1.0                 KMsurv_0.1-5                 
+## [73] interactiveDisplayBase_1.15.0</code></pre>
 </div>
 
 
