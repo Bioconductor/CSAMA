@@ -5,7 +5,6 @@ author: "Levi Waldron, CUNY School of Public Health"
 date: "June 14, 2017"
 output:
   slidy_presentation: null
-  ioslides_presentation: default
 ---
 
 ## Outline for Introduction to Linear Models
@@ -83,8 +82,8 @@ summary(spider)
 
 ## What are linear models?
 
-- Linear models model a response variable $Y_i$ as a linear combination of predictors, plus randomly distributed noise.
-- A common use case is where $Y_i$ are log-transformed microarray data
+- Linear models model a response variable $y_i$ as a linear combination of predictors, plus randomly distributed noise.
+- A common use case is where $y_i$ are log-transformed microarray data
     + predictors are treatment vs. control, male vs. female, amount of exposure, etc
 
 ## Multiple linear regression model
@@ -203,7 +202,7 @@ print(fit.table, type="html")
 ```
 
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:51:49 2017 -->
+<!-- Wed Jun 14 10:46:34 2017 -->
 <table border=1>
 <tr> <th>  </th> <th> Estimate </th> <th> Std. Error </th> <th> t value </th> <th> Pr(&gt;|t|) </th>  </tr>
   <tr> <td align="right"> (Intercept) </td> <td align="right"> 0.9215 </td> <td align="right"> 0.0383 </td> <td align="right"> 24.08 </td> <td align="right"> 0.0000 </td> </tr>
@@ -238,7 +237,7 @@ print(fit.table, type="html")
 ```
 
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:51:50 2017 -->
+<!-- Wed Jun 14 10:46:34 2017 -->
 <table border=1>
 <tr> <th>  </th> <th> Estimate </th> <th> Std. Error </th> <th> t value </th> <th> Pr(&gt;|t|) </th>  </tr>
   <tr> <td align="right"> (Intercept) </td> <td align="right"> 0.6644 </td> <td align="right"> 0.0538 </td> <td align="right"> 12.34 </td> <td align="right"> 0.0000 </td> </tr>
@@ -274,7 +273,7 @@ print(fit.table, type="html")
 ```
 
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:51:50 2017 -->
+<!-- Wed Jun 14 10:46:34 2017 -->
 <table border=1>
 <tr> <th>  </th> <th> Estimate </th> <th> Std. Error </th> <th> t value </th> <th> Pr(&gt;|t|) </th>  </tr>
   <tr> <td align="right"> (Intercept) </td> <td align="right"> 1.0539 </td> <td align="right"> 0.0282 </td> <td align="right"> 37.43 </td> <td align="right"> 0.0000 </td> </tr>
@@ -529,7 +528,7 @@ fitX <- lm(friction ~ type * leg, data=spider)
 ```
 
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:51:50 2017 -->
+<!-- Wed Jun 14 10:46:35 2017 -->
 <table border=1>
 <tr> <th>  </th> <th> Estimate </th> <th> Std. Error </th> <th> t value </th> <th> Pr(&gt;|t|) </th>  </tr>
   <tr> <td align="right"> (Intercept) </td> <td align="right"> 0.9215 </td> <td align="right"> 0.0327 </td> <td align="right"> 28.21 </td> <td align="right"> 0.0000 </td> </tr>
@@ -605,7 +604,7 @@ summary(L3vsL2interaction)
 * Linear regression is a special case of a broad family of models called "Generalized Linear Models" (GLM)
 * This unifying approach allows to fit a large set of models using maximum likelihood estimation methods (MLE) (Nelder & Wedderburn, 1972)
 * Can model many types of data directly using appropriate distributions, e.g. Poisson distribution for count data
-* Transformations of $Y$ not needed
+* Transformations of $y$ not needed
 
 ## Components of a GLM
 
@@ -622,7 +621,7 @@ $$
 
 ## Linear Regression as GLM
 
-* Useful for binary outcomes, e.g. Single Nucleotide Polymorphisms or somatic variants
+* Useful for log-transformed microarray data
 
 * **The model**: $y_i = E[y|x] + \epsilon_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi} + \epsilon_i$
 
@@ -633,6 +632,8 @@ $$
 * **Link function** here is the _identity link_: $g(E(y | x)) = E(y | x)$.  We are modeling the mean directly, no transformation.
 
 ## Logistic Regression as GLM
+
+* Useful for binary outcomes, e.g. Single Nucleotide Polymorphisms or somatic variants
 
 * **The model**: 
 $$
@@ -685,12 +686,13 @@ $$
 * *aka* gamma–Poisson mixture distribution
 
 $$
-f(k, \lambda, \theta) = \frac{\Gamma(\frac{1}{\theta}+k)}{k! \, \Gamma(\frac{1}{\theta})} 
+f(k, \lambda, \theta) = \frac{\Gamma(\frac{1 + \theta k}{\theta})}{k! \, \Gamma(\frac{1}{\theta})} 
     \left(\frac{\theta m}{1+\theta m}\right)^k 
-    \left(\frac{1}{1+\theta m}\right)^r 
+    \left(1+\theta m\right)^\theta
     \quad\text{for }k = 0, 1, 2, \dotsc
 $$
-
+* where $f$ is still the probability of $k$ events (e.g. # of reads counted),
+* $\lambda$ is still the mean number of events, so $E[y|x]$
 * An additional **dispersion parameter** $\theta$ is estimated:
     + $\theta \rightarrow 0$: Poisson distribution
     + $\theta \rightarrow \infty$: Gamma distribution    
@@ -724,8 +726,8 @@ $$
 ## Summary
 
 - **Generalized Linear Models** extend linear regression to:
-    - binary $Y$ (logistic regression)
-    - count $Y$ (log-linear regression with e.g. Poisson or Negative Binomial link functions) 
+    - binary $y$ (logistic regression)
+    - count $y$ (log-linear regression with e.g. Poisson or Negative Binomial link functions) 
 - The basis for identifying differential expression / differential abundance
 - Know the model formula interface, but
     - use model matrices to directly fit coefficients that you want to interpret

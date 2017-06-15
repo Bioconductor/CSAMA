@@ -108,8 +108,8 @@ Levi Waldron, CUNY School of Public Health
 </div><div id="what-are-linear-models" class="slide section level2">
 <h1>What are linear models?</h1>
 <ul>
-<li>Linear models model a response variable <span class="math">\(Y_i\)</span> as a linear combination of predictors, plus randomly distributed noise.</li>
-<li>A common use case is where <span class="math">\(Y_i\)</span> are log-transformed microarray data
+<li>Linear models model a response variable <span class="math">\(y_i\)</span> as a linear combination of predictors, plus randomly distributed noise.</li>
+<li>A common use case is where <span class="math">\(y_i\)</span> are log-transformed microarray data
 <ul>
 <li>predictors are treatment vs. control, male vs. female, amount of exposure, etc</li>
 </ul></li>
@@ -218,7 +218,7 @@ fit &lt;-<span class="st"> </span><span class="kw">lm</span>(friction ~<span cla
 <pre class="sourceCode r"><code class="sourceCode r">fit.table &lt;-<span class="st"> </span>xtable::<span class="kw">xtable</span>(fit, <span class="dt">label=</span><span class="ot">NULL</span>)
 <span class="kw">print</span>(fit.table, <span class="dt">type=</span><span class="st">&quot;html&quot;</span>)</code></pre>
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:51:49 2017 -->
+<!-- Wed Jun 14 10:46:34 2017 -->
 <table border="1">
 <tr>
 <th>
@@ -296,7 +296,7 @@ Diagram of the estimated coefficients in the linear model. The green arrow indic
 <pre class="sourceCode r"><code class="sourceCode r">fit.table &lt;-<span class="st"> </span>xtable::<span class="kw">xtable</span>(fit, <span class="dt">label=</span><span class="ot">NULL</span>)
 <span class="kw">print</span>(fit.table, <span class="dt">type=</span><span class="st">&quot;html&quot;</span>)</code></pre>
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:51:50 2017 -->
+<!-- Wed Jun 14 10:46:34 2017 -->
 <table border="1">
 <tr>
 <th>
@@ -399,7 +399,7 @@ legL4
 <pre class="sourceCode r"><code class="sourceCode r">fit.table &lt;-<span class="st"> </span>xtable::<span class="kw">xtable</span>(fit, <span class="dt">label=</span><span class="ot">NULL</span>)
 <span class="kw">print</span>(fit.table, <span class="dt">type=</span><span class="st">&quot;html&quot;</span>)</code></pre>
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:51:50 2017 -->
+<!-- Wed Jun 14 10:46:34 2017 -->
 <table border="1">
 <tr>
 <th>
@@ -733,7 +733,7 @@ sex &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw
 </ul>
 <pre class="sourceCode r"><code class="sourceCode r">fitX &lt;-<span class="st"> </span><span class="kw">lm</span>(friction ~<span class="st"> </span>type *<span class="st"> </span>leg, <span class="dt">data=</span>spider)</code></pre>
 <!-- html table generated in R 3.4.0 by xtable 1.8-2 package -->
-<!-- Tue Jun 13 16:51:50 2017 -->
+<!-- Wed Jun 14 10:46:35 2017 -->
 <table border="1">
 <tr>
 <th>
@@ -935,7 +935,7 @@ L3vsL2interaction &lt;-<span class="st"> </span>multcomp::<span class="kw">glht<
 <li>Linear regression is a special case of a broad family of models called “Generalized Linear Models” (GLM)</li>
 <li>This unifying approach allows to fit a large set of models using maximum likelihood estimation methods (MLE) (Nelder &amp; Wedderburn, 1972)</li>
 <li>Can model many types of data directly using appropriate distributions, e.g. Poisson distribution for count data</li>
-<li>Transformations of <span class="math">\(Y\)</span> not needed</li>
+<li>Transformations of <span class="math">\(y\)</span> not needed</li>
 </ul>
 </div><div id="components-of-a-glm" class="slide section level2">
 <h1>Components of a GLM</h1>
@@ -957,7 +957,7 @@ g\left( E[y|x] \right) = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta
 </div><div id="linear-regression-as-glm" class="slide section level2">
 <h1>Linear Regression as GLM</h1>
 <ul>
-<li><p>Useful for binary outcomes, e.g. Single Nucleotide Polymorphisms or somatic variants</p></li>
+<li><p>Useful for log-transformed microarray data</p></li>
 <li><p><strong>The model</strong>: <span class="math">\(y_i = E[y|x] + \epsilon_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi} + \epsilon_i\)</span></p></li>
 <li><p><strong>Random component</strong> of <span class="math">\(y_i\)</span> is normally distributed: <span class="math">\(\epsilon_i \stackrel{iid}{\sim} N(0, \sigma_\epsilon^2)\)</span></p></li>
 <li><p><strong>Systematic component</strong> (linear predictor): <span class="math">\(\beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi}\)</span></p></li>
@@ -966,6 +966,7 @@ g\left( E[y|x] \right) = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta
 </div><div id="logistic-regression-as-glm" class="slide section level2">
 <h1>Logistic Regression as GLM</h1>
 <ul>
+<li><p>Useful for binary outcomes, e.g. Single Nucleotide Polymorphisms or somatic variants</p></li>
 <li><p><strong>The model</strong>: <span class="math">\[
 Logit(P(x)) = log \left( \frac{P(x)}{1-P(x)} \right) = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + ... + \beta_p x_{pi}
 \]</span></p></li>
@@ -1012,22 +1013,11 @@ f(k, \lambda) = e^{-\lambda} \frac{\lambda^k}{k!}
 <li><em>aka</em> gamma–Poisson mixture distribution</li>
 </ul>
 <p><span class="math">\[
-f(k, \lambda, \theta) = \frac{\Gamma(\frac{1}{\theta}+k)}{k! \, \Gamma(\frac{1}{\theta})} 
+f(k, \lambda, \theta) = \frac{\Gamma(\frac{1 + \theta k}{\theta})}{k! \, \Gamma(\frac{1}{\theta})} 
     \left(\frac{\theta m}{1+\theta m}\right)^k 
-    \left(\frac{1}{1+\theta m}\right)^r 
+    \left(1+\theta m\right)^\theta
     \quad\text{for }k = 0, 1, 2, \dotsc
-\]</span></p>
-<ul>
-<li>An additional <strong>dispersion parameter</strong> <span class="math">\(\theta\)</span> is estimated:
-<ul>
-<li><span class="math">\(\theta \rightarrow 0\)</span>: Poisson distribution</li>
-<li><span class="math">\(\theta \rightarrow \infty\)</span>: Gamma distribution<br /></li>
-</ul></li>
-<li>The Poisson model can be considered as <strong>nested</strong> within the Negative Binomial model
-<ul>
-<li>A likelihood ratio test comparing the two models is possible</li>
-</ul></li>
-</ul>
+\]</span> * where <span class="math">\(f\)</span> is still the probability of <span class="math">\(k\)</span> events (e.g. # of reads counted), * <span class="math">\(\lambda\)</span> is still the mean number of events, so <span class="math">\(E[y|x]\)</span> * An additional <strong>dispersion parameter</strong> <span class="math">\(\theta\)</span> is estimated: + <span class="math">\(\theta \rightarrow 0\)</span>: Poisson distribution + <span class="math">\(\theta \rightarrow \infty\)</span>: Gamma distribution<br />* The Poisson model can be considered as <strong>nested</strong> within the Negative Binomial model + A likelihood ratio test comparing the two models is possible</p>
 </div><div id="zero-inflation" class="slide section level2">
 <h1>Zero Inflation</h1>
 <ul>
@@ -1067,8 +1057,8 @@ f(k, \lambda, \theta) = \frac{\Gamma(\frac{1}{\theta}+k)}{k! \, \Gamma(\frac{1}{
 <ul>
 <li><strong>Generalized Linear Models</strong> extend linear regression to:
 <ul>
-<li>binary <span class="math">\(Y\)</span> (logistic regression)</li>
-<li>count <span class="math">\(Y\)</span> (log-linear regression with e.g. Poisson or Negative Binomial link functions)</li>
+<li>binary <span class="math">\(y\)</span> (logistic regression)</li>
+<li>count <span class="math">\(y\)</span> (log-linear regression with e.g. Poisson or Negative Binomial link functions)</li>
 </ul></li>
 <li>The basis for identifying differential expression / differential abundance</li>
 <li>Know the model formula interface, but
