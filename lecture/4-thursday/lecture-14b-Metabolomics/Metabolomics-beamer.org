@@ -284,10 +284,12 @@
   
 ** Finally...
 
-+ Hands on in the afternoon workshop.
-
-
 *thank you for your attention!*
+
++ Hands on in the afternoon labs:
+  - Proteomics lab.
+  - Metabolomics lab (pre-processing of LCMS data).
+
 
 ** Result buffer                                                   :noexport:
 
