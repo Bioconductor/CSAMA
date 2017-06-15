@@ -47,7 +47,7 @@
 + Is the large-scale study of small molecules (metabolites) in a system (cell,
   tissue or organism).
 + Metabolites are intermediates and products of cellular processes (metabolism).
-+ Simple definition:
++ Metabolome?:
   - *Genome*: what can happen.
   - *Transcriptome*: what appears to be happening.
   - *Proteome*: what makes it happen.
@@ -135,7 +135,7 @@
 #+ATTR_LATEX: :width 0.7\textwidth 
 [[./images/centWave-CWT.png]]
 
-- Equivalent to multiple Gaussian fits and choosing the best.
+- Allows to identify peaks with different widths.
 
 ** LCMS pre-processing: Peak detection
 
