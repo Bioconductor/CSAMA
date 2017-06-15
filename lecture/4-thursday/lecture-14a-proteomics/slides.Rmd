@@ -51,7 +51,7 @@ library("cputools")
 ## Mass spectrometry
 
 - Proteomics: digestions of proteins into peptides
-- Separation of moleculares: *liquid chromatography* (LC)
+- Separation of molecules: *liquid chromatography* (LC)
 - Ionisation of molecules: MS *source* (MALDI, ESI, ...)
 - Separation of ions: MS *analyser* (tof, orbitraps, ...)
 - Quantitation of ions: MS *detector*
