@@ -7,6 +7,8 @@
 Add lecture and lab on single - cell biology
 - invite Aaron Lun (?), Davis McCarthy (?)
 
+May be also pore-sequencing
+
 Machine-learning:
 - unsupervised: add multi-omics factor analysis
 
