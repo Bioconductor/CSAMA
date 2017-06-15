@@ -1468,7 +1468,7 @@ available via the `r Biocpkg("hpar")` package.
   and DIA for Label-free or Label-based Proteomics Experiments
 
 
-### Data Independent Acquisition
+### Data Independent Acquisition {-}
 
 - Analysis of label-free data from a Synapt G2 (including ion
   mobility) with `r Biocpkg("synapter")`.
