@@ -17,7 +17,7 @@ https://lgatto.github.io           University of Cambridge
 lg390@cam.ac.uk                    @lgatt0
 ```
 
-Github repo for this material: [https://github.com/lgatto/bioc-ms-prot](https://github.com/lgatto/bioc-ms-prot)
+<!-- Github repo for this material: [https://github.com/lgatto/bioc-ms-prot](https://github.com/lgatto/bioc-ms-prot) -->
 
 ## Licence
 
@@ -51,7 +51,7 @@ library("cputools")
 ## Mass spectrometry
 
 - Proteomics: digestions of proteins into peptides
-- Separation of moleculares: *liquid chromatography* (LC)
+- Separation of molecules: *liquid chromatography* (LC)
 - Ionisation of molecules: MS *source* (MALDI, ESI, ...)
 - Separation of ions: MS *analyser* (tof, orbitraps, ...)
 - Quantitation of ions: MS *detector*
@@ -109,6 +109,10 @@ conveniently and efficiently manage raw MS experiments.
 library("MSnbase")
 (x <- readMSData2(fl))
 ```
+
+## { .fullpage }
+
+![profile and centroided](./Figures/mode.png)
 
 ## 
 
