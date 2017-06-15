@@ -13,5 +13,6 @@ Machine-learning:
 
 
 - Reduce Intro to R and Bioc to one lecture (to save time for the above) ?
+- Visualisation lecture on first day ? 
 
 
