@@ -265,6 +265,76 @@
   \end{tabular}
 \end{frame}
 
+<<echo=FALSE>>=
+suppressPackageStartupMessages({
+    library(DESeq2)
+    library(airway)
+    library(org.Hs.eg.db)
+    library(edgeR)
+})
+@ 
+
+\begin{frame}[fragile, allowframebreaks]{Example -- \Biocpkg{DESeq2} lab}
+  Example: hypergeometric test using \Biocpkg{edgeR}\Rcode{::goana()}
+  \begin{itemize}
+    \item Data input and massage
+<<input>>=
+library(DESeq2)
+library(airway)
+data(airway)
+airway$dex <- relevel(airway$dex, "untrt")
+@ 
+
+\framebreak
+    \item Differential expression analysis
+<<de>>=
+des <- DESeqDataSet(airway, design = ~ cell + dex)
+des <- DESeq(des)
+res <- results(des)
+@ 
+
+\framebreak
+    \item Need 'entrez' identifiers, but have 'ensembl'
+<<mapIds>>=
+library(org.Hs.eg.db)
+res$egid <- mapIds(
+  org.Hs.eg.db, rownames(res), "ENTREZID", "ENSEMBL"
+)
+@ 
+
+    \item Trim 'universe' to those genes that can be assessed for
+      differential expression (i.e., \Rcode{!is.na(padj)}) and
+      assigned to gene set (\Rcode{!is.na(entre)})
+<<trim>>=
+xtabs(~ is.na(padj) + is.na(egid), res)
+res <- subset(res, !is.na(padj) & !is.na(egid))
+dim(res)
+@ 
+
+\framebreak
+    \item Test and order
+<<goana>>=
+library(edgeR)
+go <- goana(res$egid[res$padj < .05], res$egid, "Hs")
+go <- go[ order(go$P.DE), ]
+t(go[1,])
+@  
+
+\framebreak
+    \item Sanity check -- glucocorticoid sets present?
+<<sanity>>=
+head(subset(go, grepl("glucocorticoid", Term)), 3)
+@       
+      \item What genes in gene sets?
+<<term-id-mapping>>=
+map <- select(
+  org.Hs.eg.db, res$egid, "GO", "ENTREZID"
+)
+head(map)
+@ 
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{References}
   \begin{itemize}
   \item Khatri et al., 2012, PLoS Comp Biol 8.2: e1002375.
