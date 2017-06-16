@@ -227,6 +227,7 @@ suppressPackageStartupMessages({
     library(GenomicAlignments)
     library(Rsamtools)
     library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+    library(RNAseqData.HNRNPC.bam.chr14)
 })
 
 yield <-     # how to input the next chunk of data
@@ -264,17 +265,13 @@ yieldFactory <-  # return a function with local state
 
 Regions of interest, named like the chromosomes in the bam file.
 
-```{r count-overlaps-roi, eval=FALSE}
+```{r count-overlaps-roi}
 exByTx <- exonsBy(TxDb.Hsapiens.UCSC.hg19.knownGene, "tx")
-
-fl <- "/home/ubuntu/data/vobencha/LargeData/srarchive/hg19_alias.tab"
-map0 <- read.delim(fl, header=FALSE, stringsAsFactors=FALSE)
-seqlevels(exByTx, force=TRUE) <- setNames(map0$V1, map0$V2)
 ```
 
 A function to iterate through a bam file.
 
-```{r count-overlaps, eval=FALSE}
+```{r count-overlaps}
 count1 <- function(filename, roi) {
     message(filename)
     ## Create and open BAM file
@@ -285,9 +282,12 @@ count1 <- function(filename, roi) {
 
 In action
 
-```{r count-overlaps-doit, eval=FALSE}
-bam <- "/home/ubuntu/data/vobencha/LargeData/srarchive/SRR1039508_sorted.bam"
-count <- count1(bam, exByTx)
+```{r count-overlaps-doit}
+## path to example bam files
+library(RNAseqData.HNRNPC.bam.chr14)
+bam <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
+count <- count1(bam[[1]], exByTx)
+hist(log10(count)) # drops 0's
 ```
 <a href="#top">Back to top</a>
 
@@ -421,7 +421,7 @@ successful results. This exercise demonstrates how to access the
 in the [Errors, Logs and Debugging][] vignette.
 
 ```{r parallel-bpredo-param}
-param <- MulticoreParam(workers = 3)
+param <- MulticoreParam(workers = 3) # Windows: SnowParam(workers=3)
 ```
 
 Call the `sqrt()` function across 'X'; the second element is a character
@@ -586,17 +586,16 @@ param <- SnowParam(4, log = TRUE, timeout = 60)
 Point to the collection of bam files.
 
 ```{r co-bams}
-fls <- dir("/home/ubuntu/data/vobencha/LargeData/copynumber", ".bam$", full=TRUE)
-names(fls) <- basename(fls)
+library(RNAseqData.HNRNPC.bam.chr14)
+fls <- RNAseqData.HNRNPC.bam.chr14_BAMFILES
 bfl <- BamFileList(fls)
 ```
 
 Defining ranges (region of interest) restricts the amount of data on the
-workers and keeps memory requirements under control. We'll use a set of ranges
-on the Major Histocompatibility Complex locus on chromosome 6.
+workers and keeps memory requirements under control.
 
 ```{r co-GRanges}
-ranges <- GRanges("chr6", IRanges(c(28477797, 29527797, 32448354),
+ranges <- GRanges("chr14", IRanges(c(28477797, 29527797, 32448354),
                                   c(29477797, 30527797, 33448354)))
 ```
 
@@ -606,14 +605,11 @@ _scanBamParam_ (i.e., they could be overlapping the start or the end). Once
 we've got the records in _R_, we want to count only those that fall 'within'
 the ranges.
 
-```{r co-map, eval=FALSE}
+```{r co-map}
 MAP <- function(range, file, ...) {
     library(GenomicAlignments)         ## readGAlignments(), ScanBamParam()
     param = ScanBamParam(which=range)  ## restriction
     gal = readGAlignments(file, param=param)
-    ## log messages
-    flog.info(paste0("file: ", basename(file)))
-    flog.debug(paste0("records: ", length(gal)))
     ## overlaps
     olaps <- findOverlaps(gal, range, type="within", ignore.strand=TRUE)
     tabulate(subjectHits(olaps), subjectLength(olaps))
@@ -622,26 +618,28 @@ MAP <- function(range, file, ...) {
 
 Count ...
 
-```{r co-doit, eval=FALSE}
+```{r co-doit}
 cts <- reduceByFile(ranges, fls, MAP, BPPARAM = param)
 ```
 
 The result is a list the same length as the number of files.
 
-```{r co-length, eval=FALSE}
+```{r co-length}
 length(cts)
 ```
 
 Each list element is the length of the number of ranges.
 
-```{r co-elementlengths, eval=FALSE}
-elementLengths(cts)
+```{r co-elementlengths}
+lengths(cts)
 ```
 
-Tables of counts for each range are extracted with '[[':
+Tables of counts for each range are extracted with
+`[[`; use `simplifyToArray()` to get a matrix of counts
  
-```{r co-tables, eval=FALSE}
+```{r co-tables}
 cts[[1]]
+simplify2array(cts)
 ```
 <a href="#top">Back to top</a>
 
