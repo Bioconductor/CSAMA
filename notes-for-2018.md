@@ -23,8 +23,10 @@ Machine-learning:
 Proteomics:
 - start-to-end workflow about one specific proteomcis experiment: for
   example spatial proteomics and machine learning.
+- use full lecture to explain basics of MS and prot 
 
 Annotation across omics domains
 - example: KEGG for genes and metabolite
 - EndDB: proteins and genes/transcripts
 
+May be a 'bring your own data' session?
