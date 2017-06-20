@@ -1,4 +1,4 @@
-# CSAMA: Statistics and Computing in Genome Data Science
+# CSAMA: Statistical Data Analysis for Genome Scale Biology
 
 Instructors: commit changes to the **2017 branch**.
 
