@@ -49,6 +49,15 @@ kernlab
 ## Martin
 
 ## Johannes
+xcms
+MSnbase
+mzR
+doParallel
+msdata
+magrittr
+ensembldb
+EnsDb.Hsapiens.v86
+AnnotationHub
 
 ## Charlotte
 
