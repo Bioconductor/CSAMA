@@ -17,7 +17,7 @@ This repository contains material for the annual 'CSAMA' course.
   <img src="http://www-huber.embl.de/csama2017/wp-content/uploads/2017/01/VOICES_RGB_orizzontale.jpg" width="200" />
 </p>
 <p float="left">
-  <img src="https://www.bioconductor.org/images/logo/jpg/bioconductor_logo_rgb.jpg" width="350" />
-  <img src="http://www.huber.embl.de/csama2017/wp-content/uploads/2017/01/de.NBI-Logo.png" width="300" />
+  <img src="https://www.bioconductor.org/images/logo/jpg/bioconductor_logo_rgb.jpg" width="300" align="bottom"/>
+  <img src="http://www.huber.embl.de/csama2017/wp-content/uploads/2017/01/de.NBI-Logo.png" width="300" align="bottom"/>
 </p>
 
