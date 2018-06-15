@@ -1,18 +1,12 @@
 # CSAMA: Statistics and Computing in Genome Data Science
 
-Instructors: commit changes to the **2018 branch**.
-
 This repository contains material for the annual 'CSAMA' course.
 
-Course material:
+## Instructors
 
-- Current: [announcement][]; [course material][course-material-2017]; [repository][2017-repo].
-- 2016: [labs and lectures][2016]; [repository][2016-repo].
-- Previous: [labs and lectures][bioc-course-material].
+ - Commit changes to the **2018 branch**.
+ - Add any packages required for your lectures or labs to the REQUIRED_PACKAGES file.  We will use this to ensure the students have installed everything ahead of time.  We will automatically incude all packages listed under DEPENDS and IMPORTS for your given packages, but not SUGGESTS.  If you require data etc from a suggested package, please include this explicitly in the list.
 
-[Announcement]: http://www.huber.embl.de/csama2018/
-[2017-repo]: https://github.com/Bioconductor/CSAMA/tree/2017
-[2016]: https://www.bioconductor.org/help/course-materials/2016/CSAMA/
-[2016-repo]: https://github.com/Bioconductor/CSAMA2016
-[bioc-course-material]: https://bioconductor.org/help/course-materials/
-[course-material-2017]: https://bioconductor.org/help/course-materials/2017/CSAMA/
+
+
+
