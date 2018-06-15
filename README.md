@@ -9,19 +9,15 @@ This repository contains material for the annual 'CSAMA' course.
  - Update REQUIRED_PACKAGES by **25-06-2018**
 
 
-
-
 ## Organised in collaboration with
 
 <p float="left">
-  
   <img src="http://www-huber.embl.de/csama2017/wp-content/uploads/2017/01/DSCTV.jpg" width="100" /> 
-  <img src="http://www-huber.embl.de/csama2017/wp-content/uploads/2017/01/bioconductor_logo.png" width="300" />
+  <img src="http://www.sound-biomed.eu/wp-content/uploads/sound_wordmark.svg" width="300" />
   <img src="http://www-huber.embl.de/csama2017/wp-content/uploads/2017/01/VOICES_RGB_orizzontale.jpg" width="200" />
- 
 </p>
 <p float="left">
+  <img src="https://www.bioconductor.org/images/logo/jpg/bioconductor_logo_rgb.jpg" width="350" />
   <img src="http://www.huber.embl.de/csama2017/wp-content/uploads/2017/01/de.NBI-Logo.png" width="300" />
-  <img src="http://www.sound-biomed.eu/wp-content/uploads/sound_wordmark.svg" width="300" />
 </p>
 
