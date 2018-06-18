@@ -58,6 +58,7 @@ magrittr
 ensembldb
 EnsDb.Hsapiens.v86
 AnnotationHub
+BSgenome.Hsapiens.NCBI.GRCh38
 
 ## Charlotte
 

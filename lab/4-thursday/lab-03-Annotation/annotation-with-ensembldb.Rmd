@@ -1,0 +1,59 @@
+---
+title: "RNA-seq workflow: annotation of RNA-seq results"
+subtitle: CSAMA 2018 version 
+author:
+- name: Johannes Rainer
+  affiliation: Institute of Biomedicine, Eurac Research, Italy
+- name: Michael I. Love
+  affiliation: Departments of Biostatistics and Genetics, UNC-Chapel Hill, Chapel Hill, NC, US
+- name: Charlotte Soneson
+  affiliation: Institute for Molecular Life Sciences, Univ. Zurich, CH
+date: 12 July 2018
+output: BiocStyle::html_document
+bibliography: bibliography.bib
+vignette: >
+  %\VignetteIndexEntry{Annotation of RNA-seq results}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+<!-- to compile this: rmarkdown::render("annotation-with-ensembldb.Rmd") -->
+
+<!--
+     # a list of all required libraries:
+     reqlibs = sub(".*library\\(\"(.*?)\"\\).*","\\1",grep("library\\(",readLines("annotation-with-ensembldb.Rmd"),value=TRUE))
+     find.package(reqlibs)
+-->
+
+
+```{r style, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
+library("BiocStyle")
+library("knitr")
+library("rmarkdown")
+opts_chunk$set(message = FALSE, error = FALSE, warning = FALSE,
+               cache = FALSE, fig.width = 5, fig.height = 5)
+```
+
+# Abstract
+
+This document describes the annotation of RNA-seq results using resources from
+Bioconductor, specifically the `r Biopkg("ensembldb")` package.
+
+# Introduction
+
++ General information on available packages, resources (AnnotationHub)
++ GenomicFeatures and ensembldb to get genomic coordinates of gene and
+  transcript models, their exons.
+
+TODOs:
+
++ Get input data
++ Annotate to gene informations (gene IDs, symbols etc).
++ Annotate to proteins.
++ Find transcripts encoding proteins with a certain domain, e.g. the steroid
+  receptor ligand binding domain that also the glucocorticoid receptor has.
++ Annotate to GO terms? reactome pathways?
+
+Optional additional stuff:
+- if we had genomic or transcript alignments of individual reads:
+  - map those positions to the genome.
+  - map those positions to the protein sequence.
