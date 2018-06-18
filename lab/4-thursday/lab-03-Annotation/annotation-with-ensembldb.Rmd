@@ -3,7 +3,7 @@ title: "RNA-seq workflow: annotation of RNA-seq results"
 subtitle: CSAMA 2018 version 
 author:
 - name: Johannes Rainer
-  affiliation: Institute of Biomedicine, Eurac Research, Italy
+  affiliation: Institute for Biomedicine, Eurac Research, Italy
 - name: Michael I. Love
   affiliation: Departments of Biostatistics and Genetics, UNC-Chapel Hill, Chapel Hill, NC, US
 - name: Charlotte Soneson
