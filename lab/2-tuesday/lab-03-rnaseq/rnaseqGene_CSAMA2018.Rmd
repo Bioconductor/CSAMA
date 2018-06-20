@@ -49,7 +49,7 @@ reference transcriptome, and prepare a count matrix which tallies the
 number of RNA-seq fragments mapped to each gene for each sample. We will
 perform exploratory data analysis (EDA) for quality assessment and to
 explore the relationship between samples, perform differential gene
-expression analysis and visually explore the results.
+expression analysis (DGE) and visually explore the results.
 
 # Introduction
 
@@ -59,7 +59,11 @@ packages which we will use in this workflow include core packages
 maintained by the Bioconductor core team for storing genomic data sets
 and working with gene annotations [@Huber2015Orchestrating]. We will
 also use contributed packages for statistical analysis and
-visualization of sequencing data. Through scheduled releases every 6
+visualization of sequencing data. 
+
+![A conductor ensures the orchestra plays in harmony. [(source)](https://commons.wikimedia.org/wiki/File:Tomohiro_Oura_conductor.jpg)](img/320px-Tomohiro_Oura_conductor.jpg)
+
+Through scheduled releases every 6
 months, the Bioconductor project ensures that all the packages within
 a release will work together in harmony (hence the "conductor"
 metaphor).  The packages used in this workflow are loaded with the
@@ -131,25 +135,21 @@ internally.
 
 ## Transcript abundances and the *tximport* pipeline
 
-TODO: write intro here
-
-transcript abundance quantification methods such as 
-[Salmon](https://combine-lab.github.io/salmon/) [@Patro2017Salmon],
+In this workflow, we will use transcript abundances as quantified by the
+[Salmon](https://combine-lab.github.io/salmon/) [@Patro2017Salmon]
+software package. *Salmon* and other methods, such as
 [Sailfish](http://www.cs.cmu.edu/~ckingsf/software/sailfish/) [@Patro2014Sailfish],
 [kallisto](https://pachterlab.github.io/kallisto/) [@Bray2016Near], or 
 [RSEM](http://deweylab.github.io/RSEM/) [@Li2011RSEM],
-to estimate abundances without aligning reads, followed by the
-`r Biocpkg("tximport")` package for assembling estimated count and
-offset matrices for use with Bioconductor differential gene expression
-packages. 
-
-A tutorial on how to use the *Salmon* software for quantifying
-transcript abundance can be found [here](https://combine-lab.github.io/salmon/getting_started/).
-Following that tutorial, you can use the steps in the 
-[tximport vignette](https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html),
-which will show how to build a *DESeqDataSet*. This is our current recommended
-pipeline for users, but below we still include steps on aligning reads to the
-genome and building count matrices from BAM files.
+estimate the relative abundances of all (known, annotated) transcripts
+without aligning reads. Because estimating the abundance of the
+transcripts involves an inference step, the counts are *estimated*.
+Most methods either use a statistical framework called
+Estimation-Maximization or Bayesian techniques to estimate the
+abundances and counts. 
+Following quantification, we will use the `r Biocpkg("tximport")` [@Soneson2015Differential]
+package for assembling estimated count and offset matrices for use
+with Bioconductor differential gene expression packages. 
 
 The advantages of using the transcript abundance quantifiers in
 conjunction with *tximport* to produce gene-level count matrices and
@@ -159,15 +159,81 @@ usage) [@Trapnell2013Differential]; some of these methods are
 substantially faster and require less memory and disk usage compared
 to alignment-based methods; and it is possible to avoid discarding
 those fragments that can align to multiple genes with homologous
-sequence [@Robert2015Errors].  Note that transcript abundance
+sequence [@Robert2015Errors]. Note that transcript abundance
 quantifiers skip the generation of large files which store read
-alignments, instead producing smaller files which store estimated
-abundances, counts and effective lengths per transcript.  For more
-details, see the manuscript describing this approach
+alignments (SAM or BAM files), instead producing smaller files which
+store estimated abundances, counts and effective lengths per
+transcript. For more details, see the manuscript describing this approach
 [@Soneson2015Differential] and the `r Biocpkg("tximport")` package
-vignette for software details. 
+vignette for software details.
 
-TODO: explain where these quants are coming from
+A full tutorial on how to use the *Salmon* software for quantifying
+transcript abundance can be
+found [here](https://combine-lab.github.io/salmon/getting_started/),
+but in the next section we will provide the specific command line code
+that was used to quantify the eight samples that will be used in this workflow. 
+
+## *Salmon* quantification
+
+We begin by providing *Salmon* with the sequence of all of the
+reference transcripts, which we will call the *reference
+transcriptome*. We used version 27 of the GENCODE human
+transcripts, downloaded from
+the [GENCODE website](https://www.gencodegenes.org/). As of writing,
+GENCODE has already released a newer version, but for computational
+reproducibility, all previous versions are available from the website.
+On the command line, creating the transcriptome index looks like:
+
+```
+salmon index -i gencode.v27_salmon_0.8.2 -t gencode.v27.transcripts.fa.gz
+```
+
+The `0.8.2` refers to the version of *Salmon* that was used. As of writing,
+*Salmon* is up to version 0.10.1 and it's always best to use the
+latest version of software available.
+
+To quantify an individual sample, `sample_01`, the following command
+can be used:
+
+```
+salmon quant -i gencode.v27_salmon_0.8.2 -p 6 --libType A \
+  --gcBias --biasSpeedSamp 5 \
+  -1 sample_01_1.fastq.gz -2 sample_01_2.fastq.gz \
+  -o sample_01
+```
+
+In simple English, this command says to "quantify a sample using this
+transcriptome index, with 6 threads, using automatic 
+[library type](http://salmon.readthedocs.io/en/latest/library_type.html) detection,
+using GC bias correction (the bias speed part is now longer
+needed with current versions of *Salmon*), here are the first and second
+read, and use this output directory." The output directory will be
+created if it doesn't exist, though if earlier parts of the path do
+not exist, it will give an error. A single sample of human RNA-seq
+usually takes ~5 minutes with the GC bias correction.
+
+Rather than writing the above command on the command line, for
+quantifying these eight samples, a simple
+[R script](https://github.com/mikelove/airway2/blob/master/inst/scripts/salmon.R) 
+was written to perform the following *Salmon* calls from R, looping
+over the samples. It is also possible to loop over files using a
+bash loop, or more advanced workflow management
+systems such as Snakemake [@Koster2012Snakemake] or Nextflow
+[@Di2017Nextflow].
+
+## Importing into R with *tximport*
+
+Following quantification, we can use *tximport* to import the data
+into R and perform statistical analysis using Bioconductor packages.
+Normally, we would simply point *tximport* to the `quant.sf` files on
+our machine. However, because we are distributing these files as part
+of an R package, we have to do some extra steps, to figure out where
+the R package, and so the files, are located on *your* machine.
+
+The output directories from the above *Salmon* quantification calls has been
+stored in the `extdata` directory of the R package called *airway2*. 
+
+TODO: how to distribute?
 
 ```{r eval=FALSE}
 library("devtools")
@@ -177,25 +243,56 @@ install_github("mikelove/airway2")
 The R function *system.file* can be used to find out where on your
 computer the files from a package have been installed. Here we ask for
 the full path to the `extdata` directory, where R packages store
-external data, that is part of the `r Biocexptpkg("airway")` package.
+external data, that is part of the *airway2* package.
 
 ```{r}
 library("airway2")
 dir <- system.file("extdata", package="airway2")
+dir
 list.files(dir)
 ```
 
-```{r}
-coldata <- read.delim(file.path(dir, "SraRunTable.txt"))
-idx <- c("Run","cell_line","treatment")
-coldata[,idx]
-coldata <- coldata[,idx]
-```
+The quantification directories are in the `quants` directory. 
 
 ```{r}
+list.files(file.path(dir,"quants"))
+```
+
+The identifiers used here are the *SRR* identifiers from the 
+[Sequence Read Archive](https://www.ncbi.nlm.nih.gov/sra). For this
+experiment, we downloaded a table that links the *SRR* identifiers to
+the sample information about each experiment. From this 
+[Run Selector](https://www.ncbi.nlm.nih.gov/Traces/study/?acc=SRP033351) view
+of the experiment, we clicked the button: *RunInfo Table*. This
+downloads a file called `SraRunTable.txt`. We included this file in
+the *airway2* package, and we read it in now:
+
+```{r}
+coldata <- read.delim(file.path(dir, "SraRunTable.txt"))
+colnames(coldata)
+idx <- c("Run","cell_line","treatment")
+coldata[,idx]
+```
+
+For simplicity we restrict to these three columns, and do a little
+cleanup of the column names and the levels of the factors.
+
+```{r}
+coldata <- coldata[,idx]
 colnames(coldata) <- c("run","cell","dex")
 coldata$cell
 coldata$dex
+```
+
+We can rename the levels of the `dex` column, but we have to be
+careful that our new level names correspond 1-1 to the previous
+levels. Here we replace `Dexamethasone` with `trt` and `Untreated`
+with `untrt`. There is nothing wrong with the longer names, but
+sometimes shorter factor levels are easier to work with, and as long
+as the shorter levels can be understood by other analysts, it saves
+keystrokes.
+
+```{r}
 levels(coldata$dex)
 levels(coldata$dex) <- c("trt","untrt")
 levels(coldata$dex)
@@ -205,7 +302,7 @@ levels(coldata$dex)
 reference level (e.g. control, or untreated samples), so we can
 *relevel* the `dex` factor like so: 
 
-```{r sedex}
+```{r coldatadex}
 library("magrittr")
 coldata$dex %<>% relevel("untrt")
 coldata$dex
@@ -219,17 +316,33 @@ concise way of saying
 coldata$dex <- relevel(coldata$dex, "untrt")
 ```
 
+Now we can create a named vector that points to the *Salmon*
+quantification files. Because we have gzipped the quants for
+distribution, we point to `quant.sf.gz`. Normally would just be
+`quant.sf`. (The importing software can import directly from gzipped
+files.)
+
 ```{r}
-# we have gzipped the quants, normally would just be "quant.sf"
 files <- file.path(dir,"quants",coldata$run,"quant.sf.gz")
-names(files) <- coldata$Run
+names(files) <- coldata$run
 all(file.exists(files))
 ```
 
+We load a *data.frame* that connects transcripts to genes for GENCODE v27,
+`tx2gene`. We will show how to construct such a table in a following
+lab. One can also find example code in the `r Biocpkg("tximport")` package
+vignette. The information in `tx2gene` needs to directly match the
+reference transcriptome used by *Salmon*. We can ensure this by
+downloading the *FASTA* and *GTF* from the same version from GENCODE.
+
 ```{r}
 tx2gene <- read.csv(file.path(dir, "gencode.v27.annotation.tx2gene.csv.gz"))
+head(tx2gene)
 ```
 
+Finally the following line of code imports *Salmon* transcript
+quantifications into R, collapsing to the gene level using the
+information in `tx2gene`.
 
 ```{r}
 library("tximport")
@@ -238,7 +351,21 @@ library("readr")
 txi <- tximport(files, type="salmon", tx2gene=tx2gene)
 ```
 
+The `txi` object is simply a list of matrices (and one character
+vector):
+
+```{r}
+names(txi)
+txi$counts[1:3,1:3]
+txi$length[1:3,1:3]
+txi$abundance[1:3,1:3]
+txi$countsFromAbundance
+```
+
+
 ## *DESeq2* import functions
+
+TODO kill this section
 
 The following tools can be used generate count matrices:
 *summarizeOverlaps* [@Lawrence2013Software],
@@ -248,9 +375,9 @@ The following tools can be used generate count matrices:
 
 function            | package                                              | framework      | output                 | *DESeq2* input function
 --------------------|------------------------------------------------------|----------------|------------------------|-------------------------
-*summarizeOverlaps* | `r Biocpkg("GenomicAlignments")`                     | R/Bioconductor | *SummarizedExperiment* | *DESeqDataSet*
-*featureCounts*     | `r Biocpkg("Rsubread")`                              | R/Bioconductor | matrix                 | *DESeqDataSetFromMatrix*
-*tximport*          | `r Biocpkg("tximport")`                              | R/Bioconductor | list of matrices       | *DESeqDataSetFromTximport*
+*summarizeOverlaps* | `r Biocpkg("GenomicAlignments")`                     | R/Bioc | *SummarizedExperiment* | *DESeqDataSet*
+*featureCounts*     | `r Biocpkg("Rsubread")`                              | R/Bioc | matrix                 | *DESeqDataSetFromMatrix*
+*tximport*          | `r Biocpkg("tximport")`                              | R/Bioc | list of matrices       | *DESeqDataSetFromTximport*
 *htseq-count*       | [HTSeq](http://www-huber.embl.de/users/anders/HTSeq) | Python         | files                  | *DESeqDataSetFromHTSeq* 
 
 ## Branching point
@@ -385,15 +512,15 @@ genetable <- data.frame(gene.id = rownames(txi$counts))
 
 TODO describe what we're doing here (or should we just use lengthScaledTPM?
 
-```{r}
+```{r message=FALSE}
+library("edgeR")
 cts <- txi$counts
 normMat <- txi$length
 normMat <- normMat/exp(rowMeans(log(normMat)))
 o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
 ```
 
-```{r message = FALSE}
-library("edgeR")
+```{r}
 dge <- DGEList(counts = cts,
                samples = coldata,
                genes = genetable)
@@ -556,6 +683,7 @@ of zero), and then using the VST and rlog-transformed values.
 ```{r transform-plot, fig.width = 6, fig.height = 2.5}
 library("dplyr")
 library("ggplot2")
+library("hexbin")
 ntd <- normTransform(dds)
 
 df <- bind_rows(
