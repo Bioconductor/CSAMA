@@ -22,12 +22,12 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
-<!-- to compile this: rmarkdown::render("rnaseqGene.Rmd") -->
+<!-- to compile this: rmarkdown::render("rnaseqGene_CSAMA2018.Rmd") -->
 
 <!--
-     # a list of all required libraries:
-     reqlibs = sub(".*library\\(\"(.*?)\"\\).*","\\1",grep("library\\(",readLines("rnaseqGene_CSAMA2017.Rmd"),value=TRUE))
-     find.package(reqlibs)
+  # a list of all required libraries:
+  reqlibs = sub(".*library\\(\"(.*?)\"\\).*","\\1",grep("library\\(",readLines("rnaseqGene_CSAMA2018.Rmd"),value=TRUE))
+  find.package(reqlibs)
 -->
 
 
@@ -43,10 +43,10 @@ opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE,
 # Abstract
 
 We walk through an end-to-end gene-level RNA-seq differential
-expression workflow using Bioconductor packages.  We will start from
-the FASTQ files, show how these were aligned to the reference genome,
-and prepare a count matrix which tallies the number of RNA-seq
-reads/fragments within each gene for each sample.  We will
+expression workflow using Bioconductor packages. We will start from
+the FASTQ files, show how these were quantified with respect to a
+reference transcriptome, and prepare a count matrix which tallies the
+number of RNA-seq fragments mapped to each gene for each sample. We will
 perform exploratory data analysis (EDA) for quality assessment and to
 explore the relationship between samples, perform differential gene
 expression analysis and visually explore the results.
@@ -54,21 +54,21 @@ expression analysis and visually explore the results.
 # Introduction
 
 Bioconductor has many packages which support analysis of
-high-throughput sequence 
-data, including RNA sequencing (RNA-seq). The packages which we
-will use in this workflow include core packages maintained by the
-Bioconductor core team for importing and processing raw sequencing
-data and loading gene annotations. We will also use
-contributed packages for statistical analysis and visualization
-of sequencing data. Through scheduled releases every 6 months, the
-Bioconductor project ensures that all the packages within a release
-will work together in harmony (hence the "conductor" metaphor).
-The packages used in this workflow are loaded with the
-*library* function and can be installed by following the
-[Bioconductor package installation instructions](http://bioconductor.org/install/#install-bioconductor-packages).
+high-throughput sequence data, including RNA sequencing (RNA-seq). The
+packages which we will use in this workflow include core packages
+maintained by the Bioconductor core team for storing genomic data sets
+and working with gene annotations [@Huber2015Orchestrating]. We will
+also use contributed packages for statistical analysis and
+visualization of sequencing data. Through scheduled releases every 6
+months, the Bioconductor project ensures that all the packages within
+a release will work together in harmony (hence the "conductor"
+metaphor).  The packages used in this workflow are loaded with the
+*library* function and can be installed by following the Bioconductor
+[installation instructions](https://bioconductor.org/install/#install-bioconductor-packages).
 
-A published (but essentially similar) version of this workflow, including reviewer reports and comments
-is available at [F1000Research](http://f1000research.com/articles/4-1070).
+A published (but essentially similar) version of this workflow,
+including reviewer reports and comments is available
+at [F1000Research](http://f1000research.com/articles/4-1070).
 
 If you have questions about this workflow or any Bioconductor
 software, please post these to the
@@ -76,26 +76,29 @@ software, please post these to the
 If the questions concern a specific package, you can tag the post with
 the name of the package, or for general questions about the workflow,
 tag the post with `rnaseqgene`. Note the
-[posting guide](http://www.bioconductor.org/help/support/posting-guide/)
+[posting guide](https://www.bioconductor.org/help/support/posting-guide/)
 for crafting an optimal question for the support site.
 
 ## Experimental data
 
-TODO edit this
-
-The data used in this workflow is stored in the
-`r Biocexptpkg("airway")` package that summarizes an RNA-seq experiment
+The data used in this workflow is stored in an R package, *airway2*,
+containing quantification data for eight RNA-seq samples.
+The quantification files summarize an RNA-seq experiment
 wherein airway smooth muscle cells were treated with dexamethasone, a
 synthetic glucocorticoid steroid with anti-inflammatory effects
-[@Himes2014RNASeq].  Glucocorticoids are used, for example, 
-by people with asthma to reduce inflammation of the airways. In the experiment,
-four primary human airway smooth muscle cell lines were treated with 1
+[@Himes2014RNASeq]. Glucocorticoids are used, for example, 
+by people with asthma to reduce inflammation of the airways. In the
+experiment, four primary human airway smooth muscle cell lines were treated with 1
 micromolar dexamethasone for 18 hours. For each of the four cell
 lines, we have a treated and an untreated sample. For more description
 of the experiment see the
 [PubMed entry 24926665](http://www.ncbi.nlm.nih.gov/pubmed/24926665)
 and for raw data see the
 [GEO entry GSE52778](http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE52778).
+An alternative version of the workflow uses the `r Biocexptpkg("airway")` 
+package, but this version uses the newer
+*airway2* because it contains *Salmon* quantification files, which
+will be discussed later.
 
 <a id="count"></a>
 
@@ -109,21 +112,22 @@ As input, the count-based statistical methods, such as
 `r Biocpkg("EBSeq")` [@Leng2013EBSeq] and
 `r Biocpkg("baySeq")` [@Hardcastle2010BaySeq],
 expect input data as obtained, e.g., from RNA-seq or another
-high-throughput sequencing experiment, in the form of a matrix of
-integer values.  The value in the *i*-th row and the *j*-th column of
+high-throughput sequencing experiment, in the form of a matrix of counts.
+The value in the *i*-th row and the *j*-th column of
 the matrix tells how many reads (or fragments, for paired-end RNA-seq)
-have been assigned to gene *i* in sample *j*.  Analogously, for other
+have been assigned to gene *i* in sample *j*. Analogously, for other
 types of assays, the rows of the matrix might correspond e.g., to
 binding regions (with ChIP-Seq), species of bacteria (with metagenomic
 datasets), or peptide sequences (with quantitative mass spectrometry).
 
 The values in the matrix should be counts of sequencing
-reads/fragments. This is important for the statistical models used by *DESeq2* and *edgeR* to
-hold, as only counts allow assessing the measurement precision
-correctly. It is important to *never* provide counts that were
-pre-normalized for sequencing depth/library size, as the statistical
-model is most powerful when applied to un-normalized counts and is
-designed to account for library size differences internally.
+reads/fragments. This is important for the statistical models used by
+*DESeq2* and *edgeR* to hold, as only counts allow assessing the
+measurement precision correctly. It is important to not provide
+counts that were pre-normalized for sequencing depth/library size, as
+the statistical model is most powerful when applied to un-normalized
+counts and is designed to account for library size differences
+internally.
 
 ## Transcript abundances and the *tximport* pipeline
 
@@ -173,7 +177,7 @@ install_github("mikelove/airway2")
 The R function *system.file* can be used to find out where on your
 computer the files from a package have been installed. Here we ask for
 the full path to the `extdata` directory, where R packages store
-external data, that is part of the `r Biocexptpkg("airway2")` package.
+external data, that is part of the `r Biocexptpkg("airway")` package.
 
 ```{r}
 library("airway2")
@@ -886,12 +890,15 @@ values can be assigned `NA` if the gene was excluded from analysis
 because it contained an extreme count outlier. For more information,
 see the outlier detection section of the *DESeq2* vignette.
 
-If you use the results from an R analysis package in published
-research, you can find the proper citation for the software by typing
-`citation("pkgName")`, where you would substitute the name of the
-package for `pkgName`.  Citing methods papers helps to support and
-reward the individuals who put time into open source software for
-genomic data analysis.
+## Independent hypothesis weighting within *DESeq2*
+
+TODO write this part with pointer to WH lab/lecture
+
+```{r}
+library("IHW")
+resIHW <- results(dds, filterFun=ihw)
+summary(resIHW)
+```
 
 ## Other comparisons
 
@@ -980,6 +987,15 @@ treatres <- glmTreat(fit, coef = ncol(design), lfc = 1)
 tt.treat <- topTags(treatres, n = nrow(dge), sort.by = "none")
 table(DESeq2 = resLFC1$padj < 0.1, edgeR = tt.treat$table$FDR < 0.1)
 ```
+
+## Citing packages used in research
+
+If you use the results from an R analysis package in published
+research, you can find the proper citation for the software by typing
+`citation("pkgName")`, where you would substitute the name of the
+package for `pkgName`.  Citing methods papers helps to support and
+reward the individuals who put time into open source software for
+genomic data analysis.
 
 <a id="plots"></a>
 
@@ -1136,124 +1152,6 @@ a set of genes at the top of the heatmap are separating the N061011
 cell line from the others. In the center of the heatmap, we see a set
 of genes for which the dexamethasone treated samples have higher gene
 expression. 
-
-## Independent filtering
-
-TODO: remove this section, or update to talk about IHW?
-
-The MA plot highlights an important property of RNA-seq data.  For
-weakly expressed genes, we have no chance of seeing differential
-expression, because the low read counts suffer from such high Poisson
-noise that any biological effect is drowned in the uncertainties from
-the sampling at a low rate. We can also show this by examining the ratio of
-small *p* values (say, less than 0.05) for genes binned by mean
-normalized count. We will use the results table subjected to the threshold to show
-what this looks like in a case when there are few tests with small *p*
-value.
-
-In the following code chunk, we create bins using the *quantile*
-function, bin the genes by base mean using *cut*, rename the levels of
-the bins using the middle point, calculate the ratio of *p* values
-less than 0.05 for each bin, and finally plot these ratios (figure below).
-
-```{r sensitivityovermean, fig.width = 6}
-qs <- c(0, quantile(resLFC1$baseMean[resLFC1$baseMean > 0], 0:6/6))
-bins <- cut(resLFC1$baseMean, qs)
-levels(bins) <- paste0("~", round(signif((qs[-1] + qs[-length(qs)])/2, 2)))
-fractionSig <- tapply(resLFC1$pvalue, bins, function(p)
-                          mean(p < .05, na.rm = TRUE))
-barplot(fractionSig, xlab = "mean normalized count",
-                     ylab = "fraction of small p values")
-```
-
-**The ratio of small *p* values for genes binned by mean normalized count.**
-The *p* values are from a test of log2 fold change greater than 1
-or less than -1. This plot demonstrates that genes with very low mean count
-have little or no power, and are best excluded from testing.
-
-At first sight, there may seem to be little benefit in filtering out
-these genes. After all, the test found them to be non-significant
-anyway. However, these genes have an influence on the multiple testing
-adjustment, whose performance improves if such genes are removed. By
-removing the low count genes from the input to the FDR
-procedure, we can find more genes to be significant among those that
-we keep, and so improved the power of our test. This approach is known
-as *independent filtering*.
-
-The *DESeq2* software automatically performs independent filtering
-that maximizes the number of genes with adjusted *p* value
-less than a critical value (by default, `alpha` is set to 0.1).  This
-automatic independent filtering is performed by, and can be controlled
-by, the *results* function.
-
-The term *independent* highlights an important caveat. Such filtering
-is permissible only if the statistic that we filter on (here the mean
-of normalized counts across all samples) is independent of the
-actual test statistic (the *p* value) under the null hypothesis.
-Otherwise, the filtering would invalidate the
-test and consequently the assumptions of the BH procedure.
-The independent filtering software used inside
-*DESeq2* comes from the `r Biocpkg("genefilter")` package, that
-contains a reference to a paper describing the statistical foundation
-for independent filtering [@Bourgon2010Independent].
-
-<a id="annotate"></a>
-
-# Annotating and exporting results
-
-TODO: cut this section, move to ensembldb lab?
-
-<https://github.com/Bioconductor/CSAMA/blob/2018/lab/4-thursday/lab-03-Annotation/annotation-with-ensembldb.Rmd>
-
-Our result table so far only contains the Ensembl gene
-IDs, but alternative gene names may be more informative for
-interpretation.  Bioconductor's annotation packages help with mapping
-various ID schemes to each other.
-We load the `r Biocpkg("AnnotationDbi")` package and the annotation package
-`r Biocannopkg("org.Hs.eg.db")`:
-
-```{r}
-library("AnnotationDbi")
-library("org.Hs.eg.db")
-```
-
-This is the organism annotation package ("org") for
-*Homo sapiens* ("Hs"), organized as an *AnnotationDbi*
-database package ("db"), using Entrez Gene IDs ("eg") as primary key.
-To get a list of all available key types, use:
-
-```{r}
-columns(org.Hs.eg.db)
-```
-
-We can use the *mapIds* function to add individual columns to our results
-table. We provide the row names of our results table as a key, and
-specify that `keytype = ENSEMBL`. The `column` argument tells the
-*mapIds* function which information we want, and the `multiVals`
-argument tells the function what to do if there are multiple possible
-values for a single input value. Here we ask to just give us back the
-first one that occurs in the database.
-To add the gene symbol and Entrez ID, we call *mapIds* twice.
-
-```{r eval=FALSE}
-res$symbol <- mapIds(org.Hs.eg.db,
-                     keys = row.names(res),
-                     column = "SYMBOL",
-                     keytype = "ENSEMBL",
-                     multiVals = "first")
-res$entrez <- mapIds(org.Hs.eg.db,
-                     keys = row.names(res),
-                     column = "ENTREZID",
-                     keytype = "ENSEMBL",
-                     multiVals = "first")
-```
-
-Now the results have the desired external gene IDs:
-
-```{r}
-resOrdered <- res[order(res$padj),]
-head(resOrdered)
-```
 
 ## Exporting results
 
