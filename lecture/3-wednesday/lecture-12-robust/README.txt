@@ -1,3 +1,3 @@
-shi.R is a shiny app illustrating Cook's distance interactively.  Just source("shi.R"); docook() to run it
+outl2018.Rmd is lecture, uses content of images/
 
-rob3.Rmd is the lecture material
+mvoutApp.R is shiny app, uses content of data/
