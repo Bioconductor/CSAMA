@@ -393,7 +393,7 @@ general Bioconductor class of object called the
 *SummarizedExperiment* and we begin with a diagram of the three
 component pieces:
 
-```{r sumexp, echo = FALSE}
+```{r sumexp, echo = FALSE, out.width="80%", fig.cap="The component parts of a *SummarizedExperiment* object. The `assay` (pink block) contains the matrix of counts, the `rowRanges` or `rowData` (blue block) contains information about the genomic ranges and the `colData` (green block) contains information about the samples. The highlighted line in each block represents the first row (note that the first row of `colData` lines up with the first column of the `assay`)."}
 par(mar = c(0,0,0,0))
 plot(1,1,xlim = c(0,100),ylim = c(0,100),bty = "n",
      type="n",xlab="",ylab="",xaxt="n",yaxt="n")
@@ -409,13 +409,6 @@ polygon(c(45,90,90,45),c(75,75,95,95),col="palegreen",border=NA)
 polygon(c(45,47,47,45),c(75,75,95,95),col="palegreen3",border=NA)
 text(67.5,85,"colData")
 ```
-
-**The component parts of a *SummarizedExperiment* object.** The `assay` (pink
-block) contains the matrix of counts, the `rowRanges` or `rowData`
-(blue block) contains information about the genomic ranges and the
-`colData` (green block) contains information about the samples. The
-highlighted line in each block represents the first row (note that the
-first row of `colData` lines up with the first column of the `assay`).
 
 The *SummarizedExperiment* container is diagrammed in the Figure above
 and discussed in the latest Bioconductor paper [@Huber2015Orchestrating].
@@ -479,9 +472,6 @@ using the function *DESeqDataSetFromTximport*:
 
 ```{r}
 library("DESeq2")
-```
-
-```{r}
 dds <- DESeqDataSetFromTximport(txi, coldata, design = ~cell + dex)
 ```
 
