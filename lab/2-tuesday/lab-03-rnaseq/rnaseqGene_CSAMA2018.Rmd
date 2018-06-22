@@ -175,6 +175,8 @@ that was used to quantify the eight samples that will be used in this workflow.
 
 ## *Salmon* quantification
 
+![The Salmon software logo)](img/salmonlogo.png)
+
 We begin by providing *Salmon* with the sequence of all of the
 reference transcripts, which we will call the *reference
 transcriptome*. We used version 27 of the GENCODE human
@@ -362,28 +364,10 @@ txi$abundance[1:3,1:3]
 txi$countsFromAbundance
 ```
 
-
-## *DESeq2* import functions
-
-TODO kill this section
-
-The following tools can be used generate count matrices:
-*summarizeOverlaps* [@Lawrence2013Software],
-*featureCounts* [@Liao2014FeatureCounts],
-*tximport* [@Soneson2015Differential],
-*htseq-count* [@Anders2015HTSeqa].
-
-function            | package                                              | framework      | output                 | *DESeq2* input function
---------------------|------------------------------------------------------|----------------|------------------------|-------------------------
-*summarizeOverlaps* | `r Biocpkg("GenomicAlignments")`                     | R/Bioc | *SummarizedExperiment* | *DESeqDataSet*
-*featureCounts*     | `r Biocpkg("Rsubread")`                              | R/Bioc | matrix                 | *DESeqDataSetFromMatrix*
-*tximport*          | `r Biocpkg("tximport")`                              | R/Bioc | list of matrices       | *DESeqDataSetFromTximport*
-*htseq-count*       | [HTSeq](http://www-huber.embl.de/users/anders/HTSeq) | Python         | files                  | *DESeqDataSetFromHTSeq* 
-
 ## Branching point
 
-At this point, we have counted the fragments which overlap the genes
-in the gene model we specified. This is a branching point where we
+At this point, we have quantified the RNA-seq fragments and summarized
+to gene-level counts and abundances. This is a branching point where we
 could use a variety of Bioconductor packages for exploration and
 differential expression of the count data, including
 `r Biocpkg("edgeR")` [@Robinson2009EdgeR],
@@ -402,7 +386,12 @@ We will continue using `r Biocpkg("DESeq2")` [@Love2014Moderated] and
 
 ## SummarizedExperiment
 
-TODO: move or reword this SummarizedExperiment bit around somehow...
+The *DESeq2* package will store the data and intermediate results in
+an object called a *DESeqDataSet*. This object builds on top of a
+general Bioconductor class of object called the
+*SummarizedExperiment*. We will therefore first introduce the
+*SummarizedExperiment* and we begin with a diagram of the three
+component pieces:
 
 ```{r sumexp, echo = FALSE}
 par(mar = c(0,0,0,0))
@@ -414,28 +403,34 @@ text(67.5,40,"assay")
 text(67.5,35,'e.g. "counts"')
 polygon(c(10,40,40,10),c(5,5,70,70),col="skyblue",border=NA)
 polygon(c(10,40,40,10),c(68,68,70,70),col="skyblue3",border=NA)
-text(25,40,"rowRanges")
+text(25,40,"rowRanges,")
+text(25,35,"or rowData")
 polygon(c(45,90,90,45),c(75,75,95,95),col="palegreen",border=NA)
 polygon(c(45,47,47,45),c(75,75,95,95),col="palegreen3",border=NA)
 text(67.5,85,"colData")
 ```
 
 **The component parts of a *SummarizedExperiment* object.** The `assay` (pink
-block) contains the matrix of counts, the `rowRanges` (blue block) contains
-information about the genomic ranges and the `colData` (green block)
-contains information about the samples. The highlighted line in each
-block represents the first row (note that the first row of `colData`
-lines up with the first column of the `assay`). 
+block) contains the matrix of counts, the `rowRanges` or `rowData`
+(blue block) contains information about the genomic ranges and the
+`colData` (green block) contains information about the samples. The
+highlighted line in each block represents the first row (note that the
+first row of `colData` lines up with the first column of the `assay`).
 
 The *SummarizedExperiment* container is diagrammed in the Figure above
 and discussed in the latest Bioconductor paper [@Huber2015Orchestrating].
-In our case we have created a single matrix named "counts" that contains the fragment
-counts for each gene and sample, which is stored in `assay`. It is
-also possible to store multiple matrices, accessed with `assays`.
-The `rowRanges` for our object is the *GRangesList* we used for
-counting (one *GRanges* of exons for each row of the count matrix).
-The component parts of the *SummarizedExperiment* are accessed with an
-R function of the same name: `assay` (or `assays`), `rowRanges` and `colData`.
+In our case we have created a single matrix named `"counts"` that
+contains the estimated counts for each gene and sample, which is
+stored in `assay`. It is also possible to store multiple matrices,
+accessed with `assays`. The `rowData` for our object will keep track
+of the intermediate calculations for each gene: e.g. the mean of
+normalized counts, the dispersion estimates, the estimated
+coefficients and their standard error, etc. We can also include
+information about the location of each gene, in which case, we would
+use `rowRanges` to access the *GenomicRanges* or *GenomicRangesList*
+associated with each gene.The component parts of the
+*SummarizedExperiment* are accessed with an R function of the same
+name: `assay` (or `assays`), `rowRanges`/`rowData` and `colData`. 
 
 <a id="construct"></a>
 
@@ -1098,7 +1093,7 @@ table(DESeq2 = res$padj < 0.1, edgeR = tt.all$table$FDR < 0.1)
 
 We can also compare the two lists by the ranks:
 
-```{r}
+```{r plot-ranks}
 common <- !is.na(res$padj)
 plot(rank(res$padj[common]), 
      rank(tt.all$table$FDR[common]), cex = .1,
