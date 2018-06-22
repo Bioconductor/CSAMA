@@ -437,18 +437,16 @@ Bioconductor has general data classes (such as the
 packages. Additionally, the core Bioconductor classes provide useful
 functionality: for example, subsetting or reordering the rows or
 columns of a *SummarizedExperiment* automatically subsets or reorders
-the associated *rowRanges* and *colData*, which can help to prevent
+the associated *rowData* and *colData*, which can help to prevent
 accidental sample swaps that would otherwise lead to spurious
 results. With *SummarizedExperiment* this is all taken care of behind
 the scenes.
 
-In *DESeq2*, the custom class is called *DESeqDataSet*. It is built on
-top of the *SummarizedExperiment* class, and it is easy to convert
-*SummarizedExperiment* objects into *DESeqDataSet* objects, which we
-show below.  One of the two main differences is that the `assay` slot is
-instead accessed using the *counts* accessor function, and the
-*DESeqDataSet* class enforces that the values in this matrix are
-non-negative integers.
+In *DESeq2*, the custom class is called *DESeqDataSet*. One of the 
+main differences with *SummarizedExperiment* is that we will use the
+*counts* function to access the `assay` matrix, and it is required
+that this matrix stores non-negative integers (this is to prevent
+mistaken use of the package for non-count data).
 
 A second difference is that the *DESeqDataSet* has an associated
 *design formula*. The experimental design is specified at the
@@ -495,7 +493,11 @@ information about the genes:
 genetable <- data.frame(gene.id = rownames(txi$counts))
 ```
 
-TODO describe what we're doing here (or should we just use lengthScaledTPM?
+Because we are using counts from *tximport*, we have a slightly
+different procedure to import them, which involves calculating a
+statistical *offset* that will account for differences in gene length
+across samples. The following code is from the *tximport* vignette in
+the *edgeR* section.
 
 ```{r message=FALSE}
 library("edgeR")
@@ -505,6 +507,10 @@ normMat <- normMat/exp(rowMeans(log(normMat)))
 o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
 ```
 
+Actually creating the *DGEList* object simply entails providing the
+counts, sample information, gene and information. The second line adds
+an appropriate offset.
+
 ```{r}
 dge <- DGEList(counts = cts,
                samples = coldata,
@@ -513,12 +519,29 @@ dge <- scaleOffset(dge, t(t(log(normMat)) + o))
 names(dge)
 ```
 
-Just like the *SummarizedExperiment* and the *DESeqDataSet*
-the *DGEList* contains all the information we need:
-the count matrix, information about the samples (columns 
-of the count matrix), and information about the genes 
-(rows of the count matrix).
+A much simpler approach with respect to the amount of code is to generate
+counts-from-abundance using *tximport*, which correct for the gene
+length changes directly. Example for this code is:
 
+```{r}
+txi2 <- tximport(files, type="salmon", tx2gene=tx2gene,
+                 countsFromAbundance="lengthScaledTPM")
+dge2 <- DGEList(counts = txi2$counts,
+               sample = coldata,
+               gene = genetable)
+names(dge2)
+```
+
+The *counts + offset* method and the *counts-from-abundance* method
+are not statistically identical (obviously), but tend to output
+roughly similar groups of genes. In this dataset, using
+counts-from-abundance has 96% of genes in common with *count + offset*
+at a target 5% FDR.
+
+Just like the *SummarizedExperiment* and the *DESeqDataSet* the
+*DGEList* contains all the information we need: the count matrix,
+information about the samples (columns of the count matrix), and
+information about the genes (rows of the count matrix).
 
 <a id="eda"></a>
 
@@ -554,13 +577,18 @@ Here, we also filter the *DGEList* for *edgeR* in the same way. Note, however,
 that *edgeR* does not apply filtering internally, and for this reason, typically
 a stronger prefiltering criterion is used at this stage for *edgeR*.
 
-TODO: we should show filterByExpr, right?
-
 ```{r}
 dge <- dge[rowSums(round(dge$counts)) > 1, ]
 all(rownames(dge) == rownames(dds))
 ```
 
+We use the above code mostly for aiding comparison with *DESeq2* in
+later sections. The recommended filtering code for *edgeR* (here not
+evaluated) is as follows:
+
+```{r, eval=FALSE}
+dge <- dge[filterByExpr(dge),]
+```
 
 ## Variance stabilizing transformations
 
@@ -585,7 +613,7 @@ We can quickly show this property of counts with some simulated
 data (here, Poisson counts with a range of lambda from 0.1 to 100).
 We plot the standard deviation of each row (genes) against the mean:
 
-```{r meanSdCts}
+```{r meanSdCts, fig.cap="SD over mean plot for Poisson-distributed counts."}
 lambda <- 10^seq(from = -1, to = 2, length = 1000)
 cts <- matrix(rpois(1000*100, lambda), ncol = 100)
 library("vsn")
@@ -594,7 +622,7 @@ meanSdPlot(cts, ranks = FALSE)
 
 And for logarithm-transformed counts after adding a pseudocount of 1:
 
-```{r meanSdLogCts}
+```{r meanSdLogCts, fig.cap="SD over mean plot for log(x+1) transformed counts."}
 log.cts.one <- log2(cts + 1)
 meanSdPlot(log.cts.one, ranks = FALSE)
 ```
@@ -640,13 +668,13 @@ step.
 Both transformation functions return an object based on the *SummarizedExperiment*
 class that contains the transformed values in its *assay* slot.
 
-```{r vst}
+```{r vst, fig.cap="SD over mean plot for VST values from counts used in this workflow."}
 vsd <- vst(dds, blind = FALSE)
 head(assay(vsd), 3)
 meanSdPlot(assay(vsd), ranks = FALSE)
 ```
 
-```{r rlog}
+```{r rlog, fig.cap="SD over mean plot for rlog-transformed counts from this workflow."}
 rld <- rlog(dds, blind = FALSE)
 head(assay(rld), 3)
 meanSdPlot(assay(rld), ranks = FALSE)
@@ -665,7 +693,7 @@ the first sample against the second, first simply using the *log2*
 function of normalized counts (after adding 1, to avoid taking the log
 of zero), and then using the VST and rlog-transformed values.
 
-```{r transform-plot, fig.width = 6, fig.height = 2.5}
+```{r transform-plot, out.width="100%", fig.width=6, fig.height=2.5, fig.cap="Scatterplot of transformed counts from two samples. Shown are scatterplots using the log2 transform of normalized counts (left), using the VST (middle), and using the rlog (right). While the rlog is on roughly the same scale as the log2 counts, the VST has a upward shift for the smaller values. It is the differences between samples (deviation from y = x in these scatterplots) which will contribute to the distance calculations and the PCA plot."}
 library("dplyr")
 library("ggplot2")
 library("hexbin")
@@ -680,14 +708,6 @@ colnames(df)[1:2] <- c("x", "y")
 ggplot(df, aes(x = x, y = y)) + geom_hex(bins = 80) +
   coord_fixed() + facet_grid(. ~ transformation)
 ```
-
-**Scatterplot of transformed counts from two samples**. Shown are
-scatterplots using the log2 transform of normalized counts (left),
-using the VST (middle), and using the rlog (right). While the rlog is
-on roughly the same scale as the log2 counts, the VST has a upward
-shift for the smaller values. It is the differences between samples
-(deviation from y = x in these scatterplots) which will contribute to
-the distance calculations and the PCA plot.
 
 We can see how genes with low counts (bottom left-hand corner) seem to
 be excessively variable on the ordinary logarithmic scale, while the
@@ -732,7 +752,7 @@ rows/columns of the distance matrix, which is not desired.
 We also manually specify a blue color palette using the
 *colorRampPalette* function from the `r CRANpkg("RColorBrewer")` package.
 
-```{r distheatmap, fig.width = 6.1, fig.height = 4.5}
+```{r distheatmap, fig.width = 6.1, fig.height = 4.5, fig.cap="Heatmap of sample-to-sample distances using the VST values."}
 sampleDistMatrix <- as.matrix(sampleDists)
 rownames(sampleDistMatrix) <- paste(vsd$dex, vsd$cell, sep = " - ")
 colnames(sampleDistMatrix) <- NULL
@@ -742,8 +762,6 @@ pheatmap(sampleDistMatrix,
          clustering_distance_cols = sampleDists,
          col = colors)
 ```
-
-**Heatmap of sample-to-sample distances using the VST values.**
 
 Note that we have changed the row names of the distance matrix to
 contain treatment type and patient number instead of sample ID, so
@@ -766,7 +784,7 @@ poisd <- PoissonDistance(t(counts(dds)))
 
 We plot the heatmap in a Figure below.
 
-```{r poisdistheatmap, fig.width = 6.1, fig.height = 4.5}
+```{r poisdistheatmap, fig.width = 6.1, fig.height = 4.5, fig.cap="Heatmap of sample-to-sample distances using the *Poisson Distance*."}
 samplePoisDistMatrix <- as.matrix(poisd$dd)
 rownames(samplePoisDistMatrix) <- paste(vsd$dex, vsd$cell, sep = " - ")
 colnames(samplePoisDistMatrix) <- NULL
@@ -775,8 +793,6 @@ pheatmap(samplePoisDistMatrix,
          clustering_distance_cols = poisd$dd,
          col = colors)
 ```
-
-**Heatmap of sample-to-sample distances using the *Poisson Distance*.**
 
 ## PCA plot
 
@@ -795,12 +811,9 @@ is printed in the axis label. Note that these percentages do not add to
 variance (although each of these remaining dimensions will explain
 less than the two that we see). 
 
-```{r plotpca, fig.width = 6, fig.height = 4.5}
+```{r plotpca, fig.width = 6, fig.height = 4.5, fig.cap="PCA plot using the VST values. Each unique combination of treatment and cell line is given its own color."}
 plotPCA(vsd, intgroup = c("dex", "cell"))
 ```
-
-**PCA plot using the VST values.** Each unique combination of
-treatment and cell line is given its own color.
 
 Here, we have used the function *plotPCA* that comes with *DESeq2*.
 The two terms specified by `intgroup` are the interesting groups for
@@ -822,16 +835,13 @@ We can then use these data to build up a second plot in a figure below, specifyi
 color of the points should reflect dexamethasone treatment and the
 shape should reflect the cell line.
 
-```{r ggplotpca, fig.width = 6, fig.height = 4.5}
+```{r ggplotpca, fig.width = 6, fig.height = 4.5, fig.cap="PCA plot using the VST values with custom *ggplot2* code. Here we specify cell line (plotting symbol) and dexamethasone treatment (color)."}
 ggplot(pcaData, aes(x = PC1, y = PC2, color = dex, shape = cell)) +
   geom_point(size = 3) +
   xlab(paste0("PC1: ", percentVar[1], "% variance")) +
   ylab(paste0("PC2: ", percentVar[2], "% variance")) +
   coord_fixed()
 ```
-
-**PCA plot using the VST values with custom *ggplot2* code.**
-Here we specify cell line (plotting symbol) and dexamethasone treatment (color).
 
 From the PCA plot, we see that the differences between cells (the
 different plotting shapes) are considerable, though not stronger than the differences due to
@@ -849,25 +859,21 @@ don't have a matrix of data, but only a matrix of distances. Here we
 compute the MDS for the distances calculated from the VST data
 and plot these in a figure below.
 
-```{r mdsvst, fig.width = 6, fig.height = 4.5}
+```{r mdsvst, fig.width = 6, fig.height = 4.5, fig.cap="MDS plot using VST values."}
 mds <- as.data.frame(colData(vsd))  %>%
          cbind(cmdscale(sampleDistMatrix))
 ggplot(mds, aes(x = `1`, y = `2`, color = dex, shape = cell)) +
   geom_point(size = 3) + coord_fixed()
 ```
 
-**MDS plot using VST values.**
-
 In a figure below we show the same plot for the *PoissonDistance*:
 
-```{r mdspois, fig.width = 6, fig.height = 4.5}
+```{r mdspois, fig.width = 6, fig.height = 4.5, fig.cap="MDS plot using the *Poisson Distance*."}
 mdsPois <- as.data.frame(colData(dds)) %>%
    cbind(cmdscale(samplePoisDistMatrix))
 ggplot(mdsPois, aes(x = `1`, y = `2`, color = dex, shape = cell)) +
   geom_point(size = 3) + coord_fixed()
 ```
-
-**MDS plot using the *Poisson Distance*.**
 
 <a id="de"></a>
 
@@ -1083,7 +1089,7 @@ table(DESeq2 = res$padj < 0.1, edgeR = tt.all$table$FDR < 0.1)
 
 We can also compare the two lists by the ranks:
 
-```{r plot-ranks}
+```{r plot-ranks, fig.cap="Comparison of genes ranked by *DESeq2* and *edgeR*."}
 common <- !is.na(res$padj)
 plot(rank(res$padj[common]), 
      rank(tt.all$table$FDR[common]), cex = .1,
@@ -1121,17 +1127,15 @@ the *plotCounts* function that takes as arguments the
 *DESeqDataSet*, a gene name, and the group over which to plot the
 counts (figure below).
 
-```{r plotcounts}
+```{r plotcounts, fig.cap="Normalized counts for a single gene over treatment group."}
 topGene <- rownames(res)[which.min(res$padj)]
 plotCounts(dds, gene = topGene, intgroup = c("dex"))
 ```
 
-**Normalized counts for a single gene over treatment group.**
-
 We can also make custom plots using the *ggplot* function from the
 `r CRANpkg("ggplot2")` package (figures below).
 
-```{r ggplotcountsjitter, fig.width = 4, fig.height = 3}
+```{r ggplotcountsjitter, out.width="80%", fig.width = 4, fig.height = 3, fig.cap="Normalized counts using ggbeeswarm"}
 library("ggbeeswarm")
 geneCounts <- plotCounts(dds, gene = topGene, intgroup = c("dex","cell"),
                          returnData = TRUE)
@@ -1139,14 +1143,10 @@ ggplot(geneCounts, aes(x = dex, y = count, color = cell)) +
   scale_y_log10() +  geom_beeswarm(cex = 3)
 ```
 
-```{r ggplotcountsgroup, fig.width = 4, fig.height = 3}
+```{r ggplotcountsgroup, out.width="80%", fig.width = 4, fig.height = 3, fig.cap="Normalized counts with lines connecting cell lines. Note that the *DESeq* test actually takes into account the cell line effect, so this figure more closely depicts the difference being tested."}
 ggplot(geneCounts, aes(x = dex, y = count, color = cell, group = cell)) +
   scale_y_log10() + geom_point(size = 3) + geom_line()
 ```
-
-**Normalized counts with lines connecting cell lines.**
-Note that the *DESeq* test actually takes into account the cell line
-effect, so this figure more closely depicts the difference being tested.
 
 ## MA plot with *DESeq2*
 
@@ -1163,19 +1163,12 @@ Before making the MA plot, we use the
 comparison of dex treated vs untreated samples. This typically takes
 about 20 seconds on a laptop.
 
-```{r plotma}
+```{r plotma, out.width="80%", fig.cap="An MA plot of changes induced by treatment. The log2 fold change for a particular comparison is plotted on the y-axis and the average of the counts normalized by size factor is shown on the x-axis. Each gene is represented with a dot. Genes with an adjusted *p* value below a threshold (here 0.1, the default) are shown in red."}
 library("apeglm")
 resultsNames(dds)
 res <- lfcShrink(dds, coef="dex_trt_vs_untrt", type="apeglm")
 DESeq2::plotMA(res, xlim=c(5,1e6), ylim=c(-5,5))
 ```
-
-**An MA plot of changes induced by treatment.**
-The log2 fold change for a particular
-comparison is plotted on the y-axis and the average of the counts
-normalized by size factor is shown on the x-axis.
-Each gene is represented with a dot. Genes with an adjusted *p* value
-below a threshold (here 0.1, the default) are shown in red.
 
 The *DESeq2* package uses a Bayesian procedure to moderate (or
 "shrink") log2 fold changes from genes with very low counts and highly
@@ -1188,7 +1181,7 @@ explanation of the rationale of moderated fold changes, please see the
 If we had not used statistical moderation to shrink the noisy log2
 fold changes, we would have instead seen the following plot:
 
-```{r plotmaNoShr}
+```{r plotmaNoShr, out.width="80%", fig.cap="MA plot without shrinkage."}
 res.noshr <- results(dds)
 DESeq2::plotMA(res.noshr, xlim=c(5,1e6), ylim=c(-5,5))
 ```
@@ -1198,7 +1191,7 @@ We can label individual points on the MA plot as well. Here we use the
 results object. Within the *with* function, only the `baseMean` and
 `log2FoldChange` values for the selected rows of `res` are used.
 
-```{r plotmalabel}
+```{r plotmalabel, out.width="80%", fig.cap="Example of labeling an individual gene on an MA plot."}
 DESeq2::plotMA(res, xlim=c(5,1e6), ylim=c(-5,5))
 topGene <- rownames(res)[which.min(res$padj)]
 with(res[topGene, ], {
@@ -1211,12 +1204,10 @@ Another useful diagnostic plot is the histogram of the *p* values
 (figure below). This plot is best formed by excluding genes with very
 small counts, which otherwise generate spikes in the histogram.
 
-```{r histpvalue2}
+```{r histpvalue2, fig.cap="Histogram of *p* values for genes with mean normalized count larger than 1."}
 hist(res$pvalue[res$baseMean > 1], breaks = 0:20/20,
      col = "grey50", border = "white")
 ```
-
-**Histogram of *p* values for genes with mean normalized count larger than 1.**
 
 TODO: also show counts plot with edgeR
 
@@ -1224,7 +1215,7 @@ TODO: also show counts plot with edgeR
 
 In *edgeR*, the MA plot is obtained via the `plotSmear` function. 
 
-```{r}
+```{r plot-smear, out.width="80%", fig.cap="The *edgeR* package includes the `plotSmear` function for generating MA plots."}
 plotSmear(lrt, de.tags = tt$table$gene.id)
 ```
 
@@ -1250,21 +1241,12 @@ samples. Hence, we center each genes' values across samples,
 and plot a heatmap (figure below). We provide a *data.frame* that instructs the
 *pheatmap* function how to label the columns.
 
-```{r genescluster}
+```{r genescluster, out.width="100%", fig.cap="Heatmap of relative VST values across samples. Treatment status and cell line information are shown with colored bars at the top of the heatmap. Blocks of genes that covary across patients. Note that a set of genes at the top of the heatmap are separating the N061011 cell line from the others. In the center of the heatmap, we see a set of genes for which the dexamethasone treated samples have higher gene expression."}
 mat  <- assay(vsd)[ topVarGenes, ]
 mat  <- mat - rowMeans(mat)
 anno <- as.data.frame(colData(vsd)[, c("cell","dex")])
 pheatmap(mat, annotation_col = anno)
 ```
-
-**Heatmap of relative VST values across samples.**
-Treatment status and cell line information are shown with colored bars
-at the top of the heatmap.
-Blocks of genes that covary across patients. Note that
-a set of genes at the top of the heatmap are separating the N061011
-cell line from the others. In the center of the heatmap, we see a set
-of genes for which the dexamethasone treated samples have higher gene
-expression. 
 
 ## Exporting results
 
@@ -1347,18 +1329,13 @@ svseq$sv
 Because we actually do know the cell lines, we can see how well the
 SVA method did at recovering these variables (figure below).
 
-```{r svaplot}
+```{r svaplot, fig.cap="Surrogate variables 1 and 2 plotted over cell line. Here, we know the hidden source of variation (cell line), and therefore can see how the SVA procedure is able to identify a source of variation which is correlated with cell line."}
 par(mfrow = c(2, 1), mar = c(3,5,3,1))
 for (i in 1:2) {
   stripchart(svseq$sv[, i] ~ dds$cell, vertical = TRUE, main = paste0("SV", i))
   abline(h = 0)
  }
 ```
-
-**Surrogate variables 1 and 2 plotted over cell line.**
-Here, we know the hidden source of variation (cell line), and
-therefore can see how the SVA procedure is able to identify a source
-of variation which is correlated with cell line.
 
 Finally, in order to use SVA to remove any effect on the counts from
 our surrogate variables, we simply add these two surrogate variables
@@ -1404,15 +1381,13 @@ pData(set)
 
 We can plot the factors estimated by *RUV*:
 
-```{r ruvplot}
+```{r ruvplot, fig.cap="Factors of unwanted variation plotted over cell line."}
 par(mfrow = c(2, 1), mar = c(3,5,3,1))
 for (i in 1:2) {
   stripchart(pData(set)[, i] ~ dds$cell, vertical = TRUE, main = paste0("W", i))
   abline(h = 0)
  }
 ```
-
-**Factors of unwanted variation plotted over cell line.**
 
 As before, if we wanted to control for these factors, we simply
 add them to the *DESeqDataSet* and to the design:
