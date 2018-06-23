@@ -57,6 +57,32 @@ kernlab
 
 ## Mike 
 
+https://github.com/mikelove/airway2
+BiocStyle
+knitr
+rmarkdown
+devtools
+magrittr
+tximport
+jsonlite
+readr
+DESeq2
+edgeR
+vsn
+dplyr
+ggplot2
+hexbin
+pheatmap
+RColorBrewer
+PoiClaClu
+IHW
+ggbeeswarm
+apeglm
+genefilter
+ReportingTools
+sva
+RUVSeq
+
 ## Martin
 
 ## Johannes
