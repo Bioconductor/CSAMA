@@ -235,8 +235,6 @@ the R package, and so the files, are located on *your* machine.
 The output directories from the above *Salmon* quantification calls has been
 stored in the `extdata` directory of the R package called *airway2*. 
 
-TODO: how to distribute?
-
 ```{r eval=FALSE}
 library("devtools")
 install_github("mikelove/airway2")
@@ -1011,12 +1009,33 @@ see the outlier detection section of the *DESeq2* vignette.
 
 ## Independent hypothesis weighting within *DESeq2*
 
-TODO write this part with pointer to WH lab/lecture
+The *results* function in *DESeq2* integrates with a new method for
+dealing with genes that have low counts and therefore low power for
+detecting differential gene expression. This method is called
+Independent Hypothesis Weighting (IHW) [@Ignatiadis2016], and
+generalizes the idea of filtering low count genes to reduce the
+multiple testing burden. While the specifics of the
+method are beyond the scope of this workflow, we demonstrate its usage
+here: 
 
 ```{r}
 library("IHW")
 resIHW <- results(dds, filterFun=ihw)
 summary(resIHW)
+```
+
+The results are similar but not identical to the results table built
+above, which uses a simple optimization of a filter over mean
+normalized counts. The new procedure results in a gain of 50 genes.
+
+```{r}
+table(old=res$padj < .1, IHW=resIHW$padj < .1)
+```
+
+We can plot the weighting function which is fit by the *IHW* package:
+
+```{r ihw-plot, fig.cap="IHW weighting function."}
+plot(metadata(resIHW)$ihwResult)
 ```
 
 ## Other comparisons
@@ -1120,7 +1139,7 @@ genomic data analysis.
 
 # Plotting results
 
-## Counts plot
+## Counts plot with *DESeq2*
 
 A quick way to visualize the counts for a particular gene is to use
 the *plotCounts* function that takes as arguments the
@@ -1209,7 +1228,23 @@ hist(res$pvalue[res$baseMean > 1], breaks = 0:20/20,
      col = "grey50", border = "white")
 ```
 
-TODO: also show counts plot with edgeR
+## Counts plot with *edgeR*
+
+As we made a counts plot previously, we can also make this with the
+top gene from the *edgeR* analysis:
+
+```{r plot-counts-edger, fig.cap="CPM per sample for the top gene from the *edgeR* analysis."}
+cpms <- cpm(dge)
+topGene <- as.character(tt10$table$gene.id[1])
+ord <- order(dge$samples$dex)
+col <- as.integer(dge$samples$dex[ord])
+par(mar=c(10,4,4,2))
+barplot(cpms[topGene,ord],
+        col=c("skyblue","orange")[col],
+        names.arg=paste(dge$sample$dex[ord],"--",dge$sample$cell[ord]),
+        las=2, ylab="counts per million (CPM)")
+```
+
 
 ## MA / Smear plot with *edgeR*
 
