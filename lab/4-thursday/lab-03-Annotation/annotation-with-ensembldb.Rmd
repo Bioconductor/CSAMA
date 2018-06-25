@@ -31,6 +31,8 @@ library("knitr")
 library("rmarkdown")
 opts_chunk$set(message = FALSE, error = FALSE, warning = FALSE,
                cache = FALSE, fig.width = 5, fig.height = 5)
+library(AnnotationHub)
+library(ensembldb)
 ```
 
 # Abstract
@@ -40,14 +42,145 @@ Bioconductor, specifically the `r Biopkg("ensembldb")` package.
 
 # Introduction
 
+One of the central steps in the analysis of genomic data is the annotation of
+the quantified entities to biologically more meaningful representations such as
+transcripts, genes or proteins. Such annotations enable for example pathway
+enrichment analyses and ease the interpretation of the results. Bioconductor
+provides a large variety of annotation packages and resources, most of them
+supporting the `r Biocpkg("AnnotationDbi")` interface and enable thus an unified
+way to retrieve annotations for given identifiers. The annotation resources from
+Bioconductor range from web-based tools such as `r Biocpkg("biomaRt")` to
+packages working with pre-build databases containing all identifier mappings for
+a certain species (the `*.org` packages such as `org.Hs.eg.db`) or providing
+gene and transcript models, such as databases build by `r
+Biocpkg("GenomicFeatures")` (`TxDb` databases/packages) and `r
+Biocpkg("ensembldb")` (`EnsDb` databases/packages).
+
+In this workflow we use the `r Biocpkg("ensembldb")` package to annotate the
+result tables from the end-to-end RNAseq lab from Tuesday. Pre-build `EnsDb`
+databases for all core species and a range of Ensembl releases are available at
+the `r Biocpkg("AnnotationHub")` resource. These `EnsDb` databases contain,
+along with genomic coordinates of exons, transcripts and genes, also mappings to
+NCBI identifiers and protein annotations, including their amino acid sequences
+and positions of protein domains within these.
+
+
+# Annotation of results to gene identifiers
+
+We first load the result table from the RNAseq lab and inspect the content of
+this table.
+
+```{r load-table}
+top_table <- read.csv("data/res_lfc-1_FDR-5.csv", row.names = 1)
+head(top_table)
+```
+
+The individual quantified entities are thus represented and identified by their
+respective Ensembl gene ID. The Salmon quantification used in the analysis was
+based on Gencode v27 transcripts which is linked to Ensembl release
+91. We thus load below an `EnsDb` database with human annotations for Ensembl
+release 91 from the `r Biocpkg("AnnotationHub")` resource. The parameter
+`localHub = TRUE` ensures that we list and load only locally stored resources,
+due to the very limited internet connectivity at the lab site.
+
+```{r annotationhub}
+library(AnnotationHub)
+library(ensembldb)
+ah <- AnnotationHub(localHub = TRUE)
+
+ah_91 <- query(ah, "EnsDb.Hsapiens.v91")
+ah_91
+
+## Load the database
+edb <- ah[[names(ah_91)]]
+```
+
+We can now use the `listColumns` function to list all of the available
+annotation columns in the database.
+
+```{r listcolumns}
+listColumns(edb)
+```
+
+Gene-related annotations can be retrieved from an `EnsDb` database using the
+`genes` function, that by default (and similar to the `genes` function from the
+`r Biocpkg("GenomicFeatures")` package) returns a `GRanges` object with the
+genomic coordinates of the genes and additional annotation columns in the
+`GRanges`' *metadata* columns. In our case we do however not want to fetch
+annotations for all human genes, but only for the genes of our top
+table. Here we can use the filtering framework from the `ensembldb`
+
+Before retrieving any annotations we have however to strip the version
+information from our Ensembl gene identifiers (e.g. the `.9` from
+`ENSG00000189221.9`) because `ensembldb` uses IDs without the version
+information.
+
+```{r stripVersion}
+rownames(top_table) <- sub("\\.[0-9]*$", "", rownames(top_table))
+```
+
+A call to `genes` would now fetch the annotations for all human genes. While we
+could subset the resulting result objects based on our gene identifiers, it is
+more elegant (and faster) to use `ensembldb`'s filtering framework to retrieve
+only annotations for our set of genes. To this end we pass the filter expression
+`~ gene_id == rownames(top_table)` with the `filter` parameter to the `genes`
+function. Filter expressions have to be written in the form of a formula
+(i.e. starting with `~`) and support any logical R expression and any database
+column/field in the `EnsDb` database (use `supportedFilters(edb)` to list all
+supported fields). Also we specify `return.type = "data.frame"` to tell the
+`genes` function to return the results in the form of a `data.frame` instead of
+the default `GRanges` object.
+
+```{r retrieve}
+anns <- genes(edb, filter = ~ gene_id == rownames(top_table),
+              return.type = "data.frame")
+head(anns)
+```
+
+Along with the genomic coordinates of the genes we got also their official gene
+names, description and NCBI Entrezgene identifiers. It is however important to
+note that the order of the genes is not the same as in `top_table`.
+
+
++ Re-order genes and combine with `top_table`.
+
+While `genes` is the more natural way to access gene-related annotations from
+the `EnsDb` database, we could also use the `AnnotationDbi` functions `select`
+and `mapIds` to retrieve annotations.
+
++ annotate to protein identifiers.
+
+
+# Query for genes/transcripts encoding a specific protein domain
+
+
+Issuing a `genes` call would however retrieve annotations for all human
+genes. While we could do this and subset the result object later
+
+
+Note that with the `column` parameter of the `genes` function it is possible to
+specify to return additional annotation columns (any column listed by
+`listColumns`).
+
+
+
+
+
+
+
+
+Working with genomic data there are several annotation resources available.
+Annotation of results is one of the most important steps in the data analysis.
+
+
 + General information on available packages, resources (AnnotationHub)
 + GenomicFeatures and ensembldb to get genomic coordinates of gene and
   transcript models, their exons.
 
+
+
 TODOs:
 
-+ Get input data
-+ Annotate to gene informations (gene IDs, symbols etc).
 + Annotate to proteins.
 + Find transcripts encoding proteins with a certain domain, e.g. the steroid
   receptor ligand binding domain that also the glucocorticoid receptor has.
