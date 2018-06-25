@@ -1,6 +1,35 @@
 ## Vince
+parody
+MLInterfaces
+MultiAssayExperiment
+curatedTCGAData
+restfulSE
+rhdf5client
+restfulSEData
+BiocOncoTK
+TFutils
+beeswarm
+shiny
 
 ## Laurent
+mzR
+mzID
+MSnID
+MSnbase
+rpx
+pRoloc
+pRolocdata
+MSGFplus
+rols
+hpar
+DEP
+drawProteins
+RforProteomics
+ggplot2
+lattice
+magrittr
+dplyr
+https://github.com/lgatto/tidies
 
 ## Robert
 
@@ -46,7 +75,56 @@ kernlab
 
 ## Mike 
 
+https://github.com/mikelove/airway2
+BiocStyle
+knitr
+rmarkdown
+devtools
+magrittr
+tximport
+jsonlite
+readr
+DESeq2
+edgeR
+vsn
+dplyr
+ggplot2
+hexbin
+pheatmap
+RColorBrewer
+PoiClaClu
+IHW
+ggbeeswarm
+apeglm
+genefilter
+ReportingTools
+sva
+RUVSeq
+
 ## Martin
+
+AnnotationHub
+BSgenome.Hsapiens.UCSC.hg19
+BiocFileCache
+BiocParallel
+Biostrings
+EnsDb.Hsapiens.v75
+GenomicAlignments
+GenomicRanges
+Gviz
+RNAseqData.HNRNPC.bam.chr14
+RNAseqData.HNRNPC.bam.chr14
+Ranges
+Rsamtools
+TxDb.Hsapiens.UCSC.hg19.knownGene
+VariantAnnotation
+biomaRt
+ggplot2
+org.Hs.eg.db
+rtracklayer
+tidyverse
+DelayedArray
+HDF5Array
 
 ## Johannes
 xcms
