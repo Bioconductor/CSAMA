@@ -103,6 +103,29 @@ RUVSeq
 
 ## Martin
 
+AnnotationHub
+BSgenome.Hsapiens.UCSC.hg19
+BiocFileCache
+BiocParallel
+Biostrings
+EnsDb.Hsapiens.v75
+GenomicAlignments
+GenomicRanges
+Gviz
+RNAseqData.HNRNPC.bam.chr14
+RNAseqData.HNRNPC.bam.chr14
+Ranges
+Rsamtools
+TxDb.Hsapiens.UCSC.hg19.knownGene
+VariantAnnotation
+biomaRt
+ggplot2
+org.Hs.eg.db
+rtracklayer
+tidyverse
+DelayedArray
+HDF5Array
+
 ## Johannes
 xcms
 MSnbase
