@@ -141,3 +141,20 @@ BSgenome.Hsapiens.NCBI.GRCh38
 ## Charlotte
 
 ## Levi
+MultiAssayExperiment
+RaggedExperiment
+curatedTCGAData
+waldronlab/TCGAutils
+curatedMetagenomicData
+phyloseq
+vegan
+genefilter
+DESeq2
+edgeR
+DT
+limma
+survival
+survminer
+AnnotationFilter
+EnsDb.Hsapiens.v86
+UpSetR
