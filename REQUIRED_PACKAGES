@@ -114,7 +114,7 @@ GenomicRanges
 Gviz
 RNAseqData.HNRNPC.bam.chr14
 RNAseqData.HNRNPC.bam.chr14
-Ranges
+IRanges
 Rsamtools
 TxDb.Hsapiens.UCSC.hg19.knownGene
 VariantAnnotation
