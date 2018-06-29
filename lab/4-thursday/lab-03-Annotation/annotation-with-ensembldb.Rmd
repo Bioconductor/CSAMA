@@ -192,24 +192,53 @@ Uniprot accessions is not 1:1.
 
 # Query for genes/transcripts encoding a specific protein domain
 
-Another rather interesting task could be to search for genes/transcripts that
-encode a specific protein domain. For the present data set we could for example
-search for genes that can encode for a steroid receptor binding domain.
+For some experiments it might be interesting to search for genes, or rather
+transcripts, that encode a protein with a certain protein domain. For the
+present data set we could for example search for genes with proteins encoding
+the ligand binding domain of nuclear hormone receptors (such as the
+glucocorticoid receptor). Below we thus query the database for all such genes
+using the protein domain ID [PF00104](http://pfam.xfam.org/family/PF00104) from
+Pfam.
 
-+ Get all genes encoding any receptor binding domain.
-+ Check if we have one of those in the top table, if not, can we access the full
-  data?
+```{r protein-domain-query}
+## Retrieve all genes with a transcript encoding a protein with a
+## certain protein ID.
+hrmn_rcptr <- genes(edb, filter = ~ protein_domain_id == "PF00104",
+                    return.type = "data.frame")
 
+```
+
+The table below lists all genes with a transcript encoding the nuclear hormone
+receptor ligand binding domain.
+
+```{r nuclear-receptors, results = "asis", echo = FALSE}
+knitr::kable(hrmn_rcptr[, c("gene_id", "gene_name", "description")])
+```
+
+With that information we can now evaluate whether one of these receptors is also
+among our differentially expressed genes.
+
+```{r de-hormone-receptor}
+top_table[top_table$gene_id %in% hrmn_rcptr$gene_id, ]
+```
+
+Indeed, NR4A3, encoding a member of the steroid-thyroid hormone-retinoid
+receptor superfamily, is 4-fold upregulated in the data set.
+
+In addition we could also use this information to evaluate expression of all
+hormone receptors, most of them being transcription factors for some of which it
+was shown that they can transcriptionally regulate their own gene as part of a
+negative, or in some cell types even positive, feedback loop.
 
 
 # Generating a transcript to gene mapping for `tximport` (???)
 
+TODO:
 
+# Session information
 
+```{r  sessionInfo }
+devtools::session_info() 
+```
 
-TODOs:
-
-+ Find transcripts encoding proteins with a certain domain, e.g. the steroid
-  receptor ligand binding domain that also the glucocorticoid receptor has.
-(+ Annotate to GO terms? reactome pathways?)
 
