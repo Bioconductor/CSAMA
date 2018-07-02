@@ -52,16 +52,15 @@ contributions](<https://github.com/jotsetung/jos-csama-contributions>).
 ## Prerequisites
 
 The analysis in this document requires an R version >= 3.5.0 and recent versions
-of the `MSnbase` and `xcms` (version >= 3.3.1 is needed) packages. The code
-below installs all packages for the analysis.
+of the `MSnbase` and `xcms` (version >= 3.3.1 is needed) packages. Since at the
+CSAMA 2018 course site only limited internet connectivity is available, we
+install packages from the local network if required.
 
-```{r  install-required, eval = FALSE, results = "hide" }
-source("https://bioconductor.org/biocLite.R")
+```{r  install-required, eval = FALSE, results = "hide"}
+## Install required packages from the local repository
+source("http://192.168.0.5/biocLite.R")
 biocLite(c("xcms", "MSnbase", "doParallel", "msdata", "magrittr",
            "devtools"))
-## Need xcms version > 3.3.1
-if (packageVersion("xcms") < "3.3.1")
-    devtools::install_github("sneumann/xcms", ref = "master") 
 ```
 
 
