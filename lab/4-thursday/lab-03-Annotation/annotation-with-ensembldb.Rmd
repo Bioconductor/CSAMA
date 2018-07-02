@@ -195,9 +195,11 @@ For some experiments it might be interesting to search for genes, or rather
 transcripts, that encode a protein with a certain protein domain. For the
 present data set we could for example search for genes with proteins encoding
 the ligand binding domain of nuclear hormone receptors (such as the
-glucocorticoid receptor). Below we thus query the database for all such genes
-using the protein domain ID [PF00104](http://pfam.xfam.org/family/PF00104) from
-Pfam.
+glucocorticoid receptor, the gene activated by treatment with the synthetic
+glucocorticoid dexamethasone and hence being mainly responsible for the
+transcriptional changes observed in the present dataset). Below we thus query
+the database for all such genes using the protein domain ID
+[PF00104](http://pfam.xfam.org/family/PF00104) from Pfam.
 
 ```{r protein-domain-query}
 ## Retrieve all genes with a transcript encoding a protein with a
@@ -232,7 +234,8 @@ negative, or in some cell types even positive, feedback loop.
 
 # Generating a transcript to gene mapping for `tximport` (???)
 
-TODO:
+TODO: @mike what type of table is needed for `tximport`? Should be possible to
+create that with `ensembldb`...
 
 # Session information
 
