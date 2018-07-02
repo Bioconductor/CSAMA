@@ -10,7 +10,6 @@ author:
   affiliation: Institute for Molecular Life Sciences, Univ. Zurich, CH
 date: 12 July 2018
 output: BiocStyle::html_document
-bibliography: bibliography.bib
 vignette: >
   %\VignetteIndexEntry{Annotation of RNA-seq results}
   %\VignetteEngine{knitr::rmarkdown}
@@ -38,7 +37,7 @@ library(ensembldb)
 # Abstract
 
 This document describes annotation of RNA-seq results using resources from
-Bioconductor, specifically the `r Biopkg("ensembldb")` package.
+Bioconductor, specifically the `r Biocpkg("ensembldb")` package.
 
 # Introduction
 
