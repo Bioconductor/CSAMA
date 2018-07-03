@@ -66,9 +66,9 @@ positions of protein domains within these.
 
 # Annotation of RNA-seq results to gene identifiers
 
-We first load the result table from the RNAseq lab and inspect the content of
-this table. The task in this section is then to annotate the quantified entities
-in this table to a variety of different identifiers.
+We first load the result table from Tuesday's RNAseq lab and inspect the content
+of this table. The task in this section is then to annotate the quantified
+entities in this table to other identifiers.
 
 ```{r load-table}
 top_table <- read.csv("data/res_lfc-1_FDR-5.csv", row.names = 1)
@@ -95,22 +95,25 @@ ah_91
 edb <- ah[[names(ah_91)]]
 ```
 
-We can now use the `listColumns` function to list all of the available
-annotation columns in the database.
+If we had a working internet connection we could simply list all available
+`EnsDb` databases with `query(ah, "EnsDb")` (after loading `AnnotationHub` with
+`localHub = FALSE`). We can now use the `ah_91` variable to access the data in
+the database. With `listColumns` function we can for example list all of the
+available annotation columns in the database.
 
 ```{r listcolumns}
 listColumns(edb)
 ```
 
-We could pass any of these to any function retrieving annotations from an
-`EnsDb` database to return entries from the respective database
-column. Gene-related annotations can be retrieved with the `genes` function,
-that by default (and similar to the `genes` function from the `r
-Biocpkg("GenomicFeatures")` package) returns a `GRanges` object with the genomic
-coordinates of the genes and additional annotation columns in the `GRanges`'
-*metadata* columns. In our case we do however not want to fetch annotations for
-all human genes, but only for the genes of our top table. Here we can use the
-filtering framework from the `ensembldb`
+We could get data from any of these database columns by passing the respective
+column name(s) along with the `column` parameter to any function retrieving
+annotations from an `EnsDb` database. Gene-related annotations can be retrieved
+with the `genes` function, that by default (and similar to the `genes` function
+from the `r Biocpkg("GenomicFeatures")` package) returns a `GRanges` object with
+the genomic coordinates of the genes and additional annotation columns in the
+`GRanges`' *metadata* columns. In our case we do however not want to fetch
+annotations for all human genes, but only for the genes of our top table. For
+that we will use the filtering framework from the `ensembldb`.
 
 Before retrieving any annotations we have however to strip the version from our
 Ensembl gene identifiers (e.g. the `.9` from `ENSG00000189221.9`) because
@@ -121,7 +124,7 @@ rownames(top_table) <- sub("\\.[0-9]*$", "", rownames(top_table))
 ```
 
 A call to `genes` would now fetch the annotations for all human genes. While we
-could subset the resulting result objects based on our gene identifiers, it is
+could subset the returned result object based on our gene identifiers, it is
 more elegant (and faster) to use `ensembldb`'s filtering framework to get only
 annotations for our set of genes. We hence pass the filter expression `~ gene_id
 == rownames(top_table)` with the `filter` parameter to the `genes`
@@ -149,18 +152,18 @@ top_table <- cbind(anns[match(rownames(top_table), anns$gene_id), ], top_table)
 ```
 
 Be aware that mappings between Ensembl and NCBI identifiers is not necessarily a
-1:1 mapping. In our case we got also for some of the Ensembl gene IDs more than
-one NCBI Entrezgene ID. The column `"entrezid"` in our result table is thus a
-`list` with eventually more than one Entrezgene ID in one row. Below we list the
-rows with the 1:n mappings between Ensembl gene IDs and NCBI Entrezgene IDs.
+1:1 mapping. In our case we got for some Ensembl gene IDs more than one NCBI
+Entrezgene ID. The column `"entrezid"` in our result table is thus a `list` with
+eventually more than one Entrezgene ID in one row. Below we list the rows with
+the 1:n mappings between Ensembl gene IDs and NCBI Entrezgene IDs.
 
 ```{r one-to-n-mapping}
 top_table[lengths(top_table$entrezid) > 1, c("gene_id", "entrezid")]
 ```
 
 Exporting such a table could be problematic and we collapse therefore Entrezgene
-IDs in this columns into a single character string, with multiple IDs
-separated by a semicolon (`";"`).
+IDs in this columns into a single character string, with multiple IDs separated
+by a semicolon (`";"`).
 
 ```{r collapse-entrezid}
 top_table$entrezid <- sapply(top_table$entrezid, function(z) {
@@ -171,11 +174,23 @@ top_table$entrezid <- sapply(top_table$entrezid, function(z) {
 
 While `genes` is the more natural way to access gene-related annotations from
 the `EnsDb` database, we could also use the `AnnotationDbi` functions `select`
-or `mapIds` to retrieve annotations.
+or `mapIds` to retrieve annotations. Note that by convention `AnnotationDbi`
+functions expect column names to be specified in all capital case.
 
-In addition we might also be interested to get the identifiers of the proteins
-for the genes' transcripts. Below we use the `proteins` function to retrieve
-protein annotations for the provided gene identifiers.
+```{r select}
+anns_2 <- select(edb, keys = top_table$gene_id, keytype = "GENEID",
+                 columns = c("GENENAME", "ENTREZID"))
+head(anns_2)
+```
+
+Be aware that by default (i.e. with `multiVals = "first"`) `select` returns only
+a single NCBI Entrezgene identifier for each Ensembl gene ID, even if more than
+one are annotated to the Ensembl gene.
+
+In addition to gene names and NCBI identifiers, we might also be interested to
+get the identifiers of the proteins for the genes' transcripts. Below we use the
+`proteins` function to retrieve protein annotations for the provided gene
+identifiers.
 
 ```{r protein-annotations}
 prts <- proteins(edb, filter = ~ gene_id == top_table$gene_id,
@@ -185,8 +200,8 @@ head(prts)
 
 We got thus for each of the genes their (protein coding) transcripts and the
 identifiers of the encoded proteins (Ensembl protein IDs and Uniprot
-accessions). Be aware that the mapping between Ensembl protein identifiers and
-Uniprot accessions is not 1:1.
+accessions). Be aware that also the mapping between Ensembl protein identifiers
+and Uniprot accessions is not 1:1.
 
 
 # Query for genes/transcripts encoding a specific protein domain
@@ -231,11 +246,6 @@ hormone receptors, most of them being transcription factors for some of which it
 was shown that they can transcriptionally regulate their own gene as part of a
 negative, or in some cell types even positive, feedback loop.
 
-
-# Generating a transcript to gene mapping for `tximport` (???)
-
-TODO: @mike what type of table is needed for `tximport`? Should be possible to
-create that with `ensembldb`...
 
 # Session information
 
