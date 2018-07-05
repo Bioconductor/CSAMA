@@ -1,13 +1,13 @@
 ---
-title: "Lecture 2 -- Introduction to Bioconductor"
+title: "Lecture 1 -- Introduction to Bioconductor"
 author: "Martin Morgan <Martin.Morgan@RoswellPark.org>"
-date: "12 June 2017"
+date: "9 July 2018"
 output:
-  BiocStyle::html_document2:
+  BiocStyle::html_document:
     toc: true
     toc_depth: 2
 vignette: >
-  % \VignetteIndexEntry{Lecture 2 -- Introduction to Bioconductor}
+  % \VignetteIndexEntry{Lecture 1 -- Introduction to Bioconductor}
   % \VignetteEngine{knitr::rmarkdown}
 ---
 
@@ -42,7 +42,7 @@ suppressPackageStartupMessages({
 
 # High-throughput sequence work flow
 
-![](lecture-02-figures/SequencingEcosystem.png)
+![](lecture-01-figures/SequencingEcosystem.png)
 
 # DNA Sequences
 
@@ -75,7 +75,7 @@ browseVignettes(package="Biostrings")
 
 # Genomic Ranges
 
-![](lecture-02-figures/GRanges.png)
+![](lecture-01-figures/GRanges.png)
 
 ```{r}
 library(GenomicRanges)
@@ -124,25 +124,25 @@ browseVignettes(package="GenomicRanges")
 
 ## Lists of Genomic Ranges
 
-![](lecture-02-figures/GRangesList.png)
+![](lecture-01-figures/GRangesList.png)
 
 - e.g., exons-within-transcripts, alignments-within-reads
 
 # Summarized Experiments
 
-![](lecture-02-figures/SummarizedExperiment.png)
+![](lecture-01-figures/SummarizedExperiment.png)
 
 Component parts
 
 ```{r}
-counts <- read.csv("lecture-02-data/airway_counts.csv", row.names=1)
+counts <- read.csv("lecture-01-data/airway_counts.csv", row.names=1)
 counts <- as.matrix(counts)
 head(counts, 3)
 
-colData <- read.csv("lecture-02-data/airway_colData.csv", row.names=1)
+colData <- read.csv("lecture-01-data/airway_colData.csv", row.names=1)
 colData[, 1:4]
 
-rowRanges <- readRDS("lecture-02-data/airway_rowRanges.rds")
+rowRanges <- readRDS("lecture-01-data/airway_rowRanges.rds")
 rowRanges
 ```
 
