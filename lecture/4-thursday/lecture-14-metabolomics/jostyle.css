@@ -1,0 +1,36 @@
+/* slides > slide.backdrop { */
+/*   background: white; */
+/*   border-bottom: 0px; */
+/*   box-shadow: 0 0 0; */
+/* } */
+
+slides > slide {
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  border-bottom: 3px solid #d04c29;
+  /* background: #ffffff; */
+  /* color: #838b93; */
+  /* color: #1e2b38; */
+  /* color: #34495e; */
+  /* box-shadow:  0 3px 0 #522D80; */
+}
+
+/* The source code blocks */
+pre {
+    /* font-family: 'Inconsolata', sans-serif; */
+}
+
+h1 {
+    color: #d04c29;
+}
+
+h2 {
+    color: #d04c29;
+}
+
+h3 {
+    color: #d04c29;
+}
+
+strong {
+    color: #d04c29;
+}
