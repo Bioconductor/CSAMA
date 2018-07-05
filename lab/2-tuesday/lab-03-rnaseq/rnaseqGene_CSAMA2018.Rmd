@@ -302,17 +302,7 @@ levels(coldata$dex)
 reference level (e.g. control, or untreated samples), so we can
 *relevel* the `dex` factor like so: 
 
-```{r coldatadex}
-library("magrittr")
-coldata$dex %<>% relevel("untrt")
-coldata$dex
-```
-
-`%<>%` is the compound assignment pipe-operator from
-the `r CRANpkg("magrittr")` package, the above line of code is a
-concise way of saying 
-
-```{r explaincmpass, eval = FALSE}
+```{r}
 coldata$dex <- relevel(coldata$dex, "untrt")
 ```
 
