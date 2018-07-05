@@ -4,7 +4,7 @@ author:
 - name: "Johannes Rainer"
   affiliation: "Institute for Biomedicine, Eurac Research, Bolzano, Italy"
 graphics: yes
-date: "24 June 2018"
+date: "12 July 2018"
 output:
   BiocStyle::html_document:
     number_sections: true
@@ -469,7 +469,7 @@ differ by less than `ppm` in consecutive spectra are combined into a region of
 interest that is then subject for the CWT-based peak detection. To illustrate
 this, we plot the full data for Serine.
 
-```{r  Serine-mz-scattering-plot, message = FALSE }
+```{r  Serine-mz-scattering-plot, message = FALSE, fig.width = 10, fig.height = 8 }
 ## Restrict the data to signal from Sering
 srn <- data_cent %>%
     filterRt(rt = c(179, 186)) %>%
@@ -527,7 +527,7 @@ with much less detected peaks. Also, we can use the `plotChromPeaks` function to
 provide some general information on the location of the identified
 chromatographic peaks in the m/z - rt space.
 
-```{r  plotChromPeaks, message = FALSE, fig.cap = "Location of the identified chromatographic peaks in the m/z - rt space." }
+```{r  plotChromPeaks, message = FALSE, fig.cap = "Location of the identified chromatographic peaks in the m/z - rt space.", fig.width = 10, fig.height = 5 }
 par(mfrow = c(1, 2))
 plotChromPeaks(data_cent, 1)
 plotChromPeaks(data_cent, 2) 
@@ -652,7 +652,7 @@ to visualize the distribution of peaks along the retention time axis and
 allows to test different settings for the correspondence on data subsets before
 applying them on the full data set.
 
-```{r  correspondence-example, message = FALSE, results = "hide", fig.cap = "BPC for a m/z slice and defined features within this slice based on default settings." }
+```{r  correspondence-example, message = FALSE, results = "hide", fig.cap = "BPC for a m/z slice and defined features within this slice based on default settings.", fig.width = 10, fig.height = 7}
 ## Plot the BPC for the m/z slice containing serine
 par(mfrow = c(2, 1), mar = c(4, 4.3, 1, 0.5))
 plot(chromatogram(data_cent, mz = c(106.04, 106.06), aggregationFun = "max"))
@@ -729,7 +729,7 @@ Leucine and Isoleucine ([M+H]+ m/z 132.10191). Setting `simulate = FALSE` in
 `plotChromPeakDensity` will show the actual results from the correspondence
 analysis.
 
-```{r  correspondence-evaluate, message = FALSE, fig.cap = "Result of correspondence on a slice containing the isomers Leucine and Isoleucine.", fig.width = 10, fig.heigt = 8 }
+```{r  correspondence-evaluate, message = FALSE, fig.cap = "Result of correspondence on a slice containing the isomers Leucine and Isoleucine.", fig.width = 10, fig.height = 7 }
 par(mfrow = c(2, 1), mar = c(3, 4.3, 1, 1))
 
 ## Plot the chromatogram for an m/z slice containing Leucine and Isoleucine
