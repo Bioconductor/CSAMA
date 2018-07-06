@@ -1,0 +1,142 @@
+
+# Table of Contents
+
+1.  [Annotation resources - `ensembldb`](#org86a2086)
+    1.  [Annotation of genomic regions](#org7917714)
+    2.  [`AnnotationFilter`: basic classes for filtering annotation resources](#orgdfc260c)
+    3.  [Filtering `EnsDb` databases](#org502fcfe)
+    4.  [Additional `ensembldb` capabilities](#org17a5d13)
+    5.  [Finally&#x2026;](#orgeb68aef)
+
+
+
+<a id="org86a2086"></a>
+
+# Annotation resources - `ensembldb`
+
+**CSAMA2018**
+
+**Johannes Rainer** (Eurac Research, Italy)
+johannes.rainer@eurac.edu
+github/twitter: *jotsetung*
+
+
+<a id="org7917714"></a>
+
+## Annotation of genomic regions
+
+-   Annotations for genomic features (genes, transcripts, exons) provided by
+    `TxDb` (`GenomicFeatures`) and `EnsDb` (`ensembldb`) databases.
+-   `EnsDb`:
+    -   Designed for Ensembl-based annotations.
+    -   One database per species and Ensembl release.
+-   Extract data using methods:
+    -   `genes`
+    -   `transcripts`
+    -   `exons`
+    -   `txBy`
+    -   `exonsBy`
+    -   &#x2026;
+-   Results are returned as `GRanges` or `GRangesList` objects.
+-   Parameter `columns` to specify which additional attributes to return.
+-   <span class="underline">Example</span>: get all gene annotations from an `EnsDb`:
+    
+      ```{r   }
+      ## Load the database for human genes, Ensembl release 86.
+      library(EnsDb.Hsapiens.v86)
+      edb <- EnsDb.Hsapiens.v86
+    
+      ## Get all genes from the database.
+      gns <- genes(edb)
+    
+      head(gns)
+    
+      ## Access start/end coordinates
+      head(start(gns))
+      head(end(gns))
+    
+      ## Metadata columns; gene biotype
+      head(gns$gene_biotype) 
+      ```
+
+
+<a id="orgdfc260c"></a>
+
+## `AnnotationFilter`: basic classes for filtering annotation resources
+
+-   Extracting the full data not always required: filter databases.
+-   `AnnotationFilter` provides basic classes and concepts for filtering.
+-   One filter class for each annotation type/database attribute.
+-   <span class="underline">Example</span>: create filters
+    
+      ```{r   }
+      ## Create filter using the constructor function
+      gnf <- GeneNameFilter("BCL2", condition = "!=")
+      gnf
+    
+      ## Create using a filter expression
+      gnf <- AnnotationFilter(~ gene_name != "BCL2")
+      gnf
+    
+      ## Combine filters
+      AnnotationFilter(~ gene_name == "BCL2" & tx_biotype == "protein_coding") 
+      ```
+
+
+<a id="org502fcfe"></a>
+
+## Filtering `EnsDb` databases
+
+-   <span class="underline">Example</span>: what filters can we use?
+    
+      ```{r   }
+      ## List all supported filters by an EnsDb
+      supportedFilters(edb) 
+      ```
+
+-   Pass filter(s) to `EnsDb` methods with the `filter` parameter or use the `filter`
+    function to subset the database.
+-   <span class="underline">Example</span>: get all transcripts for the gene *BCL2*.
+    
+      ```{r   }
+      ## Get all transcripts for BCL2
+      transcripts(edb, filter = ~ gene_name == "BCL2")
+    
+      ## Combine filters: only protein coding tx for the gene
+      transcripts(edb, filter = ~ gene_name == "BCL2" &
+    		       tx_biotype == "protein_coding")
+    
+    
+      ## For the pipe lovers:
+      library(magrittr)
+      edb %>%
+          filter(~ gene_name == "BCL2" & tx_biotype == "protein_coding") %>%
+          transcripts 
+      ```
+
+-   Filters speed up queries.
+
+
+<a id="org17a5d13"></a>
+
+## Additional `ensembldb` capabilities
+
+-   `EnsDb` contain also protein annotation data:
+    -   Protein sequence.
+    -   Annotation to Uniprot ID identifiers.
+    -   Annotation of all protein domains within the protein sequences.
+-   Functionality to map coordinates:
+    -   `genomeToTranscript`
+    -   `genomeToProtein`
+    -   `transcriptToGenome`
+    -   `transcriptToProtein`
+    -   `proteinToGenome`
+    -   `proteinToTranscript`
+
+
+<a id="orgeb68aef"></a>
+
+## Finally&#x2026;
+
+**Thank you for your attention!**
+
