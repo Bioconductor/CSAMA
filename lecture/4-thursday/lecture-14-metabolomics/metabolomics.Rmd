@@ -549,12 +549,10 @@ head(res, n = 4)
 - m/z is **not** the mass.
 </div>
 <div>
-- The mass of the charged molecule has to be considered too: [M+H]+ adduct: mass
-  of metabolite M + mass of hydrogen.
+- Mass of an [M+H]+ ion: m/z - mass of 1 hydrogen.
 </div>
 <div>
-- We can have different adducts from the same compound in a sample: [M+H]+,
-  [M+Na]+, ...
+- Different ions from the same compound: [M+H]+, [M+2H]++, [M+Na]+, ...
 </div>
 <div>
 - Main databases providing compound masses (and spectra):
@@ -578,7 +576,8 @@ Identify compounds based on m/z **and**:
   - Only works if reference spectrum available in database.
 </div>
 <div>
-- Up and coming: `CompoundDb` package (similar to `ensembldb` and alike).
+- Up and coming: `CompoundDb` package (similar to `ensembldb` and alike):
+  contains compound data + spectra.
 </div>
 
 
