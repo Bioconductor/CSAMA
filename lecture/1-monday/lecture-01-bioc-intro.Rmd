@@ -25,20 +25,30 @@ suppressPackageStartupMessages({
 })
 ```
 
-# History
+# Introduction
 
-- Started 2002 as a platform for understanding analysis of microarray
-  data
-- More than 1,300 packages. Domains of expertise:
-    - Sequencing (RNASeq, ChIPSeq, single-cell, called variants, ...)
-    - Microarrays (methylation, expression, copy number, ...)
-    - flow cytometry
-    - proteomics
-    - ...
-- Important themes
-    - Reproducible research
-    - Interoperability between packages & work kflows
-    - Usability
+Started 2002 as a platform for understanding analysis of microarray
+data
+
+More than 1,300 packages. Domains of expertise:
+
+- Sequencing (RNASeq, ChIPSeq, single-cell, called variants, ...)
+- Microarrays (methylation, expression, copy number, ...)
+- flow cytometry
+- proteomics
+- ...
+
+Important themes
+
+- Reproducible research
+- Interoperability between packages & work kflows
+- Usability
+
+Resources
+
+- https://bioconductor.org
+- https://bioconductor.org/packages -- software, annotation, experiment, workflow
+- https://support.bioconductor.org
 
 # High-throughput sequence work flow
 
@@ -188,24 +198,26 @@ browseVignettes(package="SummarizedExperiment")
 
 # _Bioconductor_ packages for high-throughput genomic analysis
 
-- Web site, https://bioconductor.org
-- Support site, https://support.bioconductor.org
-- More than 1300 'software' packages
+Web site, https://bioconductor.org
 
-    - Sequence analysis (RNASeq, ChIPSeq, called variants, copy number, 
-      single cell)
-    - Microarrays (methylation, copy number, classical expression, ...)
-    - Annotation (more about annotations later this morning...)
-    - Flow cytometry
-    - Proteomics, image analysis, ...
+More than 1500 'software' packages, https://bioconductor.org/packages
 
-- Discovery and use, e.g., [DESeq2][]
+- Sequence analysis (RNASeq, ChIPSeq, called variants, copy number, 
+  single cell)
+- Microarrays (methylation, copy number, classical expression, ...)
+- Annotation (more about annotations later this morning...)
+- Flow cytometry
+- Proteomics, image analysis, ...
 
-    - https://bioconductor.org/packages
-    - Landing pages: title, description (abstract), installation instructions,
-      badges
-    - Vignettes!
-    - [Workflows][], [course material][], [videos][], ...
+Discovery and use, e.g., [DESeq2][]
+
+- https://bioconductor.org/packages
+- Landing pages: title, description (abstract), installation instructions,
+  badges
+- Vignettes!
+- [Workflows][], [course material][], [videos][], ...
+
+Support site, https://support.bioconductor.org
 
 [Biostrings]: https://bioconductor.org/packages/Biostrings
 [GenomicRanges]: https://bioconductor.org/packages/GenomicRanges
@@ -213,7 +225,7 @@ browseVignettes(package="SummarizedExperiment")
 [HelloRanges]: https://bioconductor.org/packages/HelloRanges
 [SummarizedExperiment]: https://bioconductor.org/packages/SummarizedExperiment
 [DESeq2]: https://bioconductor.org/packages/DESeq2
-[Workslfows]: https://bioconductor.org/help/workflows/
+[Worksflows]: https://bioconductor.org/help/workflows/
 [course material]: https://bioconductor.org/help/course-materials/
 [videos]: https://www.youtube.com/user/bioconductor
 
