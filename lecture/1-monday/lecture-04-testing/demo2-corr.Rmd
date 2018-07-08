@@ -1,0 +1,17 @@
+---
+title: "Lecture 5 -- Demos for the testing lecture"
+author: "Wolfgang Huber"
+output:
+  BiocStyle::html_document2:
+    toc: true
+    toc_depth: 2
+vignette: >
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+# p-values
+
+```{r pvalues-setup}
+library("shiny")
+runApp("correlations-demo", display.mode = "showcase")
+```
