@@ -1,16 +1,16 @@
 
 # Table of Contents
 
-1.  [Annotation resources - `ensembldb`](#org86a2086)
-    1.  [Annotation of genomic regions](#org7917714)
-    2.  [`AnnotationFilter`: basic classes for filtering annotation resources](#orgdfc260c)
-    3.  [Filtering `EnsDb` databases](#org502fcfe)
-    4.  [Additional `ensembldb` capabilities](#org17a5d13)
-    5.  [Finally&#x2026;](#orgeb68aef)
+1.  [Annotation resources - `ensembldb`](#org3b45f16)
+    1.  [Annotation of genomic regions](#org1ade020)
+    2.  [`AnnotationFilter`: basic classes for filtering annotation resources](#orgbfaef4c)
+    3.  [Filtering `EnsDb` databases](#org8b02d8c)
+    4.  [Additional `ensembldb` capabilities](#org8df9ee7)
+    5.  [Finally&#x2026;](#orgdae820e)
 
 
 
-<a id="org86a2086"></a>
+<a id="org3b45f16"></a>
 
 # Annotation resources - `ensembldb`
 
@@ -21,7 +21,7 @@ johannes.rainer@eurac.edu
 github/twitter: *jotsetung*
 
 
-<a id="org7917714"></a>
+<a id="org1ade020"></a>
 
 ## Annotation of genomic regions
 
@@ -38,7 +38,6 @@ github/twitter: *jotsetung*
     -   `exonsBy`
     -   &#x2026;
 -   Results are returned as `GRanges` or `GRangesList` objects.
--   Parameter `columns` to specify which additional attributes to return.
 -   <span class="underline">Example</span>: get all gene annotations from an `EnsDb`:
     
       ```{r   }
@@ -60,13 +59,13 @@ github/twitter: *jotsetung*
       ```
 
 
-<a id="orgdfc260c"></a>
+<a id="orgbfaef4c"></a>
 
 ## `AnnotationFilter`: basic classes for filtering annotation resources
 
 -   Extracting the full data not always required: filter databases.
 -   `AnnotationFilter` provides basic classes and concepts for filtering.
--   One filter class for each annotation type/database attribute.
+-   One filter class for each annotation type/database column.
 -   <span class="underline">Example</span>: create filters
     
       ```{r   }
@@ -79,11 +78,11 @@ github/twitter: *jotsetung*
       gnf
     
       ## Combine filters
-      AnnotationFilter(~ gene_name == "BCL2" & tx_biotype == "protein_coding") 
+      AnnotationFilter(~ seq_name == "X" & gene_biotype == "lincRNA") 
       ```
 
 
-<a id="org502fcfe"></a>
+<a id="org8b02d8c"></a>
 
 ## Filtering `EnsDb` databases
 
@@ -94,8 +93,8 @@ github/twitter: *jotsetung*
       supportedFilters(edb) 
       ```
 
--   Pass filter(s) to `EnsDb` methods with the `filter` parameter or use the `filter`
-    function to subset the database.
+-   Pass filter(s) to `EnsDb` methods with the `filter` parameter or use the
+    `filter` function to subset the database.
 -   <span class="underline">Example</span>: get all transcripts for the gene *BCL2*.
     
       ```{r   }
@@ -117,7 +116,7 @@ github/twitter: *jotsetung*
 -   Filters speed up queries.
 
 
-<a id="org17a5d13"></a>
+<a id="org8df9ee7"></a>
 
 ## Additional `ensembldb` capabilities
 
@@ -134,7 +133,7 @@ github/twitter: *jotsetung*
     -   `proteinToTranscript`
 
 
-<a id="orgeb68aef"></a>
+<a id="orgdae820e"></a>
 
 ## Finally&#x2026;
 

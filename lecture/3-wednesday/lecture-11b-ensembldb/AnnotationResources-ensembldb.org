@@ -26,7 +26,6 @@ github/twitter: /jotsetung/
   - =exonsBy=
   - ... 
 + Results are returned as =GRanges= or =GRangesList= objects.
-+ Parameter =columns= to specify which additional attributes to return.
 + _Example_: get all gene annotations from an =EnsDb=:
   #+BEGIN_SRC R
     ## Load the database for human genes, Ensembl release 86.
@@ -50,7 +49,7 @@ github/twitter: /jotsetung/
 
 + Extracting the full data not always required: filter databases.
 + =AnnotationFilter= provides basic classes and concepts for filtering.
-+ One filter class for each annotation type/database attribute.
++ One filter class for each annotation type/database column.
 + _Example_: create filters
   #+BEGIN_SRC R
     ## Create filter using the constructor function
@@ -62,7 +61,7 @@ github/twitter: /jotsetung/
     gnf
 
     ## Combine filters
-    AnnotationFilter(~ gene_name == "BCL2" & tx_biotype == "protein_coding")
+    AnnotationFilter(~ seq_name == "X" & gene_biotype == "lincRNA")
   #+END_SRC
 
 ** Filtering =EnsDb= databases
@@ -72,8 +71,8 @@ github/twitter: /jotsetung/
     ## List all supported filters by an EnsDb
     supportedFilters(edb)
   #+END_SRC
-+ Pass filter(s) to =EnsDb= methods with the =filter= parameter or use the =filter=
-  function to subset the database.
++ Pass filter(s) to =EnsDb= methods with the =filter= parameter or use the
+  =filter= function to subset the database.
 + _Example_: get all transcripts for the gene /BCL2/.
   #+BEGIN_SRC R
     ## Get all transcripts for BCL2
