@@ -1,7 +1,7 @@
 library("ggvis")
 
 sim = function(inp, n = 20, m = 10000) {
-
+  stopifnot(n>=2, m>=1)
   x = matrix(
     do.call(inp$dist, list(n = n * m)), 
     ncol = n, nrow = m)

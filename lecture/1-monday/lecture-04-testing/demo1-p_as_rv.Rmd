@@ -1,12 +1,9 @@
 ---
-title: "Lecture 5 -- Demos for the testing lecture"
+title: "Code for the testing lecture: produces the plot supporting 'p-values are random variables'"
 author: "Wolfgang Huber"
 output:
-  BiocStyle::html_document2:
-    toc: true
-    toc_depth: 2
-vignette: >
-  % \VignetteEngine{knitr::rmarkdown}
+  BiocStyle::html_document:
+    toc: false
 ---
 
 ```{r setup, echo = FALSE}
@@ -14,7 +11,6 @@ knitr::opts_chunk$set(tidy = FALSE, cache = TRUE, autodep = TRUE,
             message = FALSE, error = FALSE, warning = TRUE)
 ```
 
-# p-values
 
 ```{r pvalues-setup}
 library("genefilter")
