@@ -25,6 +25,7 @@ suppressPackageStartupMessages({
     library(rtracklayer)
     library(Gviz)
     library(AnnotationHub)
+    library(magrittr)
 })
 ```
 
@@ -146,7 +147,7 @@ interface to annotation packages.
    set.seed(123)
    egid <- sample(keys(org.Hs.eg.db), 6)
    mapIds(org.Hs.eg.db, egid, "SYMBOL", "ENTREZID")
-   select(org.Hs.eg.db, egid, c("SYMBOL", "ENSEMBL", "GENENAME"), "ENTREZID")
+   AnnotationDbi::select(org.Hs.eg.db, egid, c("SYMBOL", "ENSEMBL", "GENENAME"), "ENTREZID")
    ```
    
 5. Some key - column mappings are 1:many, e.g., Entrez ID `"3812"`
@@ -162,7 +163,7 @@ interface to annotation packages.
        org.Hs.eg.db, egid, "ENSEMBL", "ENTREZID",
        multiVals = "CharacterList"
    )
-   select(
+   AnnotationDbi::select(
        org.Hs.eg.db, egid, c("SYMBOL", "ENSEMBL"),
        multiVals = "CharacterList"
    )
