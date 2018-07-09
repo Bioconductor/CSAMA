@@ -13,7 +13,7 @@ BiocStyle::markdown()
 ```
 
 ```{r setup, echo=FALSE, warning=FALSE}
-options(max.print=1000, width=100)
+options(max.print=1000)
 knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages({
     library(org.Hs.eg.db)
@@ -108,75 +108,193 @@ queries is in following Table.
 
 ## Exercises
 
-**Exercise**: This exercise illustrates basic use of the `select'
+**Exercise 1**: This exercise illustrates basic use of the `select'
 interface to annotation packages.
 
-1. What is the name of the org package for *Homo sapiens*?  Load it.
-   Display the `OrgDb` object for the [org.Hs.eg.db][] package.  Use
-   the `columns()` method to discover which sorts of annotations can
-   be extracted from it.
-2. Use the `keys()` method to extract ENSEMBL identifiers and then
-   pass those keys in to the `select()` method in such a way that you
-   extract the SYMBOL (gene symbol) and GENENAME information for
-   each. Use the following ENSEMBL ids.
+1. Install and attach the [org.Hs.eg.db][] annotation package; it
+   contains 'symbol mapping' information for _Homo sapiens_, based on
+   NCBI 'Entrez' identifiers.
 
-```{r select-setup}
-ensids <- c("ENSG00000130720", "ENSG00000103257", "ENSG00000156414", 
-            "ENSG00000144644", "ENSG00000159307", "ENSG00000144485")
-```
+    ```{r}
+    library(org.Hs.eg.db)
+    ```
 
-**Solution** The `OrgDb` object is named `org.Hs.eg.db`.
-```{r select}
-library(org.Hs.eg.db)
-keytypes(org.Hs.eg.db)
-columns(org.Hs.eg.db)
-cols <- c("SYMBOL", "GENENAME")
-select(org.Hs.eg.db, keys=ensids, columns=cols, keytype="ENSEMBL")
-```
+2. Take a quick look at a summary of data in this package
 
-**Exercise**
+    ```{r}
+    org.Hs.eg.db
+    ```
+    
+3. The idea is that there are `keytypes()` that can be mapped to
+   different `columns()`; `keys()` can be used to see available
+   keys. Explore the package to see what sorts of information is
+   available, e.g.,
+   
+   ```{r}
+   keytypes(org.Hs.eg.db)
+   columns(org.Hs.eg.db)
+   head(keys(org.Hs.eg.db, "SYMBOL"))
+   ```
+   
+4. There are two basic ways of extracting data from an `org.*` package
+   -- `mapIds()` to create a 1:1 mapping between key and a single
+   column, and `select()` (it's often necessary to specify this
+   function directly, to avoid a conflict with dplyr, as
+   `AnnotationDbi::select()`). Explore these functions, e.g.,
+   
+   ```{r}
+   set.seed(123)
+   egid <- sample(keys(org.Hs.eg.db), 6)
+   mapIds(org.Hs.eg.db, egid, "SYMBOL", "ENTREZID")
+   select(org.Hs.eg.db, egid, c("SYMBOL", "ENSEMBL", "GENENAME"), "ENTREZID")
+   ```
+   
+5. Some key - column mappings are 1:many, e.g., Entrez ID `"3812"`
+   maps to 44 Ensembl Ids. What does `mapIds()` return when mapping
+   Entrez ID `"3812"` to Ensembl ids? Use the additional argument
+   `multiVals = "CharacterList"` to explore further. Compare results
+   to those returned by `select()`.
+   
+   ```{r}
+   egid <- "3812"
+   mapIds(org.Hs.eg.db, egid, "ENSEMBL", "ENTREZID")
+   mapIds(
+       org.Hs.eg.db, egid, "ENSEMBL", "ENTREZID",
+       multiVals = "CharacterList"
+   )
+   select(
+       org.Hs.eg.db, egid, c("SYMBOL", "ENSEMBL"),
+       multiVals = "CharacterList"
+   )
+   ```
+   
+6. It seems like it might often be useful to use the tidyverse on
+   return values from `mapIds()` and `select()`; explore this usage
+   
+   ```{r, message=FALSE}
+   library(tidyverse)
+   egid <- keys(org.Hs.eg.db)    # all ENTREZIDs
+   mapIds(org.Hs.eg.db, egid, "SYMBOL", "ENTREZID") %>% 
+      as_tibble() %>% 
+      rownames_to_column("ENTREZID")
+      
+   AnnotationDbi::select(
+       org.Hs.eg.db, egid, c("SYMBOL", "GO", "GENENAME"), "ENTREZID"
+   ) %>% as_tibble()
+   ```
+
+**Exercise 2**: [biomaRt][].
 
 <font color="red">Internet access required for this exercise</font>
 
-1. Load the [biomaRt][] package and list the available marts.  Choose
-   the *ensembl* mart and list the datasets for that mart.  Set up a
-   mart to use the *ensembl* mart and the *hsapiens gene ensembl*
-   dataset.
-2. A [biomaRt][] dataset can be accessed via `getBM()`. In addition to
-   the mart to be accessed, this function takes filters and attributes
-   as arguments.  Use `filterOptions()` and `listAttributes()` to
-   discover values for these arguments.  Call `getBM()` using filters
-   and attributes of your choosing.
+1. Explore the Biomart web site https://www.ensembl.org/biomart for
+   retrieving all kinds of genomic annotations.
+   
+   Start by choosing a database (e.g., 'Ensembl Genes 92'), dataset
+   (e.g., 'Human genes (GRCh38.p12)'), filter (e.g., 'GENE' / 'Input
+   external reference' / 'Gene stable id' and enter
+   'ENSG00000000003'), attributes (default is ok), then press
+   'Results' to map from Ensembl identifier to transcript identifier.
+   
+2. Install (if necessary) and load the [biomaRt][] package. Use
+   `listMarts()` to see availble databases, `useMart()` to select the
+   mart you're interested in.
 
-**Solution**
-```{r biomaRt1, eval=FALSE, results="hide"}
-## NEEDS INTERNET ACCESS !!
-library(biomaRt)
-head(listMarts(), 3)                      ## list the marts
-head(listDatasets(useMart("ensembl")), 3) ## mart datasets
-ensembl <-                                ## fully specified mart
-    useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+   ```{r}
+   library(biomaRt)
+   head(listMarts())
+   mart <- useMart("ENSEMBL_MART_ENSEMBL")
+   ```
+   
+3. Use `listDatasets()` and `useDataset()` to select the _Homo
+   sapiens_ gene dataset.
+   
+   ```{r}
+   head(listDatasets(mart))
+   dataset <- useDataset("hsapiens_gene_ensembl", mart)
+   ```
+   
+4. Use `listFilters()` to see available filters. The filter is the
+   type of data that you are querying with. Choose one.
 
-head(listFilters(ensembl), 3)             ## filters
-myFilter <- "chromosome_name"
-substr(filterOptions(myFilter, ensembl), 1, 50) ## return values
-myValues <- c("21", "22")
-head(listAttributes(ensembl), 3)          ## attributes
-myAttributes <- c("ensembl_gene_id","chromosome_name")
+   ```{r}
+   head(listFilters(dataset))
+   filters <- "ensembl_gene_id"                    # see `listFilters()`
+   ```
 
-## assemble and query the mart
-res <- getBM(attributes =  myAttributes, filters =  myFilter,
-             values =  myValues, mart = ensembl)
-```
+5. Use `listAttrbutes()` to see available attributes. Attributes
+   represent the information you'd like to retrieve. Choose some!
+   
+   ```{r}
+   head(listAttributes(dataset))
+   attrs <- c("ensembl_gene_id", "hgnc_symbol")    # see `listAttributes()`
+   ```
 
-**Exercise**
+6. Create a character vector of Ensembl gene ids, compose and execute
+   the query, transforming the result to a tibble.
 
-As an optional exercise to be completed after Tuesday's lab, annotate
-the genes that are differentially expressed in the DESeq2 laboratory,
-e.g., find the *GENENAME* associated with the five most differentially
-expressed genes. Do these make biological sense? Can you `merge()` the
-annotation results with the `top table' results to provide a
-statistically and biologically informative summary?
+    ```{r}
+    ids <- c(
+        "ENSG00000000003", "ENSG00000000005", "ENSG00000000419", 
+        "ENSG00000000457", "ENSG00000000460", "ENSG00000000938"
+    )
+    tbl <- getBM(attrs, filters, ids, dataset) %>% as_tibble()
+    tbl
+    ```
+
+**Exercise 3**: [KEGGREST][]
+
+<font color="red">Internet access required for this exercise</font>
+
+1. Explore the KEGG web site https://www.genome.jp/kegg/ KEGG is a
+   database of information on pathways.
+   
+2. Load the [KEGGREST][] package and discover available databases
+
+    ```{r}
+    library(KEGGREST)
+    KEGGREST::listDatabases()
+    ```
+    
+3. Use `keggList()` to query the pathway database for human pathways;
+   present the result as a tibble
+   
+   ```{r}
+   hsa_pathways <- keggList("pathway", "hsa") %>% 
+       tibble(pathway = names(.), description = .)
+   hsa_pathways
+   ```
+   
+4. Use `keggLink()` to recover the genes in each pathway.
+
+    ```{r}
+    hsa_path_eg  <- keggLink("pathway", "hsa") %>% 
+        tibble(pathway = ., egid = sub("hsa:", "", names(.)))
+    hsa_path_eg
+    hsa_path_eg %>% group_by(pathway) %>% summarize(genes = list(egid))
+    ```
+
+5. Update the `hsa_path_eg` table to include information on gene
+   symbol and Ensembl id from the `org.Hs.eg.db` package. Retrieve the
+   relevant information using `mapIds()`. How would you deal with
+   entrez gene ids that map to multiple Ensembl ids?
+
+    ```{r}
+    hsa_kegg_anno <- hsa_path_eg %>%
+        mutate(
+            symbol = mapIds(org.Hs.eg.db, egid, "SYMBOL", "ENTREZID"),
+            ensembl = mapIds(org.Hs.eg.db, egid, "ENSEMBL", "ENTREZID")
+        )
+    ```
+
+6. Use `left_join()` to append pathway descriptions to the
+   `hsa_kegg_anno` table.
+
+    ```{r}
+    left_join(hsa_kegg_anno, hsa_pathways)
+    ```
+
+[KEGGREST]: https://bioconductor.org/packages/KEGGREST
 
 # Genome annotation
 
@@ -214,7 +332,128 @@ below illustrates some of the functionality of [rtracklayer][].
 
 ## Exercises
 
-**Exercise**
+  
+**Exercise 4**: `TxDb.*` packages
+
+1. Install and attach the [TxDb.Hsapiens.UCSC.hg18.knownGene][]
+   package. This contains the gene models for _Homo sapiens_ based on
+   the 'hg18' build of the human genome, using gene annotations in the
+   UCSC 'knownGene' annotation track; TxDb's for more recent builds
+   and for different annotation tracks are available. Take a look at a
+   summary of the package, and create an alias for easy typing
+   
+   ```{r}
+   library(TxDb.Hsapiens.UCSC.hg18.knownGene)
+   TxDb.Hsapiens.UCSC.hg18.knownGene
+   txdb <- TxDb.Hsapiens.UCSC.hg18.knownGene
+   ```
+      
+2. The main purpose of this package is to provide genomic coordinates
+   of genomic features such as `exons()`, coding sequences (`cds()`),
+   `transcripts()` and `genes()`. Explore, for example,
+   
+   ```{r}
+   ex <- exons(txdb)
+   ex
+   library(ggplot2)
+   qplot(log10(width(ex)))
+   ex[ which.max(width(ex)) ]
+   ```
+   
+3. Extract all genes, and then keep only the 'standard' chromosomes
+   1:22, X, Y, and M. Use `table()` of `seqnames()` to determine how
+   many genes are on each chromosome. Also do this in a dplyr way;
+   note that the `seqnames(gn)` need to be coerced with `as.factor()`.
+   
+   ```{r}
+   gn <- genes(txdb)
+   length(gn)
+   std <- paste0("chr", c(1:22, "X", "Y", "M"))
+   seqlevels(gn, pruning.mode = "coarse") <- std
+   length(gn)
+   seqlevels(gn)
+   
+   table( seqnames(gn) )
+   tibble(chr = as.factor(seqnames(gn))) %>% 
+       group_by(chr) %>% 
+       summarize(n = n())
+   ```
+
+4. `exonsBy()` groups exons by gene or transcript; extract exons
+   grouped by gene. (Challenging!) can you identify genes with exons
+   on different chromosomes? Are there any of these genes on the
+   standard chromosomes?
+   
+   ```{r}
+   exByGn <- exonsBy(txdb, "tx")
+   ##
+   trans <- lengths(unique(seqnames(exByGn)))
+   table( trans )
+   seqnames( exByGn[ trans > 1 ] )
+   ##
+   std <- paste0("chr", c(1:22, "X", "Y", "M"))
+   unames <- unique(seqnames(exByGn[ trans > 1 ]))
+   transstd <- all(unames %in% std)
+   unames[transstd]
+   ```
+
+5. The previous exercise indicated that gene `"22947"` has exons on
+   both chromosomes 4 and 10. Find out more about this gene using the
+   [org.Hs.eg.db][] package and by searching for the gene symbol on
+   the NCBI web site.
+
+    ```{r}
+    egid <- "22947"
+    AnnotationDbi::select(
+        org.Hs.eg.db, egid, c("SYMBOL", "GENENAME"), "ENTREZID"
+    )
+    ```
+    
+    ```{r, eval = FALSE}
+    url <- paste0("https://www.ncbi.nlm.nih.gov/gene/", egid)
+    browseURL(url)
+    ```
+    
+6. Note that the `TxDb.*` packages also support `keytypes()`,
+   `columns()`, and `select()` for mapping between exon, cds,
+   transcript, and gene identifiers.
+    
+[TxDb.Hsapiens.UCSC.hg18.knownGene]: https://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg18.knownGene
+
+**Exercise 5**: `BSgenome.*` packages
+
+1. Install (if necessary) and load the [BSgenome.Hsapiens.UCSC.hg18][]
+   package, containing the entire sequence of the hg18 build of _Homo
+   sapiens_. Check out it's contents, and create a simple alias.
+   
+   ```{r}
+   library(BSgenome.Hsapiens.UCSC.hg18)
+   BSgenome.Hsapiens.UCSC.hg18
+   hg18 <- BSgenome.Hsapiens.UCSC.hg18
+   ```
+   
+2. Genomic sequence can be retrieved by chromosome, e.g.,
+   `hg18[["chr1"]]`, or by genomic range, e.g., `getSeq(hg18,
+   GRanges("chr1:1000000-2000000"))`. Retrieve your favorite chunk(s)
+   of DNA and calculate GC content.
+   
+   ```{r}
+   dna <- getSeq(hg18, GRanges("chr1:1000000-2000000"))
+   letterFrequency(dna, "GC", as.prob=TRUE)
+   ```
+
+3. Use the `org.*`, `TxDb.*`, and `BSgenome.*` packages to retrieve
+   the BRCA1 exon DNA sequence.
+   
+   ```{r}
+   brca1_egid <- mapIds(org.Hs.eg.db, "BRCA1", "ENTREZID", "SYMBOL")
+   brca1_exons <- exonsBy(txdb, "gene")[[brca1_egid]]
+   getSeq(hg18, brca1_exons)
+   ```
+
+[BSgenome.Hsapiens.UCSC.hg18]: https://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg18
+
+**Exercise 6**
 
 This exercise uses annotation resources to go from a gene symbol
 'BRCA1' through to the genomic coordinates of each transcript
@@ -254,13 +493,12 @@ length(brca1cds)
 brca1cds[[1]]                           # exons in cds
 cdswidth <- width(brca1cds)             # width of each exon
 all((sum(cdswidth) %% 3) == 0)          # sum within cds, modulus 3
-
 ```
 
-The CDS for some transcripts is not of the expected length, how comes? Get the
-transcript ID of the first transcript that does have a CDS of the wrong size and
-look this transcript up in the Ensembl genome browser
-(http://www.ensembl.org).
+The CDS for some transcripts is not of the expected length, how come?
+Get the transcript ID of the first transcript that does have a CDS of
+the wrong size and look this transcript up in the Ensembl genome
+browser (http://www.ensembl.org).
 
 ```{r edb-brca1-cds-wrongsize}
 tx_cds_fail <- names(brca1cds)[(sum(cdswidth) %% 3) != 0]
@@ -270,11 +508,12 @@ tx_cds_fail[1]
 
 ```
 
-In the description of the transcript it says *CDS 5' incomplete*. Thus, in
-addition to known protein coding transcripts, Ensembl provides also annotations
-for transcripts known to be targeted for nonsense mediated mRNA decay or that
-have incomplete CDS. Such transcripts would however not be listed in e.g.
-the [TxDb.Hsapiens.UCSC.hg19.knownGene][] package.
+In the description of the transcript it says *CDS 5'
+incomplete*. Thus, in addition to known protein coding transcripts,
+Ensembl provides annotations for transcripts known to be targeted for
+nonsense mediated mRNA decay or that have incomplete CDS. Such
+transcripts would however not be listed in e.g.  the
+[TxDb.Hsapiens.UCSC.hg19.knownGene][] package.
 
 Next we visualize the BRCA1 transcripts using [Gviz][] (this package has an
 excellent vignette, `vignette("Gviz")`)
@@ -335,7 +574,7 @@ the `genome` object.
 unique(genome(genome))
 genome(introns)
 
-## Change the genome name on introns to macht the one from the
+## Change the genome name on introns to match the one from the
 ## BSgenome package
 genome(introns) <- c(`17` = unique(genome(genome)))
 
@@ -344,14 +583,13 @@ names(seq)
 seq[["ENST00000352993"]]                     # 20 introns
 ```
 
-**Exercise**
+**Exercise 7**
 
 <font color="red">Internet access required for this exercise</font>
 
 Here we use [rtracklayer][] to retrieve estrogen receptor binding
 sites identified across cell lines in the ENCODE project. We focus on
-binding sites in the vicinity of a particularly interesting region of
-interest.
+binding sites in the vicinity of a particularly interesting region.
 
 1. Define our region of interest by creating a `GRanges` instance with
    appropriate genomic coordinates. Our region corresponds to 10Mb up-
@@ -415,7 +653,9 @@ and the NHLBI [grasp2db][] data base of GWAS results. There are many interesting
 Unfortunately, [AnnotationHub][] makes extensive use of internet
 resources and so we will not pursue it in this course; see the
 vignettes that come with the pacakge, for instance
-[_AnnotationHub_ HOW-TOs](http://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html).
+[_AnnotationHub_ HOW-TOs][AH-howto].
+
+[AH-howto]: http://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html
 
 # Annotating variants
 
@@ -427,7 +667,6 @@ other regions of interest.
 To develop a sense of the capabilities available, work through the
 [VariantAnnotation][] vignette 'Introduction to Variant Annotation',
 and the [VariantFiltering][] vignette.
-
 
 [AnnotationDbi]: http://bioconductor.org/packages/AnnotationDbi
 [AnnotationHub]: http://bioconductor.org/packages/AnnotationHub
