@@ -30,7 +30,7 @@ suppressPackageStartupMessages({
 Started 2002 as a platform for understanding analysis of microarray
 data
 
-More than 1,300 packages. Domains of expertise:
+More than 1,500 packages. Domains of expertise:
 
 - Sequencing (RNASeq, ChIPSeq, single-cell, called variants, ...)
 - Microarrays (methylation, expression, copy number, ...)

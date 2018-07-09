@@ -30,12 +30,13 @@ studies. The material introduces or refreshes your knowledge of _R_,
 and walks through some of the central classes and annotation resources
 for working with high-throughput sequence data in _Bioconductor_.
 
-It's recommended that you choose two of the following sections, and
-spend about 45 minutes on each. Take time to work through the code in
-the material as well as the exercises, asking questions of your
-colleagues and the TAs as needed. If you're relatively new to _R_,
-then consider doing sections 1 and 3. If you're new to _Bioconductor_,
-then skim the second and focus on the third and fourth sections.
+It's recommended that you choose two or three of the following
+sections, and spend about 45 minutes to an hour on each. Take time to
+work through the code in the material as well as the exercises, asking
+questions of your colleagues and the TAs as needed. If you're
+relatively new to _R_, then consider doing sections 1 and 3. If you're
+new to _Bioconductor_, then skim the second and focus on the third and
+fourth sections.
 
 Download these files:
 
