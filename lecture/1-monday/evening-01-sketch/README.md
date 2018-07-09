@@ -1,8 +1,14 @@
 ## An evening session sketch
 
-This file will contain suggestions on the evening team-building tasks.  The idea is to form
-small groups to tackle a very basic problem in data analysis.  Before describing the specific
-problem to be solved, I illustrate an approach to a related problem.  We use base R exclusively.
+This file will contain suggestions on the evening team-building tasks.  
+
+The idea is to form
+small groups to tackle a very basic problem in data analysis.  
+
+Before describing the specific
+problem to be solved, I illustrate an approach to a related problem.  
+
+We use base R exclusively.
 
 ## Programming a tool to predict the species of iris flowers
 
