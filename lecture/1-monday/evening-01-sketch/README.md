@@ -14,3 +14,4 @@ The distributions of sepal lengths can be compared across species.
 ```
 boxplot(Sepal.Length~Species, data=iris)
 ```
+![boxplot](sepal.png)
