@@ -307,8 +307,7 @@ knitr::include_graphics("images/LCMS_Spectrum6.png")
 LC-MS data has thus 3 dimensions:
 
 - intensity, m/z, retention time tuples.
-- retention time not constant between samples.
-- m/z not identical between samples.
+- analyze the data along retention time.
 
 </div>
 
@@ -345,17 +344,20 @@ knitr::include_graphics("images/LCMS-data-peaks.png")
 <div style = "position:absolute; left:520px; top:300px;">
 - allow different rt-widths
 - allow some scattering on m/z
-- identify peak boundaries
 </div>
 
-## Chromatographic peak detection
+## Chromatographic peak detection {.build}
 
+<div>
 - __centWave__ [Tautenhahn et al. BMC Bioinformatics, 2008]:
+</div>
+<div>
 - Step 1: identify regions of interest.
 
 ```{r out.width = "500px", echo = FALSE}
 knitr::include_graphics("images/centWave-ROI.png")
 ```
+</div>
 
 ## Chromatographic peak detection
 
@@ -405,19 +407,15 @@ head(chromPeaks(data), n = 3)
 knitr::include_graphics("images/alignment.png")
 ```
 
-- Shifts are LC-setup dependent, seem to be also analyte dependent.
+- Retention time shifts depend on the LC setup.
 
 
 ## Alignment {.build}
 
 <div>
-- How strong the shifts are depends on the LC-setup.
 - Many algorithms available [Smith et al. Brief Bioinformatics 2013]
 </div>
 
-<div>
-- Main assumption: analytes elute in the same order.
-</div>
 <div>
 - `xcms`: `adjustRtime` function with `PeakDensityParam` [Smith et al. Anal. chem.
     2006] or `ObiwarpParam` [Prince et al. Anal. chem. 2006].
@@ -497,7 +495,7 @@ knitr::include_graphics("images/correspondence2_density.png")
 ## Normalization {.build}
 
 <div>
-- Batch effects.
+- Effects related to batch/measurement run.
 - LC-dependent effects: seem to affect each metabolite in a different way.
 </div>
 
@@ -510,10 +508,11 @@ knitr::include_graphics("images/FT07853.png")
 ## Normalization {.build}
 
 <div>
-- QC controls required for proper noise estimation and adjustment.
-- Commonly used: pooled samples measured repeatedly.
-- MS runs usually not very expensive, running replicates, QC controls etc not a
-  problem.
+- Good practice:
+  - QC control samples measured repeatedly.
+  - Internal standards.
+  - Replicates.
+  - Measurement of samples in randomized order.
 </div>
 <div>
 - Popular methods:
@@ -544,24 +543,19 @@ head(res, n = 4)
 
 <div>
 - Databases containing masses of (synthetic and biological) compounds.
+  - The Human Metabolome Database (HMDB): <small>https://hmdb.ca</small>
+  - Chemical Entities of Biological Interest: https://www.ebi.ac.uk/chebi
+  - PubChem (human and other animals) https://pubchem.ncbi.nlm.nih.gov
+  - ...
 </div>
 <div>
 - m/z is **not** the mass.
 </div>
 <div>
-- The mass of the charged molecule has to be considered too: [M+H]+ adduct: mass
-  of metabolite M + mass of hydrogen.
+- Mass of an [M+H]+ ion: m/z - mass of 1 hydrogen.
 </div>
 <div>
-- We can have different adducts from the same compound in a sample: [M+H]+,
-  [M+Na]+, ...
-</div>
-<div>
-- Main databases providing compound masses (and spectra):
-  - The Human Metabolome Database (HMDB): <small>https://hmdb.ca</small>
-  - Chemical Entities of Biological Interest: https://www.ebi.ac.uk/chebi
-  - PubChem (human and other animals) https://pubchem.ncbi.nlm.nih.gov
-  - ...
+- Different ions from the same compound: [M+H]+, [M+2H]++, [M+Na]+, ...
 </div>
 
 ## Improved identification {.build}
@@ -578,7 +572,8 @@ Identify compounds based on m/z **and**:
   - Only works if reference spectrum available in database.
 </div>
 <div>
-- Up and coming: `CompoundDb` package (similar to `ensembldb` and alike).
+- Up and coming: `CompoundDb` package (similar to `ensembldb` and alike):
+  contains compound data + spectra.
 </div>
 
 

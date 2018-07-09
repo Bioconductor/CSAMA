@@ -21,7 +21,7 @@ suppressPackageStartupMessages({
 
 Original Authors: Martin Morgan, Sonali Arora<br />
 Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
-Date: 12 June, 2017</br >
+Date: 9 July, 2018</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 [Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
@@ -370,7 +370,7 @@ Example
 
 ```{r ranges, message=FALSE}
 library(GenomicRanges)
-gr <- GRanges("A", IRanges(c(10, 20, 22), width=5), "+")
+gr <- GRanges(c("chr1:10-14:+", "chr1:20-24:+", "chr1:22-26:+"))
 shift(gr, 1)                            # 1-based coordinates!
 range(gr)                               # intra-range
 reduce(gr)                              # inter-range
@@ -387,6 +387,33 @@ IRangesList, GRangesList
         orig_gr <- unlist(grl)
         transformed_gr <- FUN(orig)
         transformed_grl <- relist(transformed_gr, grl)
+
+**Exercises**
+
+1. Which of my SNPs overlap genes?
+
+    ```{r}
+    genes <- GRanges(c("chr1:30-40:+", "chr1:60-70:-"))
+    snps <- GRanges(c("chr1:35", "chr1:60", "chr1:45"))
+    countOverlaps(snps, genes) > 0
+    ```
+
+2. Which gene is 'nearest' my regulatory region? Which gene does my
+   regulatory region _precede_ (i.e., upstream of)
+
+    ```{r}
+    reg <- GRanges(c("chr1:50-55", "chr1:75-80"))
+    nearest(reg, genes)
+    precede(reg, genes)
+    ```
+
+3. What range do short reads cover? depth of coverage?
+
+    ```{r}
+    reads <- GRanges(c("chr1:10-19", "chr1:15-24", "chr1:30-41"))
+    coverage(reads, width = 100)
+    as(coverage(reads, width = 100), "GRanges")
+    ```
         
 Reference
 
@@ -430,15 +457,81 @@ Example
     chr14_dna <- getSeq(Hsapiens, chr14_range)
     letterFrequency(chr14_dna, "GC", as.prob=TRUE)
     ```
+
+**Exercises**
+
+0. Setup
+
+    - Mouse CDS sequence, from Ensembl: https://useast.ensembl.org/info/data/ftp/index.html
     
+    ```{r}
+    library(Biostrings)
+    url <- "ftp://ftp.ensembl.org/pub/release-92/fasta/mus_musculus/cds/Mus_musculus.GRCm38.cds.all.fa.gz"
+    fl <- BiocFileCache::bfcrpath(rnames = url)
+    cds <- rtracklayer::import(fl, "fasta")
+    ```
+
+1. For simplicity, clean up the data to remove cds with width not a
+   multiple of three. Remove cds that don't start with a start codon
+   `ATG` or end with a stop codon `c("TAA", "TAG", "TGA")`
+ 
+    ```{r}
+    pred1 <- width(cds) %% 3 == 0
+    table(pred1)
+    pred2 <- narrow(cds, 1, 3) == "ATG"
+    stops <- c("TAA", "TAG", "TGA")
+    pred3 <- narrow(cds, width(cds) - 2, width(cds)) %in% stops
+    table(pred1 & pred2 & pred3)
+    cds <- cds[ pred1 & pred2 & pred3 ]
+    ```
+    
+2. What does the distribution of widths of the cds look like? Which
+   cds has maximum width?
+
+    ```{r}
+    hist(log10(width(cds)))
+    cds[ which.max(width(cds)) ]
+    names(cds)[ which.max(width(cds)) ]
+    ```
+
+3. Use `letterFrequency()` to calculate the GC content of each cds;
+   visualize the distribution of GC content.
+
+    ```{r}
+    gc <- letterFrequency(cds, "GC", as.prob=TRUE)
+    head(gc)
+    hist(gc)
+    plot( log10(width(cds)), gc, pch=".")
+    ```
+
+4. Summarize codon usage in each CDS. Which codons are used most
+   frequently over all CDS?
+
+    ```{r}
+    AMINO_ACID_CODE
+    aa <- translate(cds)
+    codon_use <- letterFrequency(aa, names(AMINO_ACID_CODE))
+    head(codon_use)
+    ```
+
+5. (Advanced) -- `DNAStringSet` inherits from `Vector` and
+   `Annotated`, which means that each element (sequence) can have
+   additional information, for instance we can associate GC content
+   with each sequence
+
+    ```{r}
+    mcols(cds) <- DataFrame(
+        GC = gc[,"G|C"]
+    )
+    mcols(cds, use.names = FALSE)
+    mcols(cds[1:3], use.names = FALSE)
+    ```
+
 ## _GenomicAlignments_ (Aligned reads)
 
 Classes -- GenomicRanges-like behaivor
 
 - GAlignments, GAlignmentPairs, GAlignmentsList
-- SummarizedExperiment
-  - Matrix where rows are indexed by genomic ranges, columns by a
-    DataFrame.
 
 Methods
 
@@ -446,10 +539,10 @@ Methods
   - Easy to restrict input, iterate in chunks
 - `summarizeOverlaps()`
 
-Example
+**Exercises**
 
-- Find reads supporting the junction identified above, at position
-  19653707 + 66M = 19653773 of chromosome 14
+1. Find reads supporting the junction identified above, at position
+   19653707 + 66M = 19653773 of chromosome 14
 
     ```{r bam-require}
     library(GenomicRanges)
@@ -469,6 +562,74 @@ Example
     ## supporting reads
     paln[j_overlap$revmap[[1]]]
     ```
+
+## _SummarizedExperiment_
+
+![](our_figures/SummarizedExperiment.png)
+
+Motivation: reproducible & interoperable
+
+- Matrix of feature x sample measurements, `assays()`
+- Addition description about samples, `colData()`
+
+  - Covariates, e.g., age, gender
+  - Experimental design, e.g., treatment group
+
+- Additional information about features, `rowData()`
+
+  - Gene names, width, GC content, ...
+  - Genomic ranges(!)
+  - Derived values, E.g., log-fold change between treatments, _P_-value, ...
+  
+- Information about the experiment as a whole -- `metadata()`
+
+Example 1: Bulk RNA-seq `airway` data
+
+- Attach the airway library and data set
+
+    ```{r}
+    library(airway)
+    data(airway)
+    airway
+    ```
+    
+- Explore the phenotypic data describing samples. Subset to include just the `"untrt"` samples.
+
+    ```{r}
+    colData(airway)
+    airway[ , airway$dex == "untrt"]
+    ```
+    
+- Calculate library size as the column sums of the assays. Reflect on
+  the relationship between library size and cell / dex column
+  variables and consequences for differential expression analysis.
+
+    ```{r}
+    colSums(assay(airway))
+    ```
+
+Example 2: single-cell RNA-seq.
+
+- Hemberg lab [scRNA-seq Datasets][] 'Manno' [Mouse brain data set (rds)][]
+
+    ```
+    url <- "https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/manno_mouse.rds"
+    fl <- BiocFileCache::bfcrpath(rnames = url)
+    sce <- readRDS(fl)
+    ```
+
+**Exercises**
+
+- What's the frequency of 0 counts in the single cell assay data?
+- What's the distribution of library sizes in the single cell assay data?
+- Create a random sample of 100 cells and visualize the relationship
+  between samples using `dist()` and `cmdscale()`.
+- can you identify what column of `colData()` is responsible for any
+  pattern you see?
+- In exploring the covariates, are the possible problems with confounding?
+
+[scRNA-seq Datasets]: https://hemberg-lab.github.io/scRNA.seq.datasets/
+[Mouse brain data set (rds)]: https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/manno_mouse.rds
     
 ## _VariantAnnotation_ (Called variants)
 
@@ -485,10 +646,10 @@ Functions and methods
   `predictCoding()`, `summarizeVariants()`
 - SNPs: `genotypeToSnpMatrix()`, `snpSummary()`
 
-Example
+**Exerises**
 
-- Read variants from a VCF file, and annotate with respect to a known
-  gene model
+1. Read variants from a VCF file, and annotate with respect to a known
+   gene model
   
     ```{r vcf, message=FALSE}
     ## input variants
@@ -525,42 +686,7 @@ Reference
 - Export GRanges to BED, GTF, WIG, ...
 - Access UCSC genome browser
 
-# Big data
-
-Much Bioinformatic data is very large. The discussion so far has
-assumed that the data can be read into memory. Here we mention two
-important general strategies for working with large data; we will
-explore these in greater detail in a later lab, but feel free to ask
-questions and explore this material now.
-
-Restriction
-
-- e.g., `ScanBamParam()` limits input to desired data at specific
-  genomic ranges
-
-Iteration
-
-- e.g., `yieldSize` argument of `BamFile()`, or `FastqStreamer()`
-  allows iteration through large files.
-
-Compression
-
-- Genomic vectors represented as `Rle` (run-length encoding) class
-- Lists e.g., `GRangesList` are efficiently maintain the illusion that
-  vector elements are grouped.
-
-Parallel processing
-
-- e.g., via [BiocParallel][] package
-
-Reference
-
-- Lawrence, M and Morgan, M. Scalable Genomic Computing and
-  Visualization with _R_ and _Bioconductor_. Statistical Science 29
-  (2) (2014), [214-226](http://arxiv.org/abs/1409.2864).
-
-
-# Exercises
+# Extended exercises
 
 ## Summarize overlaps
 

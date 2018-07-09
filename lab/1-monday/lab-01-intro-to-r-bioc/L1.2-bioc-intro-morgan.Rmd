@@ -22,7 +22,7 @@ suppressPackageStartupMessages({
 
 Original Authors: Martin Morgan, Sonali Arora<br />
 Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
-Date: 12 June, 2017</br >
+Date: 9 July, 2018</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 [Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
@@ -52,7 +52,7 @@ Analysis and comprehension of high-throughput genomic data
 
 ![Alt Sequencing Ecosystem](our_figures/SequencingEcosystem.png)
 
-- 1211 packages
+- 1560 software packages
 - Discover and navigate via [biocViews][]
 - Package 'landing page', e.g., `r Biocpkg("Gviz")`
     - Title, author / maintainer, short description, citation,
@@ -61,12 +61,14 @@ Analysis and comprehension of high-throughput genomic data
   examples
 - 'Vignettes' an important feature in _Bioconductor_ -- narrative
   documents illustrating how to use the package, with integrated code
-    - Example: `AnnotationHub` [landing
-      page](http://bioconductor.org/packages/devel/AnnotationHub)
-      references [HOW-TO vignette]() illustrating some fun use cases.
+    - Example: `AnnotationHub` [landing page][AH] references
+      [HOW-TO vignette][AH-howto] illustrating some fun use cases.
     - Some are extensive; check out [Gviz][], [limma][], [edgeR][],
       [DESeq2][]!
 - 'Release' (every six months) and 'devel' branches
+
+[AH]: https://bioconductor.org/packages/AnnotationHub
+[AH-howto]: http://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html
 
 ## Objects
 
@@ -181,6 +183,10 @@ reference manuals of two or three of the following packages.
   packages can be discovered by visiting the [biocViews][] web page,
   searching for the 'DifferentialExpression' view term, and narrowing
   the selection by searching for 'RNA seq' and similar.
+- Single-cell 'omics are increasingly important. From the
+  [biocViews][] page, enter 'single cell' in the 'search table'
+  field. Check out the [single-cell workflow][sc-workflow] for an
+  overview of key packages.
 - Popular ChIP-seq packages include [DiffBind][] and [csaw][] for
   comparison of peaks across samples, [ChIPQC][] for quality
   assessment, and [ChIPpeakAnno][] and [ChIPseeker][] for annotating
@@ -190,8 +196,6 @@ reference manuals of two or three of the following packages.
   such as [VariantAnnotation][], [VariantFiltering][], and
   [ensemblVEP][]; packages for calling variants include, e.g.,
   [h5vc][] and [VariantTools][].
-- Single-cell 'omics are increasingly important. From the
-  [biocViews][] page, enter 'single cell' in the 'search table' field.
 - Several packages identify copy number variants from sequence data,
   including [cn.mops][]; from the [biocViews][] page, what other copy
   number packages are available? The [CNTools][] package provides some
@@ -331,6 +335,8 @@ overall package use.
 
 [EnsDb.Hsapiens.v86]: http://bioconductor.org/packages/EnsDb.Hsapiens.v86
 [Ensembl]: http://www.ensembl.org
+
+[sc-workflow]: http://bioconductor.org/packages/release/workflows/html/simpleSingleCell.html
 
 # End matter
 

@@ -1,0 +1,134 @@
+---
+title: "Lecture 4a -- Introduction to _Bioconductor_ Annotation Resources"
+author: "Martin Morgan <Martin.Morgan@RoswellPark.org>"
+date: "12 June 2017"
+output:
+  BiocStyle::html_document2:
+    toc: true
+    toc_depth: 2
+vignette: >
+  % \VignetteIndexEntry{Lecture 4a -- Introduction to Bioconductor Annotation Resources}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+knitr::opts_chunk$set(
+    eval=as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
+    cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE")))
+```
+
+```{r setup, echo=FALSE}
+suppressPackageStartupMessages({
+    library(org.Hs.eg.db)
+    library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+    library(biomaRt)
+    library(KEGGREST)
+    library(AnnotationHub)
+    library(GenomicRanges)
+    library(ExperimentHub)
+    library(SummarizedExperiment)
+})
+```
+
+# Annotation resources
+
+Packages
+
+```{r}
+library(org.Hs.eg.db)
+columns(org.Hs.eg.db)
+mapIds(org.Hs.eg.db, c("BRCA1", "BRCA2"), "ENSEMBL", keytype="SYMBOL")
+
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+exons(TxDb.Hsapiens.UCSC.hg38.knownGene)
+exonsBy(TxDb.Hsapiens.UCSC.hg38.knownGene, "tx")
+```
+
+- Identifier mapping, `*.org` packages, e.g., [org.Hs.eg.db][]
+- Genomic features, `TxDb.*` packages, e.g.,
+  [TxDb.Hsapiens.UCSC.hg38.knownGene][]
+- Integrated, e.g., [Organism.dplyr][]
+- Essential interface
+    - `columns()`
+    - `mapIds()`, `select()`
+    - `exons()`, `genes()`, `transcripts()`, `promoters()`, ...
+    - `exonsBy()`, ...
+
+[org.Hs.eg.db]: https://bioconductor.org/packages/org.Hs.eg.db
+[TxDb.Hsapiens.UCSC.hg38.knownGene]: https://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg38.knownGene
+[Organism.dplyr]: https://bioconductor.org/packages/Organism.dplyr
+
+Web resources
+
+```{r}
+library(biomaRt)
+
+## Discover and then selected mart
+ensembl <- useMart("ensembl", dataset="hsapiens_gene_ensembl")
+
+## Gene symbols associated with GO-annotated MAP kinase
+## activity (GO id GO:0004704)
+getBM(attributes = c('entrezgene','hgnc_symbol'), 
+      filters = 'go', 
+      values = 'GO:0004707',
+      mart = ensembl)
+```
+
+- [Biomart][Biomart-web] / [biomaRt][]
+    - [Discover and select][biomaRt-mart] a mart and dataset
+    - E.g., [annotate entrez ids with GO ids][biomaRt-map]
+- [KEGG][] / [KEGGREST][]
+    - Essential operations outlined in the [vignette][KEGGREST-vignette]
+- ...
+- 'current' but more difficult to version, less reliable, not robust
+  to big queries.
+
+[Biomart-web]: http://www.ensembl.org/biomart
+[biomaRt]: https://bioconductor.org/packages/biomaRt
+[biomaRt-mart]: http://bioconductor.org/packages/release/bioc/vignettes/biomaRt/inst/doc/biomaRt.html#selecting-a-biomart-database-and-dataset
+[biomaRt-map]: http://bioconductor.org/packages/release/bioc/vignettes/biomaRt/inst/doc/biomaRt.html#annotate-a-set-of-entrezgene-identifiers-with-go-annotation
+
+[KEGG]: http://www.genome.jp/kegg/pathway.html
+[KEGGREST]: https://bioconductor.org/packages/KEGGREST
+[KEGGREST-vignette]: http://bioconductor.org/packages/release/bioc/vignettes/KEGGREST/inst/doc/KEGGREST-vignette.html
+
+'Hubs'
+
+```{r}
+library(AnnotationHub)
+AnnotationHub()
+query(AnnotationHub(), "grasp")   # see library(grasp2db)
+query(AnnotationHub(), c("release-88", "homo"))
+
+library(ExperimentHub)
+ExperimentHub()
+query(ExperimentHub(), "TCGA")
+```
+
+- [AnnotationHub][]
+    - Light curation of third party resources
+
+- [ExperimentHub][]
+    - Heavily curated data sets
+
+[AnnotationHub]: https://bioconductor.org/packages/AnnotationHub
+[ExperimentHub]: https://bioconductor.org/packages/ExperimentHub
+
+# End matter
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
+
+## Acknowledgements
+
+Research reported in this tutorial was supported by the National Human
+Genome Research Institute and the National Cancer Institute of the
+National Institutes of Health under award numbers U41HG004059 and
+U24CA180996.
+
+This project has received funding from the European Research Council
+(ERC) under the European Union's Horizon 2020 research and innovation
+programme (grant agreement number 633974)

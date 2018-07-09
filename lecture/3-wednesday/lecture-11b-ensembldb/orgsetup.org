@@ -1,0 +1,30 @@
+# setup file with some org settings.
+#+OPTIONS: ^:{} toc:4 H:4 num:4 author:t email:t
+#+PROPERTY: header-args :exports both
+#+PROPERTY: header-args :noweb yes
+#+PROPERTY: header-args :results output verbatim
+#+PROPERTY: header-args :tangle yes
+#+PROPERTY: header-args:R :session *CSAMA_ensembldb*
+
+# LaTeX stuff
+#+LATEX_HEADER: \usepackage[backend=bibtex,style=chem-rsc,hyperref=true]{biblatex}
+#+LATEX_HEADER: \usepackage{parskip}
+
+#+LATEX_HEADER: \setlength{\textwidth}{17.0cm}
+#+LATEX_HEADER: \setlength{\hoffset}{-2.5cm}
+#+LATEX_HEADER: \setlength{\textheight}{22cm}
+#+LATEX_HEADER: \setlength{\voffset}{-1.5cm}
+
+#+LATEX_HEADER: \addbibresource{~/Documents/Unison/bib/references.bib}
+#+LATEX_HEADER: \usepackage{inconsolata}
+#+LATEX_HEADER: \definecolor{lightgrey}{HTML}{F0F0F0}
+#+LATEX_HEADER: \definecolor{solarizedlightbg}{HTML}{FCF4DC}
+#+LATEX_HEADER: \makeatletter
+#+LATEX_HEADER: \patchcmd{\@verbatim}
+#+LATEX_HEADER:   {\verbatim@font}
+#+LATEX_HEADER:   {\verbatim@font\scriptsize}
+#+LATEX_HEADER:   {}{}
+#+LATEX_HEADER: \makeatother
+
+#+STARTUP: overview
+#+STARTUP: indent

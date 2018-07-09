@@ -18,24 +18,28 @@ knitr::opts_chunk$set(cache=TRUE)
 
 Original Authors: Martin Morgan, Sonali Arora<br />
 Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
-Date: 12 June, 2017
+Date: 9 July, 2018
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 [Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
 [Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
-This lab has four parts. Each part consists of informative material
+This lab has four (five!) parts. Each part consists of informative material
 followed by short or intermediate length exercises and case
 studies. The material introduces or refreshes your knowledge of _R_,
 and walks through some of the central classes and annotation resources
 for working with high-throughput sequence data in _Bioconductor_.
 
-It's recommended that you choose two of the following sections, and
-spend about 45 minutes on each. Take time to work through the code in
-the material as well as the exercises, asking questions of your
-colleagues and the TAs as needed. If you're relatively new to _R_,
-then consider doing sections 1 and 3. If you're new to _Bioconductor_,
-then skim the second and focus on the third and fourth sections.
+It's recommended that you choose two or three of the following
+sections, and spend about 45 minutes to an hour on each. Take time to
+work through the code in the material as well as the exercises, asking
+questions of your colleagues and the TAs as needed. If you're
+relatively new to _R_, then consider doing sections 1 and 3. If you're
+new to _Bioconductor_, then skim the second and focus on the third and
+fourth sections.
+
+Section 1.5 was added during the lectures this morning, representing
+one idea of 'fun'!
 
 Download these files:
 
@@ -57,3 +61,5 @@ Choose the material you'd like to cover:
 1.4 [Annotation](L1.4-bioc-annotation-morgan.html) -- Learn about
     _Bioconductor_ resources for gene and genome annotation.
 
+1.5 [Lecture Activities](L1.5-lect-1-4-activities.html) -- short
+    challenges that came up during the morning lectures.
