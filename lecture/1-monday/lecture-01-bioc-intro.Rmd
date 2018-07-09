@@ -56,6 +56,12 @@ Resources
 
 # DNA Sequences
 
+[Biostrings][] themes
+
+- _Valid_ data, e.g., alphabet
+- 'Vector' interface: `length()`, `[`, ...
+- Specialized operations, e.g,. `reverseComplement()`
+
 ```{r}
 library(Biostrings)
 
@@ -69,12 +75,6 @@ width(dna)
 reverseComplement(dna)
 ```
 
-[Biostrings][] themes
-
-- _Valid_ data, e.g., alphabet
-- 'Vector' interface: `length()`, `[`, ...
-- Specialized operations, e.g,. `reverseComplement()`
-
 Help!
 
 ```{r, eval=FALSE}
@@ -87,20 +87,6 @@ browseVignettes(package="Biostrings")
 
 ![](lecture-01-figures/GRanges.png)
 
-```{r}
-library(GenomicRanges)
-
-gr <- GRanges(c("chr1:100-120", "chr1:115-130", "chr2:200-220"))
-gr
-
-shift(gr, 1)
-
-reduce(gr)
-
-anno <- GRanges(c("chr1:110-150", "chr2:150-210"))
-countOverlaps(anno, gr)
-```
-
 [GenomicRanges][]
 
 - Data (e.g., aligned reads, called peaks, copy number)
@@ -108,6 +94,13 @@ countOverlaps(anno, gr)
 - Close relation to BED files (see `rtracklayer::import.bed()` and
   [HelloRanges][])
 - Also vector interface -- `length()`, `[`, etc.
+
+```{r}
+library(GenomicRanges)
+
+gr <- GRanges(c("chr1:100-120", "chr1:115-130", "chr2:200-220"))
+gr
+```
 
 Intra-range operations
 
@@ -121,8 +114,16 @@ Between-range operations
 
 - e.g., `countOverlaps()`, `findOverlaps()`, `summarizeOverlaps()`
 
-Help!
+```{r}
+shift(gr, 1)
 
+reduce(gr)
+
+anno <- GRanges(c("chr1:110-150", "chr2:150-210"))
+countOverlaps(anno, gr)
+```
+
+Help!
 
 ```{r, eval=FALSE}
 methods(class="GRanges")
@@ -144,6 +145,9 @@ browseVignettes(package="GenomicRanges")
 
 Component parts
 
+- three components -- underlying 'matrix', 'row' annotations (genomic
+  features), 'column' annotations (sample descriptions)
+
 ```{r}
 counts <- read.csv("lecture-01-data/airway_counts.csv", row.names=1)
 counts <- as.matrix(counts)
@@ -155,9 +159,6 @@ colData[, 1:4]
 rowRanges <- readRDS("lecture-01-data/airway_rowRanges.rds")
 rowRanges
 ```
-
-- three components -- underlying 'matrix', 'row' annotations (genomic
-  features), 'column' annotations (sample descriptions)
 
 Could manipulate independently...
 
@@ -200,7 +201,7 @@ browseVignettes(package="SummarizedExperiment")
 
 Web site, https://bioconductor.org
 
-More than 1500 'software' packages, https://bioconductor.org/packages
+1562 'software' packages, https://bioconductor.org/packages
 
 - Sequence analysis (RNASeq, ChIPSeq, called variants, copy number, 
   single cell)
@@ -225,7 +226,7 @@ Support site, https://support.bioconductor.org
 [HelloRanges]: https://bioconductor.org/packages/HelloRanges
 [SummarizedExperiment]: https://bioconductor.org/packages/SummarizedExperiment
 [DESeq2]: https://bioconductor.org/packages/DESeq2
-[Worksflows]: https://bioconductor.org/help/workflows/
+[Workflows]: https://bioconductor.org/packages/release/BiocViews.html#___Workflow
 [course material]: https://bioconductor.org/help/course-materials/
 [videos]: https://www.youtube.com/user/bioconductor
 
