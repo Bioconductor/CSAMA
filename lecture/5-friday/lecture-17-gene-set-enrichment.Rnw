@@ -110,7 +110,7 @@
     \item Are DE genes in the set more common than DE genes not in the
       set?
     \item Fisher hypergeometric test. \Biocpkg{GOstats};
-      \Biocpkg{edgeR}\Rfunction{::goana()} \ldots
+      \Biocpkg{limma}\Rfunction{::goana()} \ldots
     \end{enumerate}
     \begin{itemize}
     \item Conditional hypergeometric to accommodate GO DAG,
@@ -253,7 +253,7 @@
     Approach & Packages \\
     \hline\noalign{\smallskip}
     Hypergeometric & \Biocpkg{GOstats}, \Biocpkg{topGO},
-                     \Biocpkg{edgeR}\Rfunction{::goana()} \\
+                     \Biocpkg{limma}\Rfunction{::goana()} \\
     Enrichment & \Biocpkg{limma}\Rfunction{::romer()} \\
     Category $t$-test & \Biocpkg{Category} \\
     Linear model & \Biocpkg{GlobalAncova}, \Biocpkg{GSEAlm}, 
@@ -270,12 +270,12 @@ suppressPackageStartupMessages({
     library(DESeq2)
     library(airway)
     library(org.Hs.eg.db)
-    library(edgeR)
+    library(limma)
 })
 @ 
 
 \begin{frame}[fragile, allowframebreaks]{Example -- \Biocpkg{DESeq2} lab}
-  Example: hypergeometric test using \Biocpkg{edgeR}\Rcode{::goana()}
+  Example: hypergeometric test using \Biocpkg{limma}\Rcode{::goana()}
   \begin{itemize}
     \item Data input and massage
 <<input>>=
@@ -306,7 +306,7 @@ res$egid <- mapIds(
       differential expression (i.e., \Rcode{!is.na(padj)}) and
       assigned to gene set (\Rcode{!is.na(entre)})
 <<trim>>=
-xtabs(~ is.na(padj) + is.na(egid), res)
+table(is.na(res$padj), is.na(res$egid))
 res <- subset(res, !is.na(padj) & !is.na(egid))
 dim(res)
 @ 
@@ -314,7 +314,7 @@ dim(res)
 \framebreak
     \item Test and order
 <<goana>>=
-library(edgeR)
+library(limma)
 go <- goana(res$egid[res$padj < .05], res$egid, "Hs")
 go <- go[ order(go$P.DE), ]
 t(go[1,])
