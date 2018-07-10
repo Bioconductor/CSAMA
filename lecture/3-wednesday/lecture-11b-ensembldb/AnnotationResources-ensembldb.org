@@ -37,10 +37,6 @@ github/twitter: /jotsetung/
 
     head(gns)
 
-    ## Access start/end coordinates
-    head(start(gns))
-    head(end(gns))
-
     ## Metadata columns; gene biotype
     head(gns$gene_biotype)
   #+END_SRC
