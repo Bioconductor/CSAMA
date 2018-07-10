@@ -452,7 +452,7 @@ Example
   calculates GC content across chr14.
 
     ```{r BSgenome-require, message=FALSE}
-    library(BSgenome.Hsapiens.UCSC.hg19)
+    library(BSgenome.Hsapiens.UCSC.hg38)
     chr14_range = GRanges("chr14", IRanges(1, seqlengths(Hsapiens)["chr14"]))
     chr14_dna <- getSeq(Hsapiens, chr14_range)
     letterFrequency(chr14_dna, "GC", as.prob=TRUE)
@@ -696,7 +696,8 @@ differential expression analysis, e.g., through [DESeq2][] and
 [edgeR][]. 
 
 1. Identify the regions of interest. We use a 'TxDb' package with gene
-   models alreaddy defined
+   models already defined; the genome (hg19) is determined by the
+   genome used for read alignment in the sample BAM files.
    
     ```{r summarizeOverlaps-roi, message=FALSE}
     library(TxDb.Hsapiens.UCSC.hg19.knownGene)
@@ -782,8 +783,8 @@ differential expression analysis, e.g., through [DESeq2][] and
 [snpStats]: http://bioconductor.org/packages/snpStats
 
 [org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
-[TxDb.Hsapiens.UCSC.hg19.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg19.knownGene
-[BSgenome.Hsapiens.UCSC.hg19]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg19
+[TxDb.Hsapiens.UCSC.hg38.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg38.knownGene
+[BSgenome.Hsapiens.UCSC.hg38]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg38
 
 # End matter
 
