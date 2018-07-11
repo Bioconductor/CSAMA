@@ -243,9 +243,9 @@ examples to explore during this lab include:
   - **org** packages (e.g., [org.Hs.eg.db][]) contain maps between
     different gene identifiers, e.g., ENTREZ and SYMBOL. The basic
     interface to these packages is described on the help page `?select`
-  - **TxDb** packages (e.g., [TxDb.Hsapiens.UCSC.hg19.knownGene][])
+  - **TxDb** packages (e.g., [TxDb.Hsapiens.UCSC.hg38.knownGene][])
     contain gene models (exon coordinates, exon / transcript
-    relationships, etc) derived from common sources such as the hg19
+    relationships, etc) derived from common sources such as the hg38
     knownGene track of the UCSC genome browser. These packages can be
     queried, e.g., as described on the `?exonsBy` page to retrieve all
     exons grouped by gene or transcript.
@@ -256,7 +256,7 @@ examples to explore during this lab include:
     the features (e.g. lincRNA, protein_coding, miRNA etc). EnsDb databases are
     designed for [Ensembl][] annotations and contain annotations for all genes
     (protein coding and non-coding) for a specific Ensembl release.
-  - **BSgenome** packages (e.g., [BSgenome.Hsapiens.UCSC.hg19][])
+  - **BSgenome** packages (e.g., [BSgenome.Hsapiens.UCSC.hg38][])
     contain whole genomes of model organisms.
 - [VariantAnnotation][] and [ensemblVEP][] provide access to sequence
   annotation facilities, e.g., to identify coding variants; see the
@@ -330,8 +330,8 @@ overall package use.
 [snpStats]: http://bioconductor.org/packages/snpStats
 
 [org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
-[TxDb.Hsapiens.UCSC.hg19.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg19.knownGene
-[BSgenome.Hsapiens.UCSC.hg19]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg19
+[TxDb.Hsapiens.UCSC.hg38.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg38.knownGene
+[BSgenome.Hsapiens.UCSC.hg38]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg38
 
 [EnsDb.Hsapiens.v86]: http://bioconductor.org/packages/EnsDb.Hsapiens.v86
 [Ensembl]: http://www.ensembl.org

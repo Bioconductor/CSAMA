@@ -2,6 +2,12 @@
 
 This repository contains material for the annual 'CSAMA' course.
 
+## Students
+
+You can find a curated version of the lecture and lab material at:
+
+http://www-huber.embl.de/users/msmith/csama2018/materials/
+
 ## Instructors
 
  - Commit changes to the **2018 branch**.

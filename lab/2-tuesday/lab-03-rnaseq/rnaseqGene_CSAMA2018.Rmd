@@ -381,7 +381,7 @@ general Bioconductor class of object called the
 *SummarizedExperiment* and we begin with a diagram of the three
 component pieces:
 
-```{r sumexp, echo = FALSE, out.width="80%", fig.cap="The component parts of a *SummarizedExperiment* object. The `assay` (pink block) contains the matrix of counts, the `rowRanges` or `rowData` (blue block) contains information about the genomic ranges and the `colData` (green block) contains information about the samples. The highlighted line in each block represents the first row (note that the first row of `colData` lines up with the first column of the `assay`)."}
+```{r sumexp, echo = FALSE, out.width="80%", fig.cap="The component parts of a *SummarizedExperiment* object. The 'assay' (pink block) contains the matrix of counts, the 'rowRanges' or 'rowData' (blue block) contains information about the genomic ranges and the 'colData' (green block) contains information about the samples. The highlighted line in each block represents the first row (note that the first row of 'colData' lines up with the first column of the 'assay')."}
 par(mar = c(0,0,0,0))
 plot(1,1,xlim = c(0,100),ylim = c(0,100),bty = "n",
      type="n",xlab="",ylab="",xaxt="n",yaxt="n")

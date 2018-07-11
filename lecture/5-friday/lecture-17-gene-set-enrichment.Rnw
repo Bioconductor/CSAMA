@@ -1,0 +1,373 @@
+% \VignetteEngine{knitr::knitr}
+% \VignetteIndexEntry{Annotation -- slides}
+
+\documentclass{beamer}
+\usepackage{BioconductorSlides}
+\title{Gene Set Enrichment -- Introduction}
+\author{Martin Morgan 
+  (\href{mailto:martin.morgan@roswellpark.org}{martin.morgan@roswellpark.org}) \\
+  Roswell Park Cancer Institute \\
+  Buffalo, NY, USA
+}
+\date{13 July, 2018}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Objective}
+  Is expression of genes in a gene set associated with experimental
+  condition?
+  \begin{itemize}
+  \item E.g., Are there unusually many up-regulated genes in the gene
+    set?
+  \end{itemize}
+  Many methods, a recent review is Kharti et al., 2012.
+  \begin{itemize}
+  \item Over-representation analysis (ORA) -- are differentially
+    expressed (DE) genes in the set more common than expected?
+  \item Functional class scoring (FCS) -- summarize statistic of DE of
+    genes in a set, and compare to null
+  \item Issues with sequence data?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{What is a gene set?}
+  \textbf{Any} \emph{a priori} classification of `genes' into
+  biologically relevant groups
+  \begin{itemize}
+  \item Members of same biochemical pathway
+  \item Proteins expressed in identical cellular compartments
+  \item Co-expressed under certain conditions
+  \item Targets of the same regulatory elements
+  \item On the same cytogenic band
+  \item \ldots
+  \end{itemize}
+  Sets do not need to be\ldots
+  \begin{itemize}
+  \item \emph{exhaustive}
+  \item \emph{disjoint}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Collections of gene sets}
+  Gene Ontology (\href{http://geneontology.org}{GO}) Annotation (GOA)
+  \begin{itemize}
+  \item CC Cellular Components
+  \item BP Biological Processes
+  \item MF Molecular Function
+  \end{itemize}
+  Pathways
+  \begin{itemize}
+  \item \href{http://www.broadinstitute.org/gsea/msigdb/}{MSigDb}
+  \item \href{http://genome.jp/kegg}{KEGG} (no longer freely available)
+  \item \href{http://reactome.org}{reactome}
+  \item \href{http://pantherdb.org}{PantherDB}
+  \item \ldots
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Collections of gene sets}
+  E.g., \href{http://www.broadinstitute.org/gsea/msigdb/}{MSigDb}
+  \begin{itemize}
+  \item c1 Positional gene sets -- chromosome \& cytogenic band
+  \item c2 Curated Gene Sets from online pathway databases,
+    publications in PubMed, and knowledge of domain experts.
+  \item c3 motif gene sets based on conserved cis-regulatory motifs
+    from a comparative analysis of the human, mouse, rat, and dog
+    genomes.
+  \item c4 computational gene sets defined by mining large collections
+    of cancer-oriented microarray data.
+  \item c5 GO gene sets consist of genes annotated by the same GO
+    terms.
+  \item c6 oncogenic signatures defined directly from microarray gene
+    expression data from cancer gene perturbations.
+  \item c7 immunologic signatures defined directly from microarray
+    gene expression data from immunologic studies.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Work flow}
+  \begin{enumerate}
+  \item Experimental design
+  \item Sequencing, quality assessment, alignment
+  \item Differential expression
+  \end{enumerate}
+  and then\ldots
+  \begin{enumerate}
+    \setcounter{enumi}{3}
+  \item Perform gene set enrichment analysis
+  \item Adjust for multiple comparisons
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Approach 1: hypergeometric tests}
+  \begin{columns}
+    \column{.5\textwidth}
+    \begin{enumerate}
+    \item Classify each gene as `differentially expressed' DE or not,
+      e.g., based on $p < 0.05$
+    \item Are DE genes in the set more common than DE genes not in the
+      set?
+    \item Fisher hypergeometric test. \Biocpkg{GOstats};
+      \Biocpkg{limma}\Rfunction{::goana()} \ldots
+    \end{enumerate}
+    \begin{itemize}
+    \item Conditional hypergeometric to accommodate GO DAG,
+      \Biocpkg{GOstats}
+    \item But: artificial division into two groups (DE vs.\ not DE)
+    \end{itemize}
+    \column{.5\textwidth}
+    \begin{tabular}{lcc}
+             & \multicolumn{2}{c}{In gene set?}\\
+             & Yes   & No \\ \hline\noalign{\smallskip}
+      DE     & $k$   & $K$ \\
+      Not DE & $n-k$ & $N - K$ \\ \hline
+    \end{tabular}
+    \par\bigskip \Rfunction{fisher.test()}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Approach 2: enrichment score}
+  \begin{columns}
+    \column{.5\textwidth}
+    Mootha et al., 2003; modified Subramanian et al., 2005.
+    \begin{enumerate}
+    \item Sort genes by log fold change
+    \item Calculate running sum: incremented when gene in set,
+      decremented when not.
+    \item Maximum of the running sum is enrichment score ES; large ES
+      means that genes in set are toward top of list.
+    \item Permuting subject labels for signficance
+    \end{enumerate}
+    \column{.5\textwidth}
+    \includegraphics[width=\textwidth]{subramanian-F1-part.jpg}
+    \par {\small Subramanian et al., 2005, fig 1.}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Approach 3: category $t$-test}
+  \begin{columns}
+    \column{.5\textwidth}
+    E.g., Jiang \& Gentleman, 2007; \Biocpkg{Category}
+    \begin{enumerate}
+    \item Summarize $t$ (or other) statistic across genes in each set
+    \item Test for significance by permuting the subject labels
+    \item Much more straight-forward to implement
+    \end{enumerate}
+    \column{.5\textwidth}
+    \includegraphics[width=\textwidth]{Category-ribosome.png}
+    \par {\small Expression in NEG vs BCR/ABL samples for genes in the
+      `ribosome' KEGG pathway; \Biocpkg{Category} vignette.}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Competitive versus self-contained null hypothesis}
+  Goemann \& B\"uhlmann, 2007
+  \begin{itemize}
+  \item Competitive null: The genes in the gene set do not have
+    stronger association with the subject condition than other
+    genes. (Approach 1, 2)
+  \item Self-contained null: The genes in the gene set do not have any
+    association with the subject condition. (Approach 3)
+  \item Probably, self-contained null is closer to actual question of
+    interest
+  \item Permuting subjects (rather than genes) is appropriate
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Approach 4: linear models}
+  E.g., Hummel et al., 2008, \Biocpkg{GlobalAncova}
+  \begin{itemize}
+  \item Colorectal tumors have good (`stage II') or bad (`stage III')
+    prognosis. Do genes in the p53 pathway (\emph{just one gene set!})
+    show different activity at the two stages?
+  \item Linear model incorporates covariates -- sex of patient,
+    location of tumor
+  \end{itemize}
+  \Biocpkg{limma}
+  \begin{itemize}
+  \item Majewski et al., 2010 \Rfunction{romer()} and Wu \& Smythe 2012
+    \Rfunction{camera()} for enrichment (competitive null) linear models
+  \item Wu et al., 2010: \Rfunction{roast()}, \Rfunction{mroast()},
+    (and \Rfunction{fry()} -- efficient) for self-contained null
+    linear models
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Approach 5: issues with sequence data?}
+  \begin{columns}
+    \column{.5\textwidth}
+    \begin{itemize}
+    \item All else being equal, long genes receive more reads than
+      short genes
+    \item Per-gene $P$ values proportional to gene size
+    \end{itemize}
+    E.g., Young et al., 2010, \Biocpkg{goseq}
+    \begin{itemize}
+    \item Hypergeometric, weighted by gene size
+    \item Substantial differences
+    \item Better: read depth??
+    \end{itemize}
+    \column{.5\textwidth}
+    \includegraphics[width=\textwidth]{young-et-al-gb-2010-11-2-r14-2-cropped.png}
+    \par {\small DE genes vs.\ transcript length. Points: bins of 300
+      genes. Line: fitted probability weighting function.}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Approach 6: \emph{de novo} discovery}
+  \begin{itemize}
+  \item So far: analogous to supervised machine learning, where
+    pathways are known in advance
+  \item What about unsupervised discovery?
+  \end{itemize}
+  Example: Langfelder \& Hovarth, WGCNA
+  \begin{itemize}
+  \item Weighted correlation network analysis
+  \item Described in Langfelder \& Horvath, 2008
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Representing gene sets in R}
+  \begin{itemize}
+  \item Named \Rcode{list()}, where names of the list are sets, and
+    each element of the list is a vector of genes in the set.
+  \item \Rcode{data.frame()} of set name / gene name pairs
+  \item \Biocpkg{GSEABase} -- input from standard file formats,
+    representation as formal classes.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusions}
+  Gene set enrichment classifications
+  \begin{itemize}
+  \item Kharti et al: Over-representation analysis; functional class
+    scoring; pathway topology
+  \item Goemann \& B\"uhlmann: Competitive vs.\ self-contained null
+  \end{itemize}
+  \medskip\par 
+  Selected \Bioconductor{} Packages
+  \medskip\par
+  \begin{tabular}{ll}
+    Approach & Packages \\
+    \hline\noalign{\smallskip}
+    Hypergeometric & \Biocpkg{GOstats}, \Biocpkg{topGO},
+                     \Biocpkg{limma}\Rfunction{::goana()} \\
+    Enrichment & \Biocpkg{limma}\Rfunction{::romer()} \\
+    Category $t$-test & \Biocpkg{Category} \\
+    Linear model & \Biocpkg{GlobalAncova}, \Biocpkg{GSEAlm}, 
+                   \Biocpkg{limma}\Rfunction{::fry()} \\
+    Pathway topology & \Biocpkg{SPIA} \\
+    Sequence-specific & \Biocpkg{goseq} \\
+    Visualization & \Biocpkg{PATHVIEW} \\
+    \hline
+  \end{tabular}
+\end{frame}
+
+<<echo=FALSE>>=
+suppressPackageStartupMessages({
+    library(DESeq2)
+    library(airway)
+    library(org.Hs.eg.db)
+    library(limma)
+})
+@ 
+
+\begin{frame}[fragile, allowframebreaks]{Example -- \Biocpkg{DESeq2} lab}
+  Example: hypergeometric test using \Biocpkg{limma}\Rcode{::goana()}
+  \begin{itemize}
+    \item Data input and massage
+<<input>>=
+library(DESeq2)
+library(airway)
+data(airway)
+airway$dex <- relevel(airway$dex, "untrt")
+@ 
+
+\framebreak
+    \item Differential expression analysis
+<<de>>=
+des <- DESeqDataSet(airway, design = ~ cell + dex)
+des <- DESeq(des)
+res <- results(des)
+@ 
+
+\framebreak
+    \item Need 'entrez' identifiers, but have 'ensembl'
+<<mapIds>>=
+library(org.Hs.eg.db)
+res$egid <- mapIds(
+  org.Hs.eg.db, rownames(res), "ENTREZID", "ENSEMBL"
+)
+@ 
+
+    \item Trim 'universe' to those genes that can be assessed for
+      differential expression (i.e., \Rcode{!is.na(padj)}) and
+      assigned to gene set (\Rcode{!is.na(entre)})
+<<trim>>=
+table(is.na(res$padj), is.na(res$egid))
+res <- subset(res, !is.na(padj) & !is.na(egid))
+dim(res)
+@ 
+
+\framebreak
+    \item Test and order
+<<goana>>=
+library(limma)
+go <- goana(res$egid[res$padj < .05], res$egid, "Hs")
+go <- go[ order(go$P.DE), ]
+t(go[1,])
+@  
+
+\framebreak
+    \item Sanity check -- glucocorticoid sets present?
+<<sanity>>=
+head(subset(go, grepl("glucocorticoid", Term)), 3)
+@       
+      \item What genes in gene sets?
+<<term-id-mapping>>=
+map <- select(
+  org.Hs.eg.db, res$egid, "GO", "ENTREZID"
+)
+head(map)
+@ 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{References}
+  \begin{itemize}
+  \item Khatri et al., 2012, PLoS Comp Biol 8.2: e1002375.
+  \item Subramanian et al., 2005, PNAS 102.43: 15545-15550.
+  \item Jiang \& Gentleman, 2007, Bioinformatics Feb 1;23(3):306-13.
+  \item Goeman \& B\"uhlmann, 2007, Bioinformatics 23.8: 980-987.
+  \item Hummel et al., 2008, Bioinformatics 24.1: 78-85.
+  \item Wu \& Smyth 2012, Nucleic Acids Research 40, e133.
+  \item Wu et al., 2010 Bioinformatics 26, 2176-2182.
+  \item Majewski et al., 2010, Blood, published online 5 May 2010.
+  \item Tarca et al., 2009, Bioinformatics 25.1: 75-82.
+  \item Young et al., 2010, Genome Biology 11:R14.
+  \end{itemize}
+  Partly based on a presentation by Simon Anders, CSAMA
+  2010\footnote{\url{http://marray.economia.unimi.it/2009/material/lectures/L8_Ge
+      ne_Set_Testing.pdf}}.
+\end{frame}
+
+\begin{frame}{Acknowledgments}
+  \begin{itemize}
+  \item Core: Valerie Obenchain, Herv\'e Pag\`es,
+    Lori Shepherd, Marcel Ramos, Nitesh Turaga, Daniel van Twisk.
+  \item The research reported in this presentation was supported by
+    the National Cancer Institute and the National Human Genome
+    Research Institute of the National Institutes of Health under
+    Award numbers U24CA180996 and U41HG004059. The content is
+    solely the responsibility of the authors and does not necessarily
+    represent the official views of the National Institutes of Health
+    or the National Science Foundation.
+  \end{itemize}
+  \medskip\par
+  \url{https://bioconductor.org},
+  \url{https://support.bioconductor.org}
+\end{frame}
+
+\end{document}

@@ -306,17 +306,18 @@ knitr::include_graphics("images/LCMS_Spectrum6.png")
 <div style="position:absolute; left:50%; top:55%">
 LC-MS data has thus 3 dimensions:
 
-- intensity, m/z, retention time tuples.
-- analyze the data along retention time.
+- intensity, m/z, retention time.
+
+Analyze the data along retention time.
 
 </div>
 
 
 ## LC-MS data preprocessing
 
-> - Chromatographic peak detection
-> - Alignment
-> - Correspondence
+- Chromatographic peak detection
+- Alignment
+- Correspondence
 
 ## Chromatographic peak detection
 
@@ -333,18 +334,6 @@ knitr::include_graphics("images/LCMS-data.png")
 ```{r out.width = "500px", echo = FALSE}
 knitr::include_graphics("images/LCMS-data-peaks.png")
 ```
-
-## Chromatographic peak detection
-
-- Aim: identify chromatographic peaks in the data.
-
-```{r out.width = "500px", echo = FALSE}
-knitr::include_graphics("images/LCMS-data-peaks.png")
-```
-<div style = "position:absolute; left:520px; top:300px;">
-- allow different rt-widths
-- allow some scattering on m/z
-</div>
 
 ## Chromatographic peak detection {.build}
 
@@ -400,14 +389,17 @@ head(chromPeaks(data), n = 3)
 
 ## Alignment {.build}
 
-- Chromatography subject to (random and systematic) noise.
-- Same analyte may elute at different time in different runs.
+<div>
+- Alignment: adjust differences in retention times between samples.
+</div>
+<div>
+- Why? Chromatography setup, age of the column, column gets dirty...
+- Result: same analyte may elute at different time between measurements.
+</div>
 
 ```{r echo = FALSE, out.width = "370px"}
 knitr::include_graphics("images/alignment.png")
 ```
-
-- Retention time shifts depend on the LC setup.
 
 
 ## Alignment {.build}
@@ -478,6 +470,7 @@ knitr::include_graphics("images/correspondence2_03.png")
 knitr::include_graphics("images/correspondence2_01.png")
 ```
 </div>
+
 
 ## Correspondence
 

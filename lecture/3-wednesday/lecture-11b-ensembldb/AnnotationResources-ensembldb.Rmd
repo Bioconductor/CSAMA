@@ -1,16 +1,16 @@
 
 # Table of Contents
 
-1.  [Annotation resources - `ensembldb`](#org3b45f16)
-    1.  [Annotation of genomic regions](#org1ade020)
-    2.  [`AnnotationFilter`: basic classes for filtering annotation resources](#orgbfaef4c)
-    3.  [Filtering `EnsDb` databases](#org8b02d8c)
-    4.  [Additional `ensembldb` capabilities](#org8df9ee7)
-    5.  [Finally&#x2026;](#orgdae820e)
+1.  [Annotation resources - `ensembldb`](#org6667dc1)
+    1.  [Annotation of genomic regions](#org932b30d)
+    2.  [`AnnotationFilter`: basic classes for filtering annotation resources](#orgadcd18d)
+    3.  [Filtering `EnsDb` databases](#org8d11cf0)
+    4.  [Additional `ensembldb` capabilities](#org8ae2bb9)
+    5.  [Finally&#x2026;](#org9661f63)
 
 
 
-<a id="org3b45f16"></a>
+<a id="org6667dc1"></a>
 
 # Annotation resources - `ensembldb`
 
@@ -21,7 +21,7 @@ johannes.rainer@eurac.edu
 github/twitter: *jotsetung*
 
 
-<a id="org1ade020"></a>
+<a id="org932b30d"></a>
 
 ## Annotation of genomic regions
 
@@ -50,16 +50,12 @@ github/twitter: *jotsetung*
     
       head(gns)
     
-      ## Access start/end coordinates
-      head(start(gns))
-      head(end(gns))
-    
       ## Metadata columns; gene biotype
       head(gns$gene_biotype) 
       ```
 
 
-<a id="orgbfaef4c"></a>
+<a id="orgadcd18d"></a>
 
 ## `AnnotationFilter`: basic classes for filtering annotation resources
 
@@ -82,7 +78,7 @@ github/twitter: *jotsetung*
       ```
 
 
-<a id="org8b02d8c"></a>
+<a id="org8d11cf0"></a>
 
 ## Filtering `EnsDb` databases
 
@@ -116,13 +112,13 @@ github/twitter: *jotsetung*
 -   Filters speed up queries.
 
 
-<a id="org8df9ee7"></a>
+<a id="org8ae2bb9"></a>
 
 ## Additional `ensembldb` capabilities
 
 -   `EnsDb` contain also protein annotation data:
     -   Protein sequence.
-    -   Annotation to Uniprot ID identifiers.
+    -   Annotation to Uniprot accessions.
     -   Annotation of all protein domains within the protein sequences.
 -   Functionality to map coordinates:
     -   `genomeToTranscript`
@@ -133,7 +129,7 @@ github/twitter: *jotsetung*
     -   `proteinToTranscript`
 
 
-<a id="orgdae820e"></a>
+<a id="org9661f63"></a>
 
 ## Finally&#x2026;
 
