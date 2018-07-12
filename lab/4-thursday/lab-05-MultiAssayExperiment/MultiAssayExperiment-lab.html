@@ -909,14 +909,21 @@ acc</code></pre>
 </div>
 <div id="working-with-the-cancer-genome-atlas" class="section level1">
 <h1>Working with The Cancer Genome Atlas</h1>
-<p>This section introduces methods specific to working with TCGA from the <em><a href="http://bioconductor.org/packages/TCGAutils">TCGAutils</a></em> package.</p>
+<p>Aside from the available reshaping functions already included in the <code>MultiAssayExperiment</code> package, the <em><a href="http://bioconductor.org/packages/TCGAutils">TCGAutils</a></em> package provides additional helper functions for working with TCGA data.</p>
 <div id="simplification-of-curatedtcgadata-objects" class="section level2">
 <h2>“Simplification” of <code>curatedTCGAData</code> objects</h2>
 <p>A number of helper functions are available for managing datasets from <code>curatedTCGAData</code>. These include:</p>
 <ul>
-<li><code>mirToRanges</code>: convert <code>SummarizedExperiment</code> datasets with microRNA to <code>RangedSummarizedExperiment</code></li>
-<li><code>symbolsToRanges</code>: convert assays with gene symbols to genomic ranges (<code>SummarizedExperiment</code> to <code>RangedSummarizedExperiment</code>)</li>
-<li><code>qreduceTCGA</code>: convert <code>RaggedExperiment</code> objects to <code>RangedSummarizedExperiment</code></li>
+<li>Conversions of <code>SummarizedExperiment</code> to <code>RangedSummarizedExperiment</code> based on <code>TxDb.Hsapiens.UCSC.hg19.knownGene</code> for:
+<ul>
+<li><code>mirToRanges</code>: microRNA</li>
+<li><code>symbolsToRanges</code>: gene symbols</li>
+</ul></li>
+<li><code>qreduceTCGA</code>: convert <code>RaggedExperiment</code> objects to <code>RangedSummarizedExperiment</code> with one row per gene symbol, for:
+<ul>
+<li>segmented copy number datasets (“CNVSNP” and “CNASNP”)</li>
+<li>somatic mutation datasets (“Mutation”), with a value of 1 for any non-silent mutation and a value of 0 for no mutation or silent mutation</li>
+</ul></li>
 </ul>
 <p>The <code>simplifyTCGA</code> function combines all of the above operations to create a more managable <code>MultiAssayExperiment</code> object and using <code>RangedSummarizedExperiment</code> assays where possible.</p>
 <pre class="r"><code>(simpa &lt;- TCGAutils::simplifyTCGA(acc))</code></pre>
@@ -941,7 +948,6 @@ acc</code></pre>
 ##  `$`, `[`, `[[` - extract colData columns, subset, or experiment 
 ##  *Format() - convert into a long or wide DataFrame 
 ##  assays() - convert ExperimentList to a SimpleList of matrices</code></pre>
-<p>Aside from the available reshaping functions already included in the <code>MultiAssayExperiment</code> package, the <code>TCGAutils</code> package provides additional helper functions for working with TCGA data.</p>
 </div>
 <div id="what-types-of-samples-are-in-the-data" class="section level2">
 <h2>What types of samples are in the data?</h2>
@@ -1015,7 +1021,7 @@ acc</code></pre>
 </div>
 <div id="other-tcga-data-types" class="section level2">
 <h2>Other TCGA data types</h2>
-<p>Helper functions to create Bioconductor objects from TCGA exon files (legacy archive), copy number and GISTIC objects from <code>RTCGAToolbox</code> are also available in <em><a href="http://bioconductor.org/packages/TCGAutils">TCGAutils</a></em>.</p>
+<p>Helper functions to add TCGA exon files (legacy archive), copy number and GISTIC copy number calls to MultiAssayExperiment objects are also available in <em><a href="http://bioconductor.org/packages/TCGAutils">TCGAutils</a></em>.</p>
 </div>
 </div>
 <div id="plotting-correlation-and-other-analyses" class="section level1">

@@ -683,20 +683,21 @@ The `TCGAutils` package provides additional helper functions, see below.
 
 # Working with The Cancer Genome Atlas
 
-This section introduces methods specific to working with TCGA
-from the `r Biocpkg("TCGAutils")` package. 
+Aside from the available reshaping functions already included in the
+`MultiAssayExperiment` package, the `r Biocpkg("TCGAutils")` package provides additional
+helper functions for working with TCGA data.
 
 ## "Simplification" of `curatedTCGAData` objects
 
 A number of helper functions are available for managing datasets from
 `curatedTCGAData`. These include:
 
-- `mirToRanges`: convert `SummarizedExperiment` datasets with microRNA to
-`RangedSummarizedExperiment`
-- `symbolsToRanges`: convert assays with gene symbols to genomic ranges
-(`SummarizedExperiment` to `RangedSummarizedExperiment`)
-- `qreduceTCGA`: convert `RaggedExperiment` objects to
-`RangedSummarizedExperiment`
+- Conversions of `SummarizedExperiment` to `RangedSummarizedExperiment` based on `TxDb.Hsapiens.UCSC.hg19.knownGene` for:
+    - `mirToRanges`: microRNA
+    - `symbolsToRanges`: gene symbols 
+- `qreduceTCGA`: convert `RaggedExperiment` objects to `RangedSummarizedExperiment` with one row per gene symbol, for:
+    - segmented copy number datasets ("CNVSNP" and "CNASNP")
+    - somatic mutation datasets ("Mutation"), with a value of 1 for any non-silent mutation and a value of 0 for no mutation or silent mutation
 
 The `simplifyTCGA` function combines all of the above operations to create
 a more managable `MultiAssayExperiment` object and using
@@ -705,10 +706,6 @@ a more managable `MultiAssayExperiment` object and using
 ```{r}
 (simpa <- TCGAutils::simplifyTCGA(acc))
 ```
-
-Aside from the available reshaping functions already included in the
-`MultiAssayExperiment` package, the `TCGAutils` package provides additional
-helper functions for working with TCGA data.
 
 ## What types of samples are in the data?
 
@@ -752,9 +749,8 @@ See the `r BiocStyle::Biocpkg("TCGAutils")` help pages for details.
 
 ## Other TCGA data types
 
-Helper functions to create Bioconductor objects from TCGA exon files
-(legacy archive), copy number and GISTIC objects from `RTCGAToolbox` are
-also available in `r BiocStyle::Biocpkg("TCGAutils")`.
+Helper functions to add TCGA exon files (legacy archive), copy number and 
+GISTIC copy number calls to MultiAssayExperiment objects are also available in `r BiocStyle::Biocpkg("TCGAutils")`.
 
 # Plotting, correlation, and other analyses
 
