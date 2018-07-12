@@ -250,7 +250,7 @@ sections.
 ```{r datatab, results='asis', echo=FALSE}
 datatab <-
     data.frame(Type = c("raw", "identification", "quantitation",
-                   "peak lists", "other"),
+                   "peak lists", "quant and id"),
                Format = c("mzML, mzXML, netCDF, mzData",
                    "mzIdentML", "mzQuantML", "mgf", "mzTab"),
                Package = c(
@@ -1366,7 +1366,7 @@ basename(csvfile)
 ```{r solreadmsnset}
 getEcols(csvfile, split = ",", n = 2)
 hl <- readMSnSet2(csvfile, ecol = 8:27, fnames = 1, skip = 1)
-him(hl)
+dim(hl)
 ```
 </details>
 
