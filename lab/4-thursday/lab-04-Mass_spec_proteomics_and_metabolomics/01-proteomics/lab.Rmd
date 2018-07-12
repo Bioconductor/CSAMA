@@ -529,8 +529,6 @@ msexp <- readMSData(rawFile, msLevel = 2L)
 msexp
 ```
 
-### MS Spectra {-}
-
 Spectra can be extracted as a list of `Spectrum2` objects with the
 `spectra` accessor or as a subset of the original `MSnExp` data with
 the `[` operator.  Individual spectra can be accessed with `[[`.
@@ -550,8 +548,8 @@ on MS1 data, which is used to generate chromatograms.
 
 ```{r chrom1, cache = TRUE}
 f <- msdata::proteomics(pattern = "45stepped_60min_01-20141210", full.names = TRUE)
-msexp <- readMSData(f, mode = "onDisk", msLevel. = 1L)
-chr <- chromatogram(msexp)
+rw <- readMSData(f, mode = "onDisk", msLevel. = 1L)
+chr <- chromatogram(rw)
 chr
 plot(chr)
 ```
@@ -565,7 +563,8 @@ chromatogram per file.
 ### Annotating spectra with identification results {-}
 
 The identification results stemming from the same raw data file can
-then be used to add PSM matches.
+then be used to add PSM matches. Here, we use the small `msexp` test
+data with 5 MS2 spectra that we read in further up.
 
 ```{r addid}
 ## initial feature variable
@@ -602,6 +601,8 @@ ms <- readMSData(f, mode = "onDisk")
 table(centroided(ms), msLevel(ms))
 ```
 </details>
+
+### Plotting MS spectra {-}
 
 Spectra and (parts of) experiments can be extracted and plotted.
 
@@ -1686,13 +1687,13 @@ available via the `r Biocpkg("hpar")` package.
 
 # More information
 
-## References and resources
+## References and resources {-}
 
 * [Visualisation of proteomics data using R and Bioconductor](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4510819/)
 * [Using R and Bioconductor for proteomics data analysis](http://arxiv.org/pdf/1305.6559v1.pdf)
 * `RforProteomics`: http://bioconductor.org/packages/RforProteomics
 
-## Other relevant packages/pipelines
+## Other relevant packages/pipelines {-}
 
 - Analysis of post translational modification with `r Biocpkg("isobar")`.
 - Processing and analysis or isobaric tagging mass spectrometry with
@@ -1728,6 +1729,14 @@ available via the `r Biocpkg("hpar")` package.
   Targeted Proteomics
 - `r Biocpkg("SwathXtend")`: SWATH extended library generation and
   statistical data analysis
+
+## More questions {-}
+
+After the workshop, the best place to ask questions about MS-based
+proteomics and relevant Bioconductor package is the Bioconductor
+[support forum](https://support.bioconductor.org/). Tagging you
+question with *Proteomics* or specific package names will alert the
+respective maintainers.
 
 # Session Information
 
