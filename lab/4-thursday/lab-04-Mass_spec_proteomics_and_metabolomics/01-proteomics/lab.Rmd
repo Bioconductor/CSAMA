@@ -507,6 +507,8 @@ undergone since their creation (see examples below).
 
 ## Raw data: the `MSnExp` class
 
+### Read raw data {-}
+
 The `readMSData` will parse the raw data and construct an MS
 experiment object of class `MSnExp`. An important argument to
 `readMSData` is the *mode*, which can be `"onDisk"` or
@@ -527,6 +529,8 @@ msexp <- readMSData(rawFile, msLevel = 2L)
 msexp
 ```
 
+### MS Spectra {-}
+
 Spectra can be extracted as a list of `Spectrum2` objects with the
 `spectra` accessor or as a subset of the original `MSnExp` data with
 the `[` operator.  Individual spectra can be accessed with `[[`.
@@ -536,6 +540,29 @@ length(msexp)
 msexp[1:2]
 msexp[[2]]
 ```
+
+### Chromatograms {-}
+
+We can also extract the chromatogram for the acquistion(s) in the
+`MSnExp` object and visualise it. Here, we use a complete acquisition
+from the `msdata` package, and read it with *on-disk* mode and focus
+on MS1 data, which is used to generate chromatograms.
+
+```{r chrom1, cache = TRUE}
+f <- msdata::proteomics(pattern = "45stepped_60min_01-20141210", full.names = TRUE)
+msexp <- readMSData(f, mode = "onDisk", msLevel. = 1L)
+chr <- chromatogram(msexp)
+chr
+plot(chr)
+```
+
+Note that here, as we only loaded a single raw data file, we obtain a
+`Chromatograms` object with a single chromatogram. When reading
+multiple raw data files at once (for example with
+`readMSData(c("f1.mzML", "f2.mzML"))`), we would get and visualise one
+chromatogram per file.
+
+### Annotating spectra with identification results {-}
 
 The identification results stemming from the same raw data file can
 then be used to add PSM matches.
@@ -931,8 +958,8 @@ MSGF+ engine, as illustrated below.
 We search the `r basename(mzf)` file against the fasta file from
 `PXD000001` using `MSGFplus`.
 
-We first download the fasta files from ProteomeXchange (that files is
-also available on the lab directory).
+We first download the fasta files from ProteomeXchange (that file is
+also available in the proteomics lab directory on the CSAMA workshop).
 
 <div class="boxed yellow">On-line</div>
 
@@ -1289,6 +1316,9 @@ function^[We specify version 0.9 (which generates the warning) to fit with the v
 mztf <- pxget(px, "F063721.dat-mztab.txt")
 (mzt <- readMzTabData(mztf, what = "PEP", version = "0.9"))
 ```
+
+The `mzTab` file is also available in the is also available in the
+proteomics lab directory in the CSAMA workshop server.
 
 ### From spreadsheets {-}
 
