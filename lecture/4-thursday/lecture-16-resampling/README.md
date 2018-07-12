@@ -1,1 +1,0 @@
-Waldron_CSAMA2017_resampling.utf8.md

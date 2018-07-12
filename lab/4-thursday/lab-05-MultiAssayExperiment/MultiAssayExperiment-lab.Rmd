@@ -7,6 +7,7 @@ output:
     number_sections: no
     toc: yes
     toc_depth: 4
+    toc_float: false
 ---
 
 ```{r setup, include=FALSE}
@@ -23,7 +24,7 @@ if(!require("BiocManager"))
 BiocManager::install("waldronlab/TCGAutils")
 ```
 
-
+Other packages used:
 ```{r, eval = FALSE}
 library(MultiAssayExperiment)
 library(GenomicRanges)
@@ -42,7 +43,7 @@ library(survminer)
 library(pheatmap)
 ```
 
-```{r, echo = FALSE, cache=FALSE}
+```{r, echo = FALSE}
 suppressPackageStartupMessages({
     library(MultiAssayExperiment)
     library(GenomicRanges)
@@ -79,7 +80,7 @@ machine learning, and plotting
 This section summarizes three fundamental data classes for the representation of multi-omics
 experiments. 
 
-## `SummarizedExperiment` / `RangedSummarizedExperiment`
+## `(Ranged)SummarizedExperiment`
 
 ```{r, echo = FALSE, fig.cap = "A matrix-like container where rows represent features of interest and columns represent samples. The objects contain one or more assays, each represented by a matrix-like object of numeric or other mode."}
 knitr::include_graphics("SummarizedExperiment.svg")
@@ -320,6 +321,13 @@ qreduceSummarizedExperiment(ragexp, query=query, simplify=weightedmean)
 
 # Working with MultiAssayExperiment
 
+## API cheat sheet
+
+```{r cheatsheet, echo = FALSE, fig.cap = "The MultiAssayExperiment API for construction, access, subsetting, management, and reshaping to formats for application of R/Bioconductor graphics and analysis packages.", out.width="\\maxwidth"}
+knitr::include_graphics("MultiAssayExperiment_cheatsheet.png")
+```
+
+
 ## The MultiAssayExperiment miniACC demo object
 
 Get started by trying out `MultiAssayExperiment` using a subset of the TCGA
@@ -488,7 +496,7 @@ the `ExpressionSet` object containing RNA-seq data:
 miniACC[[1L]]  #or equivalently, miniACC[["RNASeq2GeneNorm"]]
 ```
 
-# Patients with complete data
+## Complete cases
 
 `complete.cases()` shows which patients have complete data for all assays:
 
@@ -515,7 +523,7 @@ delimited positions correspond to patient, ie the first patient is
 colnames(accmatched)
 ```
 
-# Row names that are common across assays
+## Row names that are common across assays
 
 `intersectRows()` keeps only rows that are common to each assay, and aligns them
 in identical order. For example, to keep only genes where data are available for
@@ -654,7 +662,7 @@ The package [cheat sheet](https://bioconductor.org/packages/release/bioc/vignett
 If anything is unclear, please ask a question at
 https://support.bioconductor.org/ or create an issue on the [MultiAssayExperiment issue tracker](https://github.com/waldronlab/MultiAssayExperiment/issues).
 
-# The Cancer Genome Atlas (TCGA) as MultiAssayExperiment objects
+# The Cancer Genome Atlas (TCGA)
 
 Most unrestricted TCGA data are available as MultiAssayExperiment objects from
 the `curatedTCGAData` package. This represents a lot of harmonization!
@@ -681,22 +689,23 @@ tail(colnames(colData(acc)), 10)
 
 The `TCGAutils` package provides additional helper functions, see below. 
 
-# Working with The Cancer Genome Atlas
+# Utilities for TCGA
 
-This section introduces methods specific to working with TCGA
-from the `r Biocpkg("TCGAutils")` package. 
+Aside from the available reshaping functions already included in the
+`MultiAssayExperiment` package, the `r Biocpkg("TCGAutils")` package provides additional
+helper functions for working with TCGA data.
 
 ## "Simplification" of `curatedTCGAData` objects
 
 A number of helper functions are available for managing datasets from
 `curatedTCGAData`. These include:
 
-- `mirToRanges`: convert `SummarizedExperiment` datasets with microRNA to
-`RangedSummarizedExperiment`
-- `symbolsToRanges`: convert assays with gene symbols to genomic ranges
-(`SummarizedExperiment` to `RangedSummarizedExperiment`)
-- `qreduceTCGA`: convert `RaggedExperiment` objects to
-`RangedSummarizedExperiment`
+- Conversions of `SummarizedExperiment` to `RangedSummarizedExperiment` based on `TxDb.Hsapiens.UCSC.hg19.knownGene` for:
+    - `mirToRanges`: microRNA
+    - `symbolsToRanges`: gene symbols 
+- `qreduceTCGA`: convert `RaggedExperiment` objects to `RangedSummarizedExperiment` with one row per gene symbol, for:
+    - segmented copy number datasets ("CNVSNP" and "CNASNP")
+    - somatic mutation datasets ("Mutation"), with a value of 1 for any non-silent mutation and a value of 0 for no mutation or silent mutation
 
 The `simplifyTCGA` function combines all of the above operations to create
 a more managable `MultiAssayExperiment` object and using
@@ -705,10 +714,6 @@ a more managable `MultiAssayExperiment` object and using
 ```{r}
 (simpa <- TCGAutils::simplifyTCGA(acc))
 ```
-
-Aside from the available reshaping functions already included in the
-`MultiAssayExperiment` package, the `TCGAutils` package provides additional
-helper functions for working with TCGA data.
 
 ## What types of samples are in the data?
 
@@ -722,8 +727,9 @@ sampleTables(acc)
 head(sampleTypes)
 ```
 
-## Is there subtype data available in the `MultiAssayExperiment` obtained from
-`curatedTCGAData`?
+## Curated molecular subtypes
+
+Is there subtype data available in the `MultiAssayExperiment` obtained from `curatedTCGAData`?
 
 **Solution**
 
@@ -752,9 +758,8 @@ See the `r BiocStyle::Biocpkg("TCGAutils")` help pages for details.
 
 ## Other TCGA data types
 
-Helper functions to create Bioconductor objects from TCGA exon files
-(legacy archive), copy number and GISTIC objects from `RTCGAToolbox` are
-also available in `r BiocStyle::Biocpkg("TCGAutils")`.
+Helper functions to add TCGA exon files (legacy archive), copy number and 
+GISTIC copy number calls to MultiAssayExperiment objects are also available in `r BiocStyle::Biocpkg("TCGAutils")`.
 
 # Plotting, correlation, and other analyses
 
