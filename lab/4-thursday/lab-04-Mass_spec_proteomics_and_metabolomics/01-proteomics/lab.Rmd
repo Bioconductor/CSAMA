@@ -53,6 +53,7 @@ suppressPackageStartupMessages(library("RforProteomics"))
 suppressPackageStartupMessages(library("lattice"))
 suppressPackageStartupMessages(library("gridExtra"))
 suppressPackageStartupMessages(library("pRoloc"))
+suppressPackageStartupMessages(library("AnnotationHub"))
 ```
 
 <!-- **Modified:** `r file.info("lab.Rmd")$mtime`<br /> -->
@@ -81,11 +82,11 @@ Before we start:
 
 > If you identify typos, if there are parts that you would like to see
 > expended or clarified, please let me know by telling me directly
-> (during workshops), opening a
-> [github issue](https://github.com/lgatto/bioc-ms-prot/issues) or by
-> emailing me directly. Please do also briefly specify your
-> background/familiarity with mass spectrometry and/or proteomics
-> (beginner, intermediate or expert) so that I can update accordingly.
+> (during workshops), opening a [github
+> issue](https://github.com/lgatto/bioc-ms-prot/issues) or by emailing
+> me. Please do also briefly specify your background/familiarity with
+> mass spectrometry and/or proteomics (beginner, intermediate or
+> expert) so that I can update accordingly.
 
 In recent years, there we have seen an increase in the number of
 packages to analyse mass spectrometry and proteomics data for R and
@@ -511,7 +512,7 @@ experiment object of class `MSnExp`. An important argument to
 `readMSData` is the *mode*, which can be `"onDisk"` or
 `"inMemory"`. The former doesn't load the raw data in memory (which is
 not advised for MS1 data, or when many files are loaded) and is
-generally the recommended mode. See the `benchmarking` vignette^[Open
+generally the recommended mode. See the *benchmarking* vignette^[Open
 it with `vignette("benchmarking", package = "MSnbase")` or read it
 [online](https://bioconductor.org/packages/release/bioc/vignettes/MSnbase/inst/doc/benchmarking.html)]
 for details).
@@ -577,7 +578,7 @@ table(centroided(ms), msLevel(ms))
 
 Spectra and (parts of) experiments can be extracted and plotted.
 
-```{r specplot, fig.cap="Plotting a object of class `Spectrum`."}
+```{r specplot, fig.cap="Plotting an object of class `Spectrum`."}
 msexp[[1]]
 plot(msexp[[1]], full=TRUE)
 ```
@@ -585,11 +586,11 @@ plot(msexp[[1]], full=TRUE)
 As this data was labeled with iTRAQ4 isobaric tags, we can highlight
 these four peaks of interest with
 
-```{r specplot1, fig.cap="Plotting a object of class `Spectrum` with reporter ions."}
+```{r specplot1, fig.cap="Plotting an object of class `Spectrum` with reporter ions."}
 plot(msexp[[1]], full=TRUE, reporters = iTRAQ4)
 ```
 
-```{r specplot2, fig.cap="Plotting a object of class `MSnExp`"}
+```{r specplot2, fig.cap="Plotting an object of class `MSnExp`"}
 msexp[1:3]
 plot(msexp[1:3], full=TRUE)
 ```
@@ -608,7 +609,7 @@ fromFile(msexp)
 > `TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01-20141210.mzML.gz`
 > and
 > `TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01-20141210.mzid`
-> files from `msdata`. Retain only MS level data; this can be done
+> files from `msdata`. Retain only MS 2 level data; this can be done
 > either when reading the data in (see the `msLevel` argument in
 > `?readMSData`) or can be done afterwards by filtering the MS levels
 > with `filterMsLevel`.
@@ -766,10 +767,26 @@ dimensional representation of the same data. On the right, 2 MS1
 spectra in blue and the set of interleaves 10 MS2 spectra.
 
 ```{r msmap1, message=FALSE, fig.width=15, echo=TRUE, fig.cap = "Plotting MS maps along retention time, MZ range and intensity."}
+
+## (1) Open raw data file
+ms <- openMSfile(mzf)
+## (2) Extract the header information
+hd <- header(ms)
+## (3) MS1 spectra indices
+ms1 <- which(hd$msLevel == 1)
+## (4) Select MS1 spectra with retention time between 30 and 35 minutes
+rtsel <- hd$retentionTime[ms1] / 60 > 30 & hd$retentionTime[ms1] / 60 < 35
+## (5) Indices of the 1st and 2nd MS1 spectra after 30 minutes
+i <- ms1[which(rtsel)][1]
+j <- ms1[which(rtsel)][2]
+## (6) Interleaved MS2 spectra
+ms2 <- (i+1):(j-1)
+
+
 ## (1) MS space heaptmap
 M <- MSmap(ms, ms1[rtsel], 521, 523, .005, hd)
 ff <- colorRampPalette(c("yellow", "steelblue"))
-trellis.par.set(regions=list(col=ff(100)))
+lattice::trellis.par.set(regions=list(col=ff(100)))
 m1 <- plot(M, aspect = 1, allTicks = FALSE)
 ## (2) Same data as (1), in 3 dimenstion
 M@map[msMap(M) == 0] <- NA
@@ -779,7 +796,7 @@ i <- ms1[which(rtsel)][1]
 j <- ms1[which(rtsel)][2]
 M2 <- MSmap(ms, i:j, 100, 1000, 1, hd)
 m3 <- plot3D(M2)
-grid.arrange(m1, m2, m3, ncol = 3)
+gridExtra::grid.arrange(m1, m2, m3, ncol = 3)
 ```
 
 Below, we have animations build from extracting successive slices as above.
@@ -914,7 +931,8 @@ MSGF+ engine, as illustrated below.
 We search the `r basename(mzf)` file against the fasta file from
 `PXD000001` using `MSGFplus`.
 
-We first download the fasta files from ProteomeXchange
+We first download the fasta files from ProteomeXchange (that files is
+also available on the lab directory).
 
 <div class="boxed yellow">On-line</div>
 
