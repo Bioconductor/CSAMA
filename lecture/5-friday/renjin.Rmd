@@ -49,11 +49,11 @@ compute_pi_bcc  <- compiler::cmpfun(compute_pi)
 
 ## Vectorization 
 
-Vectorization is often a very appropriate way to get rid of explicit loops in R, and thus to speed up code. However, it has two potential drawbacks:
+Vectorization is often a very appropriate way to get rid of explicit loops in R, and thus to speed up code, and even make it more readable and more robust. However, vectorization also has two potential drawbacks:
 
-- It requires manual rewriting of code. In the example here, this is simple, even trivial, but for more complex calculations, e.g., if the computations in one loop iteration depend on those from previous iterations, this may not always be easy or possible.
+- When starting from a loop-based version, it requires manual rewriting of code. In the example here, that is simple, even trivial, but for more complex calculations, e.g., if the computations in one loop iteration depend on those from previous iterations, this may not always be easy or possible. (An example for that would be an iterative optimization algorithm.)
 
-- It requires the allocation of large vectors; in the example below, of the vector `n` as well as several temporary expressions in the second line of the below function. A double precision float vector of length 5e8 requires 3.7 GB.
+- It requires the allocation of large vectors; in the example below, of the vector `n` as well as several temporary expressions that arise in the evaluation of the second line of the below function. A double precision float vector of length 5e8 requires 3.7 GB.
 
 ```{r vectorized}
 compute_pi_vec <- function(m) {
