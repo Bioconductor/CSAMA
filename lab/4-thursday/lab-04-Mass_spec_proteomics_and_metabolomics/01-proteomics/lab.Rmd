@@ -1,15 +1,50 @@
 ---
-title: "Bioconductor tools for mass spectrometry and proteomics"
-author: 
+title: "Lab: Bioconductor tools for mass spectrometry and proteomics"
+author:
 - name: Laurent Gatto
-  affiliation: Computational Proteomics Unit, Cambridge, UK
 output:
-  BiocStyle::html_document2:
+  BiocStyle::html_document:
     toc_float: true
 ---
 
+
+<style type="text/css">
+/* https://jsfiddle.net/2ffd2qgo/ */
+.boxed {
+  float: right;
+  padding: 0 2px 0 2px;
+  border: 1px solid rgba(0, 0, 0, .2);
+  border-radius: 4px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.blue {
+  background: #13b4ff;
+}
+
+.purple {
+  background: #ab3fdd;
+}
+
+.wine {
+  background: #ae163e;
+}
+
+.yellow {
+  background: #ffff09;
+}
+</style>
+
+<!-- <div class="boxed blue">Beginner</div> -->
+<!-- <div class="boxed purple">Foo</div> -->
+<!-- <div class="boxed yellow">On-line</div> -->
+<!-- <div class="boxed wine">Hello</div><br/> -->
+
+
 ```{r env, echo=FALSE, message=FALSE, warning=FALSE}
 .cache <- FALSE
+stopifnot(packageVersion("BiocStyle") >= "2.5.19")
 suppressPackageStartupMessages(library("BiocStyle"))
 suppressPackageStartupMessages(library("MSnbase"))
 suppressPackageStartupMessages(library("BiocParallel"))
@@ -18,10 +53,11 @@ suppressPackageStartupMessages(library("RforProteomics"))
 suppressPackageStartupMessages(library("lattice"))
 suppressPackageStartupMessages(library("gridExtra"))
 suppressPackageStartupMessages(library("pRoloc"))
+suppressPackageStartupMessages(library("AnnotationHub"))
 ```
 
-**Modified:** `r file.info("lab.Rmd")$mtime`<br />
-**Compiled**: `r date()`
+<!-- **Modified:** `r file.info("lab.Rmd")$mtime`<br /> -->
+<!-- **Compiled**: `r date()` -->
 
 
 **Abstract** In this workflow, we will use R/Bioconductor packages to
@@ -42,34 +78,33 @@ themselves with R and Bioconductor infrastructure.
 
 # Introduction
 
-> **CSAMA 2017** Some part of this workshop require online access. The
-> most bandwidth expensive operations are files downloads. Please copy
-> the files from the local network and place them in your working
-> directory^[If you are not sure what your working directory is, type `getwd()` or ask a helper.]. This
-> will stop them from being downloaded again.
-
 Before we start:
 
 > If you identify typos, if there are parts that you would like to see
 > expended or clarified, please let me know by telling me directly
-> (during workshops), opening a
-> [github issue](https://github.com/lgatto/bioc-ms-prot/issues) or by
-> emailing me directly. Please do also briefly specify your
-> background/familiarity with mass spectrometry and/or proteomics
-> (beginner, intermediate or expert) so that I can update accordingly.
+> (during workshops), opening a [github
+> issue](https://github.com/lgatto/bioc-ms-prot/issues) or by emailing
+> me. Please do also briefly specify your background/familiarity with
+> mass spectrometry and/or proteomics (beginner, intermediate or
+> expert) so that I can update accordingly.
 
 In recent years, there we have seen an increase in the number of
 packages to analyse mass spectrometry and proteomics data for R and
-Bioconductor, as well as an increase in total number of downloads.
+Bioconductor, as well as an increase in total number of downloads. See
+vignette [Proteomics packages in
+Bioconductor](https://lgatto.github.io/RforProteomics/articles/biocprot.html)
+for more details and code underlying these figures.
 
-![Number of packages](./Figures/development_biocviews.png)
-![Number of downloads](./Figures/downloads_biocviews.png)
+![Number of packages](./Figures/nbpkgs-1.png)
+![Number of downloads](./Figures/nnbdown-1.png)
+
+
 
 It is also good to highlight that several of these package have become
 a group efforts, supported by several developers in the
 community. This [post](https://lgatto.github.io/msnbase-contribs/)
-illustrates the various contributions to `r Biocpkg("MSnbase")`; `r
-Biocpkg("mzR")` has benefited by a similar wide range of successful
+illustrates the various contributions to `r Biocpkg("MSnbase")`.
+`r Biocpkg("mzR")` has benefited by a similar wide range of successful
 contributions. Both packages, and in particular `r Biocpkg("mzR")`,
 are used by many others, and will be described in some detail in this
 workflow.
@@ -103,13 +138,13 @@ package also contains relevant material.
 ### Other material {-}
 
 This workflow provides a *general* introduction to Bioconductor software
-for mass spectrometry and proteomics. If you are interested in 
+for mass spectrometry and proteomics. If you are interested in
 
 - The application of machine learning to proteomics data, in particular
   spatial proteomics (i.e. the sub-cellular localisation), follow the
   tutorial vignette from `r Biocpkg("pRoloc")` package, accessible
   with `vignette("pRoloc-tutorial", package = "pRoloc")` or
-  [online](https://bioconductor.org/packages/devel/bioc/vignettes/pRoloc/inst/doc/pRoloc-tutorial.html).
+  [online](https://lgatto.github.io/pRoloc/).
 - The analysis of identification data to retain the most reliable
   PSMs, see the `r Biocpkg("MSnID")`
   vignette^[Section *Analysing search results* below is a summary of that vignette.],
@@ -120,7 +155,7 @@ for mass spectrometry and proteomics. If you are interested in
   dedicated for the analysis of high throughput sequencing data.
 - The analysis of MS^E^ data independent acquisition (DIA), see the
   vignettes in the `r Biocpkg("synapter")` package.
-- The processing and analysis of MALDI-MS data, read the 
+- The processing and analysis of MALDI-MS data, read the
   `r CRANpkg("MALDIquant")` introduction accessible with
   `vignette("MALDIquant-intro", package = "MALDIquant")` and available
   [online](https://cran.r-project.org/web/packages/MALDIquant/).
@@ -128,11 +163,9 @@ for mass spectrometry and proteomics. If you are interested in
   the `r Biocpkg("Carinal")` walkthrough vignette accessible
   with `vignette("Cardinal-walkthrough", package = "Cardinal")` and
   [online](https://bioconductor.org/packages/release/bioc/vignettes/Cardinal/inst/doc/Cardinal-walkthrough.pdf).
+- ...
 
 ## Setup { - }
-
-> **CSAMA 2017** This section is not relevant, as you should already
-> have installed all required packages.
 
 The follow packages will be used throughout this documents. R version
 `3.3.1` or higher is required to install all the packages using
@@ -162,12 +195,24 @@ biocLite("RforProteomics", dependencies = TRUE)
 ```
 
 Other packages of interest, such as
-`r Biocpkg("rTANDEM")` or `r Biocpkg("MSGFgui")` 
+`r Biocpkg("rTANDEM")` or `r Biocpkg("MSGFgui")`
 will be described later in the document but are not required to
 execute the code in this workflow.
 
+<!-- To study the workflow off-line, it is possible to download data files -->
+<!-- as a package in advance^[See details in the *Data packages* -->
+<!-- section.]. Install the dependencies and the package prior to the -->
+<!-- workshop with -->
+
+<!-- ```{r pxd1pkg0, eval = FALSE} -->
+<!-- library("BiocInstaller") -->
+<!-- biocLite(c("msdata", "MSnbase", "mzR")) -->
+<!-- biocLite("lgatto/PXD000001") -->
+<!-- ``` -->
 
 ## Exploring available infrastructure { - }
+
+<div class="boxed yellow">On-line</div>
 
 ```{r pk, echo=FALSE, warning=FALSE, cache=TRUE}
 biocv <- as.character(biocVersion())
@@ -195,6 +240,7 @@ pp <- proteomicsPackages()
 display(pp)
 ```
 
+
 ## Mass spectrometry data { - }
 
 Most community-driven formats described in the table are supported in
@@ -204,23 +250,112 @@ sections.
 ```{r datatab, results='asis', echo=FALSE}
 datatab <-
     data.frame(Type = c("raw", "identification", "quantitation",
-                   "peak lists", "other"),
+                   "peak lists", "quant and id"),
                Format = c("mzML, mzXML, netCDF, mzData",
                    "mzIdentML", "mzQuantML", "mgf", "mzTab"),
                Package = c(
-                   "*[mzR](http://bioconductor.org/packages/mzR)* (read)",
-                   paste("*[mzR](http://bioconductor.org/packages/mzR)* (read) and",
-                         "*[mzID](http://bioconductor.org/packages/mzID)* (read)"),
+                   "*[MSnbase](http://bioconductor.org/packages/MSnbase)* (read and write in version >= 2.3.13) via *[mzR](http://bioconductor.org/packages/mzR)*",
+                   paste("*[mzID](http://bioconductor.org/packages/mzID)* (read) and",
+                         "*[MSnbase](http://bioconductor.org/packages/MSnbase)* (read, via *[mzR](http://bioconductor.org/packages/mzR)*)"),
                    "",
-                   "*[MSnbase](http://bioconductor.org/packages/MSnbase)* (read)", 
+                   "*[MSnbase](http://bioconductor.org/packages/MSnbase)* (read)",
                    "*[MSnbase](http://bioconductor.org/packages/MSnbase)* (read)"))
 library("knitr")
 kable(datatab)
 ```
 
+# How does mass spectrometry work?
+
+Mass spectrometry (MS) is a technology that *separates* charged
+molecules (ions) based on their mass to charge ratio (M/Z). It is
+often coupled to chromatography (liquid LC, but can also be gas-based
+GC). The time an analytes takes to elute from the chromatography
+column is the *retention time*.
+
+![A chromatogram, illustrating the total amount of analytes over the retention time.](./Figures/chromatogram.png)
+
+An mass spectrometer is composed of three components:
+
+1. The *source*, that ionises the molecules: examples are Matrix-assisted
+   laser desorption/ionisation (MALDI) or electrospray ionisation.
+   (ESI)
+2. The *analyser*, that separates the ions: Time of flight (TOF) or Orbitrap.
+3. The *detector* that quantifies the ions.
+
+When using mass spectrometry for proteomics, the proteins are first
+digested with a protease such as trypsin. In mass shotgun proteomics,
+the analytes assayed in the mass spectrometer are peptides.
+
+Often, ions are subjected to more than a single MS round. After a
+first round of separation, the peaks in the spectra, called MS1
+spectra, represent peptides. At this stage, the only information we
+possess about these peptides are their retention time and their
+mass-to-charge (we can also infer their charge be inspecting their
+isotopic envelope, i.e the peaks of the individual isotopes, see
+below), which is not enough to infer their identify (i.e. their
+sequence).
+
+In MSMS (or MS2), the settings of the mass spectrometer are set
+automatically to select a certain number of MS1 peaks (for example
+20). Once a narrow M/Z range has been selected (corresponding to one
+high-intensity peak, a peptide, and some background noise), it is
+fragmented (using for example collision-induced dissociation (CID),
+higher energy collisional dissociation (HCD) or electron-transfer
+dissociation (ETD)). The fragment ions are then themselves separated
+in the analyser to produce a MS2 spectrum. The unique fragment ion
+pattern can then be used to infer the peptide sequence using de novo
+sequencing (when the spectrum is of high enough quality) of using a
+search engine such as, for example Mascot, MSGF+, ..., that will match
+the observed, experimental spectrum to theoratical spectra (see
+details below).
+
+![Schematics of a mass spectrometer and two rounds of MS.](./Figures/SchematicMS2.png)
+
+The animation below show how 25 ions different ions (i.e. having
+different M/Z values) are separated throughout the MS analysis and are
+eventually detected (i.e. quantified). The final frame shows the
+hypothetical spectrum.
+
+```{r mstut0, echo=FALSE}
+if (!file.exists("Figures/mstut.gif")) {
+    library("mstut")
+    library("animation")
+    set.seed(1L)
+    x <- new_ions(npeaks = 25, nimg = 10)
+    saveGIF({
+        analyse(x, sleep = 0)
+        detect(x)
+        spectrum(x, main = "Spectrum")
+    }, movie.name = "./Figures/mstut.gif")
+}
+```
+
+![Separation and detection of ions in a mass spectrometer.](./Figures/mstut.gif)
+
+The figures below illustrate the two rounds of MS. The spectrum on the
+left is an MS1 spectrum acquired after 21 minutes and 3 seconds of
+elution. 10 peaks, highlited by dotted vertical lines, were selected
+for MS2 analysis. The peak at M/Z 460.79 (488.8) is highlighted by a
+red (orange) vertical line on the MS1 spectrum and the fragment
+spectra are shown on the MS2 spectrum on the top (bottom) right
+figure.
+
+![Parent ions in the MS1 spectrum (left) and two sected fragment ions MS2 spectra (right).](./Figures/MS1-MS2-spectra.png)
+
+The figures below represent the 3 dimensions of MS data: a set of
+spectra (M/Z and intensity) of retention time, as well as the
+interleaved nature of MS1 and MS2 (and there could be more levels)
+data.
+
+![MS1 spectra over retention time.](./Figures/F02-3D-MS1-scans-400-1200-lattice.png)
+
+![MS2 spectra interleaved between two MS1 spectra.](./Figures/F02-3D-MS1-MS2-scans-100-1200-lattice.png)
+
 # Accessing data
 
 ## From the ProteomeXchange database
+
+<div class="boxed yellow">On-line</div>
 
 MS-based proteomics data is disseminated through the
 [ProteomeXchange](http://www.proteomexchange.org/) infrastructure,
@@ -232,7 +367,7 @@ quantitative data, as opposed as the name suggests),
 [PASSEL](http://www.peptideatlas.org/passel/) at the ISB for Selected
 Reaction Monitoring (SRM, i.e. targeted) data and the
 [MassIVE](http://massive.ucsd.edu/ProteoSAFe/static/massive.jsp)
-resource. These data can be downloaded within R using the 
+resource. These data can be downloaded within R using the
 `r Biocpkg("rpx")` package.
 
 
@@ -264,7 +399,7 @@ Data files can then be downloaded with the `pxget` function. Below, we
 retrieve the raw data file. The file is
 downloaded^[If the file is already available, it is not downloaded a second time.]
 in the working directory and the name of the file is return by the
-function and stored in the `mzf` variable for later use.
+function and stored in the `mzf` variable for later use ^[This and other files are also availabel in the `msdata` package, described below].
 
 ```{r pxget}
 fn <- "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01-20141210.mzML"
@@ -275,10 +410,7 @@ mzf
 
 ## From AnnotationHub
 
-> **CSAMA 2017** Executing this section will cause raw data file to be
-> downloaded and stored as part of the AnnotationHub's local
-> resource. The `mzML` file that is available on the local network is
-> identical to the one accessed here.
+<div class="boxed yellow">On-line</div>
 
 `r Biocpkg("AnnotationHub")` is a cloud resource set up and managed by
 the Bioconductor project that serves various omics datasets. It is
@@ -310,8 +442,303 @@ descriptive because the data originates from the `AnnotationHub` cloud
 repository. If the data was read from a local file, is would be named
 as the `mzML` (or `mzXML`) file (see below).
 
+## Data packages
 
-# Handling raw MS data
+Some data are also distributed through dedicated packages. The
+`r BiocStyle::Biocexptpkg("msdata")`, for example, provides some
+general raw data files relevant for both proteomics and
+metabolomics.
+
+```{r msdatafiles}
+library("msdata")
+## proteomics raw data
+proteomics()
+## proteomics identification data
+ident()
+```
+
+More often, such *experiment packages* distribute processed data; an
+example of such is the `r BiocStyle::Biocexptpkg("pRolocdata")`
+package, that offers quantitative proteomics data.
+
+<!-- The files from the *PXD00001* experiment are also available in the -->
+<!-- `r Githubpkg("lgatto/PXD000001")`. This option is convenient when -->
+<!-- online access is absent or unreliable. Install the dependencies and -->
+<!-- the package prior to the workshop with -->
+
+<!-- ```{r pxd1pkg, eval = FALSE} -->
+<!-- library("BiocInstaller") -->
+<!-- biocLite(c("msdata", "MSnbase", "mzR")) -->
+<!-- biocLite("lgatto/PXD0001") -->
+<!-- ``` -->
+
+<!-- The `r Githubpkg("lgatto/PXD000001")` packages provides the `px1files` -->
+<!-- and `px1get` functions as a drop-in replacement for the `pxfiles` and -->
+<!-- `pxget` function from `r Biocpkg("rpx")` package, for the *PXD000001* -->
+<!-- dataset. -->
+
+<!-- ```{r unlinkfas, echo=FALSE} -->
+<!-- unlink("erwinia_carotovora.fasta") -->
+<!-- ``` -->
+
+<!-- ```{r pxd1pkg2} -->
+<!-- library("PXD000001") -->
+<!-- px1files() -->
+<!-- px1get("erwinia_carotovora.fasta") -->
+<!-- ``` -->
+
+# Raw MS data
+
+## High-level data structures
+
+The `r Biocpkg("MSnbase")` package provides high-level data
+abstractions for raw MS data through the `MSnExp` class and containers
+for quantification data via the `MSnSet` class (see *Quantitative
+proteomics* section). Both store
+
+1. the actual assay data (spectra or quantitation matrix, see below),
+   accessed with `spectra` (or the `[`, `[[` operators) or `exprs`;
+2. sample metadata, accessed as a `data.frame` with `pData`;
+3. feature metadata, accessed as a `data.frame` with `fData`.
+
+Another useful slot is `processingData`, accessed with
+`processingData(.)`, that records all the processing that objects have
+undergone since their creation (see examples below).
+
+## Raw data: the `MSnExp` class
+
+### Read raw data {-}
+
+The `readMSData` will parse the raw data and construct an MS
+experiment object of class `MSnExp`. An important argument to
+`readMSData` is the *mode*, which can be `"onDisk"` or
+`"inMemory"`. The former doesn't load the raw data in memory (which is
+not advised for MS1 data, or when many files are loaded) and is
+generally the recommended mode. See the *benchmarking* vignette^[Open
+it with `vignette("benchmarking", package = "MSnbase")` or read it
+[online](https://bioconductor.org/packages/release/bioc/vignettes/MSnbase/inst/doc/benchmarking.html)]
+for details).
+
+```{r msnbase}
+library("MSnbase")
+## get a small test data
+rawFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
+               full.name = TRUE, pattern = "mzXML$")
+basename(rawFile)
+msexp <- readMSData(rawFile, msLevel = 2L)
+msexp
+```
+
+Spectra can be extracted as a list of `Spectrum2` objects with the
+`spectra` accessor or as a subset of the original `MSnExp` data with
+the `[` operator.  Individual spectra can be accessed with `[[`.
+
+```{r msnb2}
+length(msexp)
+msexp[1:2]
+msexp[[2]]
+```
+
+### Chromatograms {-}
+
+We can also extract the chromatogram for the acquistion(s) in the
+`MSnExp` object and visualise it. Here, we use a complete acquisition
+from the `msdata` package, and read it with *on-disk* mode and focus
+on MS1 data, which is used to generate chromatograms.
+
+```{r chrom1, cache = TRUE}
+f <- msdata::proteomics(pattern = "45stepped_60min_01-20141210", full.names = TRUE)
+rw <- readMSData(f, mode = "onDisk", msLevel. = 1L)
+chr <- chromatogram(rw)
+chr
+plot(chr)
+```
+
+Note that here, as we only loaded a single raw data file, we obtain a
+`Chromatograms` object with a single chromatogram. When reading
+multiple raw data files at once (for example with
+`readMSData(c("f1.mzML", "f2.mzML"))`), we would get and visualise one
+chromatogram per file.
+
+### Annotating spectra with identification results {-}
+
+The identification results stemming from the same raw data file can
+then be used to add PSM matches. Here, we use the small `msexp` test
+data with 5 MS2 spectra that we read in further up.
+
+```{r addid}
+## initial feature variable
+fData(msexp)
+## find path to a mzIdentML file
+identFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
+                 full.name = TRUE, pattern = "dummyiTRAQ.mzid")
+basename(identFile)
+msexp <- addIdentificationData(msexp, identFile)
+## additional feature variables
+fvarLabels(msexp)
+```
+
+We see that 3 out of 5 MS2 spectra in the `msexp` data have been
+identified; those that haven't have missing values for the new,
+id-related feature variables.
+
+```{r checkid}
+fData(msexp)$rank
+fData(msexp)$isDecoy
+```
+
+> **Exercise** Load all MS level data from file `MS3TMT11.mzML`
+> available in the `msdata` package using `readMSData`, making sure
+> you set `mode = "onDisk"`, and verify which MS levels (accessible
+> with the `msLevel` function) are centroided (accessible with the
+> `centroided()` function). See section *Raw data processing* for data
+> in profile and centroided (processed) modes.
+
+<details>
+```{r answ3}
+f <- proteomics(full.names = TRUE, pattern = "MS3TMT11.mzML")
+ms <- readMSData(f, mode = "onDisk")
+table(centroided(ms), msLevel(ms))
+```
+</details>
+
+### Plotting MS spectra {-}
+
+Spectra and (parts of) experiments can be extracted and plotted.
+
+```{r specplot, fig.cap="Plotting an object of class `Spectrum`."}
+msexp[[1]]
+plot(msexp[[1]], full=TRUE)
+```
+
+As this data was labeled with iTRAQ4 isobaric tags, we can highlight
+these four peaks of interest with
+
+```{r specplot1, fig.cap="Plotting an object of class `Spectrum` with reporter ions."}
+plot(msexp[[1]], full=TRUE, reporters = iTRAQ4)
+```
+
+```{r specplot2, fig.cap="Plotting an object of class `MSnExp`"}
+msexp[1:3]
+plot(msexp[1:3], full=TRUE)
+```
+
+In the examples ablove, we only used a single file as input to
+`readMSData`, but multiple file can be read into a single `MSnExp`
+object. The origin of the spectra can be accessed with the `fromFile`
+function:
+
+```{r fromfiles}
+fromFile(msexp)
+```
+
+> **Exercise** Repeat the previous combination of raw and
+> identification data with the
+> `TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01-20141210.mzML.gz`
+> and
+> `TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01-20141210.mzid`
+> files from `msdata`. Retain only MS 2 level data; this can be done
+> either when reading the data in (see the `msLevel` argument in
+> `?readMSData`) or can be done afterwards by filtering the MS levels
+> with `filterMsLevel`.
+
+<details>
+```{r answ5, cache=FALSE}
+## read raw data
+rwf <- proteomics(pattern = "TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01-20141210.mzML.gz",
+                  full.names = TRUE)
+tmterw <- readMSData(rwf, mode = "onDisk")
+## or, only read MS2-leve data
+## tmterw <- readMSData(rwf, mode = "onDisk", msLevel = 2L)
+
+## add identification data
+idf <- ident(full.names = TRUE)
+tmterw <- addIdentificationData(tmterw, idf)
+
+tmterw2 <- filterMsLevel(tmterw, 2L)
+```
+
+```{r answ5b, eval=FALSE}
+## It is also possible to chain operations
+library("magrittr")
+tmterw2 <- rwf %>%
+    readMSData(mode = "onDisk") %>%
+    addIdentificationData(idf) %>%
+    filterMsLevel(2L)
+```
+</details>
+
+
+> **Exercise** Still using the
+> `TMT_Erwinia_1uLSike_Top10HCD_isol2_45stepped_60min_01-20141210`
+> data from the previous exercise, identify the index of the MS2
+> spectrum with the highest precursor intensity (see the
+> `precursorIntensity` feature variable) and plot it as illustrated
+> above.
+
+<details>
+```{r answ1}
+i <- which.max(precursorIntensity(tmterw2))
+sp <- tmterw2[[i]]
+plot(sp, full = TRUE)
+```
+</details>
+
+## Relations between scans
+
+As seen in the introduction, scans have a hierarchical structure: MS2
+spectra stem form a precursor MS1 scan. This also holds for MS3
+spectra, that are the result from an additional analysis round of MS2
+spectra. When validating quantitative or identification data by
+referring back to raw data, it is often useful to be able to navigate
+this structure.
+
+We will use an experiment with 3 MS levels to do this:
+
+```{r ms3}
+ms3f <- proteomics(pattern = "MS3TMT11", full.names = TRUE)
+basename(ms3f)
+ms3 <- readMSData(ms3f, mode = "onDisk")
+```
+
+Note that it is important to use *on-disk* mode here, as we want to
+retain all MS levels, which isn't possible with *in-memory* mode.
+
+> **Exercise** Compute a table showing how many MS1, 2, and 3 level
+> scans are available in this data
+
+<details>
+```{r ms3ex}
+table(msLevel(ms3))
+```
+</details>
+
+
+The `filterPrecursorScan` function takes on raw data object, it's
+acquisition number (get them with `acquisitionNum`), and returns a new
+raw data object containing the children of that spectrum.
+
+> **Exercise** Find the acquisition of the first MS1 spectrum and
+> extract all spectra that originate, directly and indirectly, from
+> it.
+
+<details>
+```{r ms3prec}
+head(msLevel(ms3))
+head(acquisitionNum(ms3))
+(from1 <- filterPrecursorScan(ms3, 21945))
+msLevel(from1)
+```
+</details>
+
+## Low-level access to raw data
+
+<div class="boxed blue">Devel</div>
+
+This section illustrates the underlying infrastructure from the `mzR`
+package, that is used by `MSnbase` under the hood. It is recommended
+to use the high level interfaces, as it supports multiple files and
+does data integrity checks throughout data processing.
 
 The `mzR` package provides an interface to the
 [proteowizard](http://proteowizard.sourceforge.net/) C/C++ code base
@@ -326,7 +753,7 @@ general information about a run.
 
 Below, we access the raw data file downloaded in the previous section
 and open a file handle that will allow us to extract data and metadata
-of interest. 
+of interest.
 
 ```{r rawms}
 library("mzR")
@@ -355,57 +782,147 @@ head(peaks(ms, 1000))
 plot(peaks(ms, 1000), type = "h", xlab = "M/Z", ylab = "Intensity")
 ```
 
-> **Exercise** Identify the index of the MS2 spectrum with the highest
-> precursor intensity (see the `precursorIntensity` feature variable)
-> and plot it as illustrated above. 
+See also this short [video](https://youtu.be/KwCRV885Z-k).
 
-<details>
-```{r answ1}
-i <- which.max(hd$precursorIntensity)
-sp <- spectra(ms, i)
-plot(sp, type = "h", xlab = "M/Z", ylab = "Intensity")
+## A bit more raw data visualisation
+
+Below, we illustrate some additional visualisation and animations of
+raw MS data, taken from the `r Biocannopkg("RforProteomics")`
+[visualisation
+vignette](http://bioconductor.org/packages/release/data/experiment/vignettes/RforProteomics/inst/doc/RProtVis.html). On
+the left, we have a heatmap visualisation of a MS map and a 3
+dimensional representation of the same data. On the right, 2 MS1
+spectra in blue and the set of interleaves 10 MS2 spectra.
+
+```{r msmap1, message=FALSE, fig.width=15, echo=TRUE, fig.cap = "Plotting MS maps along retention time, MZ range and intensity."}
+
+## (1) Open raw data file
+ms <- openMSfile(mzf)
+## (2) Extract the header information
+hd <- header(ms)
+## (3) MS1 spectra indices
+ms1 <- which(hd$msLevel == 1)
+## (4) Select MS1 spectra with retention time between 30 and 35 minutes
+rtsel <- hd$retentionTime[ms1] / 60 > 30 & hd$retentionTime[ms1] / 60 < 35
+## (5) Indices of the 1st and 2nd MS1 spectra after 30 minutes
+i <- ms1[which(rtsel)][1]
+j <- ms1[which(rtsel)][2]
+## (6) Interleaved MS2 spectra
+ms2 <- (i+1):(j-1)
+
+
+## (1) MS space heaptmap
+M <- MSmap(ms, ms1[rtsel], 521, 523, .005, hd)
+ff <- colorRampPalette(c("yellow", "steelblue"))
+lattice::trellis.par.set(regions=list(col=ff(100)))
+m1 <- plot(M, aspect = 1, allTicks = FALSE)
+## (2) Same data as (1), in 3 dimenstion
+M@map[msMap(M) == 0] <- NA
+m2 <- plot3D(M, rgl = FALSE)
+## (3) The 2 MS1 and 10 interleaved MS2 spectra from above
+i <- ms1[which(rtsel)][1]
+j <- ms1[which(rtsel)][2]
+M2 <- MSmap(ms, i:j, 100, 1000, 1, hd)
+m3 <- plot3D(M2)
+gridExtra::grid.arrange(m1, m2, m3, ncol = 3)
 ```
-</details>
 
-> **Exercise** Are the MS1 and MS2 spectra in profile mode or
-> centroided? Choose any spectra and plot the region around a peak to
-> find out.
+Below, we have animations build from extracting successive slices as above.
 
-<details>
-```{r answ2, fig.width=14, fig.height=7}
-par(mfrow = c(1, 2))
-bpmz <- hd[i, "basePeakMZ"]
-plot(sp, type = "h", xlim = c(bpmz - 0.5, bpmz + 0.5),
-     xlab = "M/Z", ylab = "Intensity",
-     main = "Centroided")
-## Spectrum 100 is MS1
-sp1 <- peaks(ms, 100)
-plot(sp1, type = "l", xlim = c(536,540),
-     xlab = "M/Z", ylab = "Intensity",
-     main = "Profile mode")
-```
-</details>
+![MS animation 1](./Figures/msanim1.gif)
+![MS animation 2](./Figures/msanim2.gif)
 
-# Handling identification data
+# Identification data
 
-The `RforProteomics` package distributes a small identification result
-file that we load and parse using infrastructure from the 
-`r Biocpkg("mzR")` package. 
+## Identification data.frame
+
+Let's use the identification from from `msdata`:
 
 ```{r mzrvsid, eval = TRUE}
-f <- dir(system.file("extdata", package = "RforProteomics"),
-         pattern = "mzid", full.names=TRUE)
-basename(f)
+idf <- msdata::ident(full.names = TRUE)
+basename(idf)
 ```
 
-Along the lines of what is available for raw
-data, it provides support fasta parsing `mzIdentML` files with the
-`openIDfile` function. As for raw data, the underlying C/C++ code
-comes from the [proteowizard](http://proteowizard.sourceforge.net/).
+The easiest way to read identification data in `mzIdentML` (often
+abbreviated with `mzid`) into R is to read it with `readMzIdData`,
+that will parse it, process it, and return a `data.frame`:
+
+```{r readid}
+iddf <- readMzIdData(idf)
+head(iddf)
+```
+
+When adding identification data with the `addIdentificationData`
+function as shown above, the data is first read with `readMzIdData`,
+and is then cleaned up:
+
+- only PSMs matching the regular (non-decoy) database are retained;
+- PSMs or rank greater than 1 are discarded;
+- only proteotypic peptides are kept, i.e. those that match to a
+  unique peptide.
+
+```{r idfilt}
+## at this stage, we still have all the PSMs
+table(iddf$isDecoy)
+table(iddf$rank)
+```
+
+> **Exercise** This behaviour can be replicates with the
+> `filterIdentificationDataFrame` function. Try it out for yourself.
+
+<details>
+```{r filtid}
+iddf2 <- filterIdentificationDataFrame(iddf)
+table(iddf2$isDecoy)
+table(iddf2$rank)
+```
+</details>
+
+> **Exercise** Data wrangling with identification data; the standard
+> `r CRANpkg("tidyverse")` tools are fit for purpose here. Extract and
+> combine the PSMs and their scores as described above and combine
+> them. From the available data, calculate the length of each peptide
+> (you can use `nchar` with the peptide sequence `sequence`) and the
+> number of peptides for each protein (`DatabaseDescription`). Plot
+> the length of the proteins for their respective number of
+> peptides. Optionally, stratify the plot by the peptide e-value score
+> (`MS.GF.EValue`) using for example `cut` to define bins.
+
+<details>
+```{r answid1, fig.cap="Identifcation data wrangling 1"}
+suppressPackageStartupMessages(library("dplyr"))
+iddf2 <- as_tibble(iddf2) %>%
+    mutate(peplen = nchar(sequence))
+npeps <- iddf2 %>%
+    group_by(DatabaseDescription) %>%
+    tally
+iddf2 <- full_join(iddf2, npeps)
+
+library("ggplot2")
+ggplot(iddf2, aes(x = n, y = DBseqLength)) + geom_point()
+```
+
+```{r answid2, fig.cap="Identifcation data wrangling 2"}
+iddf2$evalBins <- cut(iddf2$MS.GF.EValue, summary(iddf2$MS.GF.EValue))
+ggplot(iddf2, aes(x = n, y = DBseqLength, color = peplen)) +
+    geom_point() +
+    facet_wrap(~ evalBins)
+```
+</details>
+
+## Low level access to id data
+
+<div class="boxed blue">Devel</div>
+
+Along the lines of what is available for raw data, the parsing of this
+XML-based format comes from `mzR`. A file handle to `mzIdentML` files
+can be created with the `openIDfile` function. As for raw data, the
+underlying C/C++ code comes from the
+[proteowizard](http://proteowizard.sourceforge.net/).
 
 ```{r openid}
 library("mzR")
-id1 <- openIDfile(f)
+id1 <- openIDfile(idf)
 id1
 ```
 
@@ -432,35 +949,7 @@ is parses the files using the `r CRANpkg("XML")`package and reads the
 whole data into memory rather than relying on proteowizard, and is
 slower.
 
-> **Exercise** Data wrangling with identification data; the standard
-> `r CRANpkg("tidyverse")` tools are fit for purpose here. Extract and
-> combine the PSMs and their scores as described above and combine
-> them. From the available data, calculate the length of each peptide
-> (you can use `nchar` with the peptide sequence `sequence`) and the
-> number of peptides for each protein (`DatabaseDescription`). Plot
-> the length of the proteins for their respective number of
-> peptides. Optionally, stratify the plot by the peptide e-value score
-> (`MS.GF.EValue`) using for example `cut` to define bins.
-
-<details>
-```{r answid1, fig.cap="Identifcation data wrangling 1"}
-suppressPackageStartupMessages(library("dplyr"))
-fid1$peplen <- nchar(as.character(fid1$sequence))
-ids <- as_tibble(full_join(fid1, sc1))
-npeps <- ids %>% group_by(DatabaseDescription) %>% tally 
-ids <- full_join(ids, npeps)
-library("ggplot2")
-ggplot(ids, aes(x = n, y = DBseqLength)) + geom_point()
-```
-```{r answid2, fig.cap="Identifcation data wrangling 2"}
-ids$evalBins <- cut(ids$MS.GF.EValue, summary(ids$MS.GF.EValue))
-ggplot(ids, aes(x = n, y = DBseqLength, color = peplen)) +
-    geom_point() +
-    facet_wrap(~ evalBins)
-```
-</details>
-
-# MS/MS database search
+## MS/MS database search
 
 While searches are generally performed using third-party software
 independently of R or can be started from R using a `system` call, the
@@ -470,7 +959,10 @@ MSGF+ engine, as illustrated below.
 We search the `r basename(mzf)` file against the fasta file from
 `PXD000001` using `MSGFplus`.
 
-We first download the fasta files from ProteomeXchange
+We first download the fasta files from ProteomeXchange (that file is
+also available in the proteomics lab directory on the CSAMA workshop).
+
+<div class="boxed yellow">On-line</div>
 
 ```{r ex_getfas, cache=TRUE}
 fas <- pxget(px, "erwinia_carotovora.fasta")
@@ -506,7 +998,7 @@ MSGFgui()
 The `r Biocpkg("rTANDEM")` package can be used to perform a search
 with *XTandem* software.
 
-# Analysing search results
+## Analysing search results
 
 The `r Biocpkg("MSnID")` package can be used for post-search filtering
 of MS/MS identifications. One starts with the construction of an
@@ -558,7 +1050,7 @@ Here, we summarise a few steps and redirect the reader to the
 package's vignette for more details:
 
 
-## Analysis of peptide sequences
+### Analysis of peptide sequences {-}
 
 Cleaning irregular cleavages at the termini of the peptides and
 missing cleavage site within the peptide sequences. The following two
@@ -570,7 +1062,7 @@ msnid <- assess_termini(msnid, validCleavagePattern="[KR]\\.[^P]")
 msnid <- assess_missed_cleavages(msnid, missedCleavagePattern="[KR](?=[^P$])")
 ```
 
-## Trimming the data
+### Trimming the data {-}
 
 Now, we can use the `apply_filter` function to effectively apply
 filters. The strings passed to the function represent expressions that
@@ -583,7 +1075,7 @@ msnid <- apply_filter(msnid, "numMissCleavages <= 2")
 show(msnid)
 ```
 
-## Parent ion mass errors
+### Parent ion mass errors {-}
 
 Using `"calculatedMassToCharge"` and `"experimentalMassToCharge"`, the
 `mass_measurement_error` function calculates the parent ion mass
@@ -600,16 +1092,16 @@ msnid <- apply_filter(msnid, "abs(mass_measurement_error(msnid)) < 20")
 summary(mass_measurement_error(msnid))
 ```
 
-## Filtering criteria
+### Filtering criteria {-}
 
-Filtering of the identification data will rely on 
+Filtering of the identification data will rely on
 
 * -log10 transformed MS-GF+ Spectrum E-value, reflecting the goodness
   of match experimental and theoretical fragmentation patterns
-  
+
 ```{r filt1}
 msnid$msmsScore <- -log10(msnid$`MS-GF:SpecEValue`)
-```  
+```
 
 * the absolute mass measurement error (in ppm units) of the parent ion
 
@@ -638,7 +1130,7 @@ identifications for the filtering criteria at hand.
 evaluate_filter(msnid, filtObj)
 ```
 
-## Filter optimisation
+### Filter optimisation {-}
 
 Rather than setting filtering values by hand, as shown above, these
 can be set automativally to meet a specific false discovery rate.
@@ -663,10 +1155,10 @@ show(msnid)
 ```
 
 And finally, identifications that matched decoy and contaminant
-protein sequences are removed 
+protein sequences are removed
 
 ```{r optim4}
-msnid <- apply_filter(msnid, "isDecoy == FALSE") 
+msnid <- apply_filter(msnid, "isDecoy == FALSE")
 msnid <- apply_filter(msnid, "!grepl('Contaminant',accession)")
 show(msnid)
 ```
@@ -676,304 +1168,14 @@ The resulting filtered identification data can be exported to a
 quantitative MS data, described below, and further processed and
 analyses using appropriate statistical tests.
 
-
-# High-level data interface
-
-The above sections introduced low-level interfaces to raw and
-identification results. The `r Biocpkg("MSnbase")` package provides
-abstractions for raw data through the `MSnExp` class and containers
-for quantification data via the `MSnSet` class. Both store
-
-1. the actual assay data (spectra or quantitation matrix, see below),
-   accessed with `spectra` (or the `[`, `[[` operators) or `exprs`;
-2. sample metadata, accessed as a `data.frame` with `pData`;
-3. feature metadata, accessed as a `data.frame` with `fData`.
-
-
-Another useful slot is `processingData`, accessed with
-`processingData(.)`, that records all the processing that objects have
-undergone since their creation (see examples below).
-
-The `readMSData2` (there is also a `readMSData` variant - see the `benchmarking` vignette[^Open it with `vignette("benchmarking", package = "MSnbase")` or read it [online](https://bioconductor.org/packages/release/bioc/vignettes/MSnbase/inst/doc/benchmarking.html)]
-in `r Biocpkg("MSnbase")` for their differences) will parse the raw
-data, extract all MS spectra (by default, but individual MS levels can
-selected, as illustrated below) and construct an MS experiment object
-of class `MSnExp`.
-
-```{r msnbase}
-library("MSnbase")
-rawFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
-               full.name = TRUE, pattern = "mzXML$")
-basename(rawFile)
-msexp <- readMSData2(rawFile, msLevel = 2L)
-msexp
-```
-
-MS2 spectra can be extracted as a list of `Spectrum2` objects with the
-`spectra` accessor or as a subset of the original `MSnExp` data with
-the `[` operator.  Individual spectra can be accessed with `[[`.
-
-```{r msnb2}
-length(msexp)
-msexp[1:2]
-msexp[[2]]
-```
-
-The identification results stemming from the same raw data file can
-then be used to add PSM matches.
-
-```{r addid}
-fData(msexp)
-## find path to a mzIdentML file
-identFile <- dir(system.file(package = "MSnbase", dir = "extdata"),
-                 full.name = TRUE, pattern = "dummyiTRAQ.mzid")
-basename(identFile)
-msexp <- addIdentificationData(msexp, identFile)
-fvarLabels(msexp)
-```
-
-The `readMSData2` (`readMSdata`) and `addIdentificationData` make use
-of the `mzR` and `mzID` packages to access the raw and identification
-data.
-
-> **Exercise** Are the spectra in the `msexp` object centroided? This
-> time, instead of looking at the spectra, we can query (and set) this
-> information directly using the `centroided` function (and
-> `centroided<-` replacement function). The `isCentroided` function
-> can be used to assess the mode from the data.
-
-<details>
-```{r answ3}
-centroided(msexp)
-isCentroided(msexp)
-centroided(msexp) <- isCentroided(msexp)
-```
-</details>
-
-Spectra and (parts of) experiments can be extracted and plotted.
-
-```{r specplot, fig.cap="Plotting a object of class `Spectrum`."}
-msexp[[1]]
-plot(msexp[[1]], full=TRUE)
-```
-
-As this data was labeled with iTRAQ4 isobaric tags, we can highlight
-these four peaks of interest with 
-
-```{r specplot1, fig.cap="Plotting a object of class `Spectrum` with reporter ions."}
-plot(msexp[[1]], full=TRUE, reporters = iTRAQ4)
-```
-
-```{r specplot2, fig.cap="Plotting a object of class `MSnExp`"}
-msexp[1:3]
-plot(msexp[1:3], full=TRUE)
-```
-
-> **Exercise** Repeat the previous combination of raw and
-> identification data with the TMT_Erwinia `mzML` and `mzid` files
-> that were imported from ProteomeXchange and generated using 
-> `r Biocpkg("MSGFplus")` respectively.  Here, we know that the MS1 and
-> MS2 level are in profile mode and centroided respectively. Read the
-> `readMSData2` documentation to set the `centroided.` argument to set
-> these attributes appropriately.
-
-<details>
-```{r answ5, cache=TRUE}
-tmterw <- readMSData2(mzf, centroided = c(FALSE, TRUE))
-table(centroided(tmterw), msLevel(tmterw))
-## Let's filter MS2 spectra after reading (optional) and add the
-## identification data using pipes
-library("magrittr")
-tmterw <- tmterw %>%
-    filterMsLevel(2L) %>%
-    addIdentificationData(idres)
-tmterw
-```
-</details>
-
-# Visualisation
-
-## Visualising raw data
-
-The importance of flexible access to specialised data becomes visible
-in the figure
-below^[Figure and code taken from the `r Biocannopkg("RforProteomics")` [visualisation vignette](http://bioconductor.org/packages/release/data/experiment/vignettes/RforProteomics/inst/doc/RProtVis.html)]. Not
-only can we access specific data and understand/visualise them, but we
-can transverse all the data and extracted/visualise/understand
-structured slices of data.
-
-![Visual summary of a full round of MS1 and MS2 acquisition for specific MS1 spectrum.](./Figures/visfig-1.png)
-
-In this code chunks we start by selecting relevant spectra of
-interest. We will focus on the first MS1 spectrum acquired after 30
-minutes of retention time.
-
-
-```{r pxd1}
-## (1) Open raw data file
-ms <- openMSfile(mzf)
-## (2) Extract the header information
-hd <- header(ms)
-## (3) MS1 spectra indices
-ms1 <- which(hd$msLevel == 1)
-## (4) Select MS1 spectra with retention time between 30 and 35 minutes
-rtsel <- hd$retentionTime[ms1] / 60 > 30 & hd$retentionTime[ms1] / 60 < 35
-## (5) Indices of the 1st and 2nd MS1 spectra after 30 minutes
-i <- ms1[which(rtsel)][1]
-j <- ms1[which(rtsel)][2]
-## (6) Interleaved MS2 spectra
-ms2 <- (i+1):(j-1)
-```
-
-Now now extract and plot all relevant information:
-
-1. The upper panel represents the chromatogram of the `r fileName(ms)`
-   raw data file, produced by plotting the data returned by the
-   `chromatogram` function.
-
-
-```{r visfig01, fig.cap = "A chromatogram."}
-plot(chromatogram(ms)[[1]], type = "l")
-```
-
-2. We concentrate at a specific retention time, 
-   `r formatRt(hd[i, "retentionTime"])` minutes (`r hd[i, "retentionTime"]` seconds) 
-
-```{r visfig02, fig.cap = "A chromatogram with highlighted retention time of interest."}
-plot(chromatogram(ms)[[1]], type = "l")
-abline(v = hd[i, "retentionTime"]/60, col = "red")
-```
-
-3. This corresponds to the `r i`th MS1 spectrum, shown on the second
-   row of figures.
-
-```{r visfig03, fig.cap = "The MS1 spectrum at the retention time of interest."}
-plot(peaks(ms, i), type = "l", xlim = c(400, 1000))
-legend("topright", bty = "n",
-       legend = paste0(
-           "Acquisition ", hd[i, "acquisitionNum"],  "\n",
-           "Retention time ", formatRt(hd[i, "retentionTime"])))
-```
-
-4. The ions that were selected for MS2 are highlighted by vertical
-   lines. These are represented in the bottom part of the figure.
-
-```{r visfig04, fig.cap = "The MS1 spectrum at the retention time of interest, highlighting the peptides selected for MS2."}
-plot(peaks(ms, i), type = "l", xlim = c(400, 1000))
-legend("topright", bty = "n",
-       legend = paste0(
-           "Acquisition ", hd[i, "acquisitionNum"],  "\n",
-           "Retention time ", formatRt(hd[i, "retentionTime"])))
-abline(v = hd[ms2, "precursorMZ"],
-       col = c("#FF000080",
-           rep("#12121280", 9)))
-```
-
-5. On the right, we zoom on the isotopic envelope of one peptide in
-   particular (the one highlighted with a red line).
-
-```{r visfig05, fig.cap = "Isotopic envelope of a peptide."}
-plot(peaks(ms, i), type = "l", xlim = c(521, 522.5))
-abline(v = hd[ms2, "precursorMZ"], col = "#FF000080")
-```
-
-6. A final loop through the relevant MS2 spectra plots the
-   `length(ms2)` MS2 spectra highlighted above.
-
-```{r visfig06, fig.width = 8, fig.height = 10, fig.cap = "MS2 spectra of all selected precursors from the previous MS1 spectrum."}
-par(mfrow = c(5, 2), mar = c(2, 2, 0, 1))
-for (ii in ms2) {
-    p <- peaks(ms, ii)
-    plot(p, xlab = "", ylab = "", type = "h", cex.axis = .6)
-    legend("topright", legend = paste0("Prec M/Z\n",
-                           round(hd[ii, "precursorMZ"], 2)),
-           bty = "n", cex = .8)
-}
-```
-
-```{r mslayout, echo=FALSE}
-## Preparing the layout (not shown)
-lout <- matrix(NA, ncol = 10, nrow = 8)
-lout[1:2, ] <- 1
-for (ii in 3:4)
-    lout[ii, ] <- c(2, 2, 2, 2, 2, 2, 3, 3, 3, 3)
-lout[5, ] <- rep(4:8, each = 2)
-lout[6, ] <- rep(4:8, each = 2)
-lout[7, ] <- rep(9:13, each = 2)
-lout[8, ] <- rep(9:13, each = 2)
-```
-
-Putting it all together:
-
-```{r visfig, fig.cap = "Visual summary of a full round of MS1 and MS2 acquisition for specific MS1 spectrum."}
-layout(lout)
-par(mar=c(4,2,1,1))
-
-plot(chromatogram(ms)[[1]], type = "l")
-abline(v = hd[i, "retentionTime"]/60, col = "red")
-par(mar = c(3, 2, 1, 0))
-plot(peaks(ms, i), type = "l", xlim = c(400, 1000))
-legend("topright", bty = "n",
-       legend = paste0(
-           "Acquisition ", hd[i, "acquisitionNum"],  "\n",
-           "Retention time ", formatRt(hd[i, "retentionTime"])))
-abline(h = 0)
-abline(v = hd[ms2, "precursorMZ"],
-       col = c("#FF000080",
-           rep("#12121280", 9)))
-
-par(mar = c(3, 0.5, 1, 1))
-plot(peaks(ms, i), type = "l", xlim = c(521, 522.5),
-     yaxt = "n")
-abline(h = 0)
-abline(v = hd[ms2, "precursorMZ"], col = "#FF000080")
-
-par(mar = c(2, 2, 0, 1))
-for (ii in ms2) {
-    p <- peaks(ms, ii)
-    plot(p, xlab = "", ylab = "", type = "h", cex.axis = .6)
-    legend("topright", legend = paste0("Prec M/Z\n",
-                           round(hd[ii, "precursorMZ"], 2)),
-           bty = "n", cex = .8)
-}
-```
-
-Below, we illustrate some additional visualisation and animations of
-raw MS data, also taken from the `r Biocannopkg("RforProteomics")`
-[visualisation vignette](http://bioconductor.org/packages/release/data/experiment/vignettes/RforProteomics/inst/doc/RProtVis.html). On
-the left, we have a heatmap visualisation of a MS map and a 3
-dimensional representation of the same data. On the right, 2 MS1
-spectra in blue and the set of interleaves 10 MS2 spectra.
-
-```{r msmap1, message=FALSE, fig.width=15, echo=TRUE, fig.cap = "Plotting MS maps along retention time, MZ range and intensity."}
-## (1) MS space heaptmap
-M <- MSmap(ms, ms1[rtsel], 521, 523, .005, hd)
-ff <- colorRampPalette(c("yellow", "steelblue"))
-trellis.par.set(regions=list(col=ff(100)))
-m1 <- plot(M, aspect = 1, allTicks = FALSE)
-## (2) Same data as (1), in 3 dimenstion
-M@map[msMap(M) == 0] <- NA
-m2 <- plot3D(M, rgl = FALSE)
-## (3) The 2 MS1 and 10 interleaved MS2 spectra from above
-i <- ms1[which(rtsel)][1]
-j <- ms1[which(rtsel)][2]
-M2 <- MSmap(ms, i:j, 100, 1000, 1, hd)
-m3 <- plot3D(M2)
-grid.arrange(m1, m2, m3, ncol = 3)
-```
-
-Below, we have animations build from extracting successive slices as above.
-
-![MS animation 1](./Figures/msanim1.gif)
-![MS animation 2](./Figures/msanim2.gif)
-
 ## Visualising identification data
 
-Annotated spectra and comparing spectra. 
+Annotated spectra and comparing spectra.
 
 ```{r id1, message=FALSE, fig.width=15, message=FALSE, fig.cap = "Annotating and comparing MS2 spectra."}
 par(mfrow = c(1, 2))
-itraqdata2 <- pickPeaks(itraqdata, verbose = FALSE)
+data(itraqdata)
+itraqdata2 <- pickPeaks(itraqdata, verbose = FALSE) ## centroiding
 s <- "SIGFEGDSIGR"
 plot(itraqdata2[[14]], s, main = s)
 plot(itraqdata2[[25]], itraqdata2[[28]], sequences = rep("IMIDLDGTENK", 2))
@@ -989,12 +1191,12 @@ calculateFragments("SIGFEGDSIGR")
 Visualising a pair of spectra means that we can access them, and that,
 in addition to plotting, we can manipulate them and perform
 computations. The two spectra corresponding to the `IMIDLDGTENK`
-peptide, for example have 
-`r compareSpectra(itraqdata2[[25]], itraqdata2[[28]], fun = "common")` 
-common peaks, a correlation of 
-`r round(compareSpectra(itraqdata2[[25]], itraqdata2[[28]], fun = "cor"), 3)` 
-and a dot product of 
-`r round(compareSpectra(itraqdata2[[25]], itraqdata2[[28]], fun = "dotproduct"), 3)` 
+peptide, for example have
+`r compareSpectra(itraqdata2[[25]], itraqdata2[[28]], fun = "common")`
+common peaks, a correlation of
+`r round(compareSpectra(itraqdata2[[25]], itraqdata2[[28]], fun = "cor"), 3)`
+and a dot product of
+`r round(compareSpectra(itraqdata2[[25]], itraqdata2[[28]], fun = "dotproduct"), 3)`
 (see `?compareSpectra` for details).
 
 
@@ -1003,7 +1205,7 @@ and a dot product of
 There are a wide range of proteomics quantitation techniques that can
 broadly be classified as labelled vs. label-free, depending whether
 the features are labelled prior the MS acquisition and the MS level at
-which quantitation is inferred, namely MS1 or MS2. 
+which quantitation is inferred, namely MS1 or MS2.
 
 ```{r quanttab, echo=FALSE, results='asis'}
 qtb <- matrix(c("XIC", "Counting", "SILAC, 15N", "iTRAQ, TMT"),
@@ -1018,7 +1220,7 @@ kable(qtb)
 In terms of raw data quantitation, most efforts have been devoted to
 MS2-level quantitation. Label-free XIC quantitation has however been
 addressed in the frame of metabolomics data processing by the
-`r Biocpkg("xcms")` infrastructure. 
+`r Biocpkg("xcms")` infrastructure.
 
 Below is a list of suggested packages for some common proteomics
 quantitation technologies:
@@ -1029,7 +1231,7 @@ quantitation technologies:
   peptide-spectrum matching confidence assessment.
 * `r Githubpkg("vladpetyuk/N14N15")` for heavy Nitrogen-labelled data.
 
-### Isobaric tagging {-}
+## Isobaric tagging
 
 An `MSnExp` is converted to an `MSnSet` by the `quantitation`
 method. Below, we use the iTRAQ 4-plex isobaric tagging strategy
@@ -1048,7 +1250,7 @@ msset <- quantify(msexp, method = "max", reporters = iTRAQ4)
 The figure below give a schematics of an `MSnSet` instance and the
 relation between the assay data and the respective feature and sample
 metadata, accessible respectively with the `exprs`, `fData` and
-`pData` functions. 
+`pData` functions.
 
 ![MSnSet structure](./Figures/msnset.png)
 
@@ -1074,7 +1276,7 @@ processingData(msset)
 from centroided `mgf` peak lists or its own tab-separated files that
 can be generated from Mascot and Phenyx vendor files.
 
-### Spectral counting {-}
+## Spectral counting
 
 Other MS2 quantitation methods available in `quantify` include the
 (normalised) spectral index `SI` and (normalised) spectral abundance
@@ -1082,7 +1284,7 @@ factor `SAF` or simply a simple count
 method^[The code below is for illustration only - it doesn't make much sense to perform any of these quantitations on such a multiplexed data].
 
 ```{r lfms2}
-exprs(si <- quantify(msexp, method = "SIn"))     
+exprs(si <- quantify(msexp, method = "SIn"))
 exprs(saf <- quantify(msexp, method = "NSAF"))
 ```
 
@@ -1097,7 +1299,11 @@ subset of all peptide-spectrum matches, that pass a specific false
 discovery rate threshold can them be converted to an `MSnSet`, where
 the number of peptide occurrences are used to populate the assay data.
 
-# Importing third-party quantitation data
+## Importing third-party quantitation data
+
+### From `MzTab` files {-}
+
+<div class="boxed yellow">On-line</div>
 
 The Proteomics Standard Initiative (PSI) `mzTab` file format is aimed
 at providing a simpler (than XML formats) and more accessible file
@@ -1112,11 +1318,17 @@ mztf <- pxget(px, "F063721.dat-mztab.txt")
 (mzt <- readMzTabData(mztf, what = "PEP", version = "0.9"))
 ```
 
-It is also possible to import arbitrary spreadsheets as `MSnSet`
-objects into R with the `readMSnSet2` function. The main 2 arguments
-of the function are (1) a text-based spreadsheet and (2) column names
-of indices that identify the quantitation data. The latter can be
-queried with the `getEcols` function.
+The `mzTab` file is also available in the is also available in the
+proteomics lab directory in the CSAMA workshop server.
+
+### From spreadsheets {-}
+
+It is also possible to import arbitrary spreadsheets (such as those
+exported by MaxQuant, ProteomeDiscoverer, ...) as `MSnSet` objects
+into R with the `readMSnSet2` function. The main 2 arguments of the
+function are (1) a text-based spreadsheet and (2) column names of
+indices that identify the quantitation data. The latter can be queried
+with the `getEcols` function.
 
 ```{r readmsnset2}
 csv <- dir(system.file ("extdata" , package = "pRolocdata"),
@@ -1128,6 +1340,36 @@ head(exprs(res))
 head(fData(res))
 ```
 
+> **Exercise** Using `readMSnSet2`, load the following file that was
+> part of the supplementary information of a manuscript.
+
+```{r pdfile}
+csvfile <- dir(system.file("extdata", package = "pRolocdata"),
+               pattern = "hyperLOPIT-SIData-ms3-rep12-intersect.csv",
+               full.names = TRUE)
+basename(csvfile)
+```
+
+> You'll first need to identify which columns to use as expression
+> data. In this case however, two rows are used as header, and you'll
+> need to set `n` in `getEcols` to retrieve the appropriate one. There
+> are 20 expresion columns annotated as TMT 10 plex reporter ion M/Z
+> values (if you don't know these, you can find them out by looking at
+> the `TMT10` reporter ion object). You can now use `readMSnSet2`,
+> remembering to skip 1 line and, optionally, use the first column as
+> feature names (see the `fnames` argument). What are the number of
+> features and samples in the data?
+
+
+<details>
+
+```{r solreadmsnset}
+getEcols(csvfile, split = ",", n = 2)
+hl <- readMSnSet2(csvfile, ecol = 8:27, fnames = 1, skip = 1)
+dim(hl)
+```
+</details>
+
 # Data processing and analysis
 
 ## Raw data processing
@@ -1137,7 +1379,11 @@ For raw data processing look at `MSnbase`'s `clean`, `smooth`,
 processing methods.
 
 As an illustration, we show the `pickPeaks` function on the
-`itraqdata` data.
+`itraqdata` data. Centoiding transforms the distribution of M/Z values
+measured for an ion (i.e. a set of M/Z and intensities, first figure
+below) into a single M/Z and intensity pair of values (second figure
+below).
+
 
 ```{r peakpicking, fig.keep = "last", fig.cap = "Peak picking: profile mode."}
 library("ggplot2") ## for coord_cartesian
@@ -1204,7 +1450,7 @@ processingData(prt)
 Finally, proteomics data analysis is generally hampered by missing
 values. Missing data imputation is a sensitive operation whose success
 will be guided by many factors, such as degree and (non-)random nature
-of the missingness. 
+of the missingness.
 
 Below, we load an `MSnSet` with missing values, count the number
 missing and non-missing values.
@@ -1315,6 +1561,10 @@ packages provide dedicated resources for proteomics data:
 - `r Biocpkg("isobar")` also provides dedicated infrastructure for the
   statistical analysis of isobaric data.
 
+- `r Biocpkg("DEP")` provides an integrated analysis workflow for the
+  analysis of mass spectrometry proteomics data for differential
+  protein expression or differential enrichment.
+
 # Machine learning
 
 The `r Biocpkg("MLInterfaces")` package provides a unified interface
@@ -1368,9 +1618,10 @@ head(pData(mulvey2015))
 plot2D(t(mulvey2015),  fcol = "times", fpch = "rep", cex = 2)
 addLegend(t(mulvey2015),  fcol = "times")
 ```
+
 ## Classification
 
-The example below uses `knn` with the 5 closest neighbours and the 
+The example below uses `knn` with the 5 closest neighbours and the
 `r Biocpkg("MLInterfaces")` package as an illustration to classify
 proteins of unknown sub-cellular localisation to one of 9 possible
 organelles.
@@ -1388,7 +1639,7 @@ ans
 
 A wide range of classification and clustering algorithms are also
 available, as described in the `?MLearn` documentation page, used
-below. 
+below.
 
 ```{r clust, fig.cap = "Kmeans clustering using `r Biocpkg('MLInterfaces')` with an `MSnSet` object."}
 kcl <- MLearn( ~ ., data = dunkley2006, kmeansI, centers = 12)
@@ -1407,7 +1658,7 @@ nont <- length(onts)
 
 All the
 [Bioconductor annotation infrastructure](http://bioconductor.org/help/workflows/annotation/Annotation_Resources/),
-such as `r Biocpkg("biomaRt")`, `r Biocannopkg("GO.db")`, 
+such as `r Biocpkg("biomaRt")`, `r Biocannopkg("GO.db")`,
 organism specific annotations, .. are directly relevant to the
 analysis of proteomics data. A total of `r nont` ontologies, including
 some proteomics-centred annotations such as the PSI Mass Spectrometry
@@ -1436,13 +1687,13 @@ available via the `r Biocpkg("hpar")` package.
 
 # More information
 
-## References and resources
+## References and resources {-}
 
 * [Visualisation of proteomics data using R and Bioconductor](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4510819/)
 * [Using R and Bioconductor for proteomics data analysis](http://arxiv.org/pdf/1305.6559v1.pdf)
 * `RforProteomics`: http://bioconductor.org/packages/RforProteomics
 
-## Other relevant packages/pipelines
+## Other relevant packages/pipelines {-}
 
 - Analysis of post translational modification with `r Biocpkg("isobar")`.
 - Processing and analysis or isobaric tagging mass spectrometry with
@@ -1463,7 +1714,7 @@ available via the `r Biocpkg("hpar")` package.
 - `r CRANpkg("aLFQ")`: Estimating Absolute Protein Quantities from
   Label-Free LC-MS/MS Proteomics Data.
 - `r CRANpkg("protiq")`: Protein (identification and) quantification
-  based on peptide evidence.  
+  based on peptide evidence.
 - `r Biocpkg("MSstats")`: Protein Significance Analysis in DDA, SRM
   and DIA for Label-free or Label-based Proteomics Experiments
 
@@ -1478,6 +1729,14 @@ available via the `r Biocpkg("hpar")` package.
   Targeted Proteomics
 - `r Biocpkg("SwathXtend")`: SWATH extended library generation and
   statistical data analysis
+
+## More questions {-}
+
+After the workshop, the best place to ask questions about MS-based
+proteomics and relevant Bioconductor package is the Bioconductor
+[support forum](https://support.bioconductor.org/). Tagging you
+question with *Proteomics* or specific package names will alert the
+respective maintainers.
 
 # Session Information
 

@@ -154,6 +154,8 @@ hub <- AnnotationHub()
 hub
 query(hub, "grasp")   # see library(grasp2db)
 query(hub, c("release-92", "homo"))
+hub[["AH61472"]]
+rtracklayer::import( hub[["AH61472"]] )
 ```
 
 [ExperimentHub][] -- Heavily curated data sets
