@@ -43,7 +43,7 @@ suppressPackageStartupMessages({
 `columns()`, `mapIds()`, `select()`
 
 ```{r, message=FALSE}
-library(tidyverse)
+library(tidyverse)
 library(org.Hs.eg.db)
 columns(org.Hs.eg.db)
 brca <- c("BRCA1", "BRCA2")
