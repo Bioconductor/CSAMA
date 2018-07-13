@@ -1,0 +1,114 @@
+---
+title: "Speeding up R code with Renjin"
+author: "Wolfgang Huber"
+output: BiocStyle::html_document
+---
+
+```{r global_options, include = FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+# Load the renjin R package
+
+Renjin in general, and the R package that contains renjin are described at http://docs.renjin.org/en/latest/package. It can be installed via the instructions given there (it is currently not on CRAN). Note that it requires a working instance of the R package `rJava` installed.
+
+```{r renjin}
+library("renjin")
+```
+
+# Computing pi via the Leibniz formula
+
+We use this as an example of an algebra-heavy computation that involves a lengthy loop.
+
+\begin{equation}
+\pi = 4 \sum_{n=0}^\infty \frac{(-1)^n}{2n+1}
+\end{equation}
+
+```{r oldJIT1, echo = FALSE}
+oldJIT <- compiler::enableJIT(0)
+```
+
+```{r compute_pi}
+compute_pi <- function(m) {
+    s = 0
+    sign = 1
+    for (n in 0:m) {
+        s = s + sign / (2 * n + 1)
+        sign = -sign
+    }
+    4 * s
+}
+```
+
+## R's built-in byte code compiler
+
+```{r}
+compute_pi_bcc  <- compiler::cmpfun(compute_pi) 
+```
+
+## Vectorization 
+
+Vectorization is often a very appropriate way to get rid of explicit loops in R, and thus to speed up code. However, it has two potential drawbacks:
+
+- It requires manual rewriting of code. In the example here, this is simple, even trivial, but for more complex calculations, e.g., if the computations in one loop iteration depend on those from previous iterations, this may not always be easy or possible.
+
+- It requires the allocation of large vectors; in the example below, of the vector `n` as well as several temporary expressions in the second line of the below function. A double precision float vector of length 5e8 requires 3.7 GB.
+
+```{r vectorized}
+compute_pi_vec <- function(m) {
+  n <- 0:m
+  4 * sum((-1)^n / (2 * n + 1))
+}
+```
+
+# Benchmark
+
+```{r benchmark}
+pis <- rep(NA_real_, 4)
+m <- 5e8
+```
+
+## Ordinary uncompiled R function
+
+```{r b1}
+system.time(pis[1] <- compute_pi(m / 10))
+```
+
+Note that we **reduced `m` by a factor of 10** here to limit runtime.
+
+## Compiled R function
+
+```{r b2}
+system.time(pis[2] <- compute_pi_bcc(m))
+```
+
+Indeed, R will already compile many functions by default, automatically, without your explicit calling of the compiler. This behavior depends on a global state setting of R that is accessed by the `enableJIT` function in the `compiler` package. For demonstration purposes, we have above disabled the automatic compilation.
+
+## renjin 
+
+```{r b3}
+system.time(pis[3] <- renjin(compute_pi(m)))
+```
+
+## Vectorized
+
+```{r b4}
+system.time(pis[4] <- compute_pi_vec(m))
+```
+
+## Check that the results are the same
+
+```{r check}
+print(pis)
+max(abs(pis[3:4] - pis[2]))
+```
+
+... at least for the 2nd to 4th calculation; for the 1st we had used a smaller `m`.
+
+```{r oldJIT2, echo = FALSE}
+compiler::enableJIT(oldJIT)
+```
+
+```{r session}
+devtools::session_info()
+```
