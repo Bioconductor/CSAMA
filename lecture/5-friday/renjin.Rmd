@@ -5,14 +5,13 @@ output: BiocStyle::html_document
 ---
 
 ```{r global_options, include = FALSE}
-knitr::opts_chunk$set(cache = TRUE)
 ```
 
 # Load the renjin R package
 
 Renjin in general, and the R package that contains renjin are described at http://docs.renjin.org/en/latest/package. It can be installed via the instructions given there (it is currently not on CRAN). Note that it requires a working instance of the R package `rJava` installed.
 
-```{r renjin}
+```{r renjin, results = "hide"}
 library("renjin")
 ```
 
@@ -25,7 +24,7 @@ We approximate the below infinite sum by one with a large value of `m`.
 \frac{\pi}{4} =  \lim_{m\to\infty}\sum_{n=0}^{m} \frac{(-1)^n}{2n+1}
 \end{equation}
 
-```{r oldJIT1, echo = FALSE}
+```{r oldJIT1, echo = FALSE, results = "hide"}
 oldJIT <- compiler::enableJIT(0)
 ```
 
@@ -56,16 +55,17 @@ Vectorization is often a very appropriate way to get rid of explicit loops in R,
 - It requires the allocation of large vectors; in the example below, of the vector `n` as well as several temporary expressions that arise in the evaluation of the second line of the below function. A double precision float vector of length $5\times10^8$ requires 3.7 GB.
 
 ```{r vectorized}
-compute_pi_vec <- function(m) {
+compute_pi_vec_1 <- function(m) {
   n <- 0:m
   4 * sum((-1)^n / (2 * n + 1))
 }
 ```
-A second vectorized approach uses vectors that are 1/2 the full length
+
+With a little bit more thinking, we can come with a second vectorized approach, which uses vectors that are 1/2 the full length.
 
 ```{r vectorized_2}
 compute_pi_vec_2 <- function(m) {
-  n <- seq(0, (m - 1)/ 2, by = 2)
+  n <- seq(0, (m-1)/ 2, by = 2)
   4 * sum(1 / (2 * n + 1) - 1 / (2 * (n + 1) + 1))
 }
 ```
@@ -74,8 +74,8 @@ compute_pi_vec_2 <- function(m) {
 
 Iterative algorithms can often be implemented in C / C++. However, one has to be able to program in multiple languages and the development process can be slow.
 
-```{r compute_pi_cpp}
-library(Rcpp)
+```{r compute_pi_cpp, cache = FALSE}
+library("Rcpp")
 compute_pi_cpp <- cppFunction("
     double compute_pi_cpp(int m) {
         double s = 0, sign = 1;
@@ -83,7 +83,7 @@ compute_pi_cpp <- cppFunction("
             s = s + sign / (2 * n + 1);
             sign = -sign;
         }
-        return 4 *s;
+        return 4*s;
     }
 ")
 ```
@@ -97,7 +97,7 @@ m <- 5e8
 
 ## Ordinary uncompiled R function
 
-```{r b1}
+```{r b1, cache = TRUE}
 system.time(pis[1] <- compute_pi(m))
 ```
 
@@ -119,14 +119,14 @@ system.time(pis[3] <- renjin(compute_pi(m)))
 
 ## Vectorized
 
-```{r b4}
-system.time(pis[4] <- compute_pi_vec(m))
-system.time(pis[5] <- compute_pi_vec(m))
+```{r b4and5}
+system.time(pis[4] <- compute_pi_vec_1(m))
+system.time(pis[5] <- compute_pi_vec_2(m))
 ```
 
 ## Rcpp
 
-```{r b5}
+```{r b6}
 system.time(pis[6] <- compute_pi_cpp(m))
 ```
 
@@ -139,9 +139,14 @@ max(abs(pis[-length(pis)] - pis[length(pis)]))
 
 <!-- .. at least for the 2nd to 4th calculation; for the 1st we had used a smaller `m`. -->
 
-```{r oldJIT2, echo = FALSE}
+```{r oldJIT2, echo = FALSE, results = "hide"}
 compiler::enableJIT(oldJIT)
 ```
+
+# Exercise
+
+Do something similar as above, but instead of computing $\pi$, compute the Mandelbrot set:
+https://en.wikipedia.org/wiki/Mandelbrot_set
 
 # Acknowledgements
 
