@@ -8,10 +8,9 @@ slides > slide {
   font-family: 'Open Sans', Helvetica, Arial, sans-serif;
   border-bottom: 3px solid #d04c29;
   color: #1e2b38;
+  /* color: #34495e; */
   /* background: #ffffff; */
   /* color: #838b93; */
-  /* color: #1e2b38; */
-  /* color: #34495e; */
   /* box-shadow:  0 3px 0 #522D80; */
 }
 
@@ -34,4 +33,9 @@ h3 {
 
 strong {
     color: #d04c29;
+}
+
+code {
+    /* color: #6baee2; */
+    color: #446CB3;
 }

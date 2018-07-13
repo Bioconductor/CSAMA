@@ -1,16 +1,16 @@
 
 # Table of Contents
 
-1.  [Annotation resources - `ensembldb`](#org6667dc1)
-    1.  [Annotation of genomic regions](#org932b30d)
-    2.  [`AnnotationFilter`: basic classes for filtering annotation resources](#orgadcd18d)
-    3.  [Filtering `EnsDb` databases](#org8d11cf0)
-    4.  [Additional `ensembldb` capabilities](#org8ae2bb9)
-    5.  [Finally&#x2026;](#org9661f63)
+1.  [Annotation resources - `ensembldb`](#org2d40964)
+    1.  [Annotation of genomic regions](#org148e20e)
+    2.  [`AnnotationFilter`: basic classes for filtering annotation resources](#orgdc2698c)
+    3.  [Filtering `EnsDb` databases](#org8249192)
+    4.  [Additional `ensembldb` capabilities](#org2e50b34)
+    5.  [Finally&#x2026;](#org5be21c5)
 
 
 
-<a id="org6667dc1"></a>
+<a id="org2d40964"></a>
 
 # Annotation resources - `ensembldb`
 
@@ -21,7 +21,7 @@ johannes.rainer@eurac.edu
 github/twitter: *jotsetung*
 
 
-<a id="org932b30d"></a>
+<a id="org148e20e"></a>
 
 ## Annotation of genomic regions
 
@@ -55,7 +55,7 @@ github/twitter: *jotsetung*
       ```
 
 
-<a id="orgadcd18d"></a>
+<a id="orgdc2698c"></a>
 
 ## `AnnotationFilter`: basic classes for filtering annotation resources
 
@@ -66,11 +66,11 @@ github/twitter: *jotsetung*
     
       ```{r   }
       ## Create filter using the constructor function
-      gnf <- GeneNameFilter("BCL2", condition = "!=")
+      gnf <- GenenameFilter("BCL2", condition = "!=")
       gnf
     
       ## Create using a filter expression
-      gnf <- AnnotationFilter(~ gene_name != "BCL2")
+      gnf <- AnnotationFilter(~ genename != "BCL2")
       gnf
     
       ## Combine filters
@@ -78,7 +78,7 @@ github/twitter: *jotsetung*
       ```
 
 
-<a id="org8d11cf0"></a>
+<a id="org8249192"></a>
 
 ## Filtering `EnsDb` databases
 
@@ -95,24 +95,25 @@ github/twitter: *jotsetung*
     
       ```{r   }
       ## Get all transcripts for BCL2
-      transcripts(edb, filter = ~ gene_name == "BCL2")
+      txs <- transcripts(edb, filter = ~ genename == "BCL2")
+      txs
     
       ## Combine filters: only protein coding tx for the gene
-      transcripts(edb, filter = ~ gene_name == "BCL2" &
-    		       tx_biotype == "protein_coding")
+      txs <- transcripts(edb, filter = ~ genename == "BCL2" &
+    			      tx_biotype == "protein_coding")
     
     
       ## For the pipe lovers:
       library(magrittr)
-      edb %>%
-          filter(~ gene_name == "BCL2" & tx_biotype == "protein_coding") %>%
+      txs <- edb %>%
+          filter(~ genename == "BCL2" & tx_biotype == "protein_coding") %>%
           transcripts 
       ```
 
 -   Filters speed up queries.
 
 
-<a id="org8ae2bb9"></a>
+<a id="org2e50b34"></a>
 
 ## Additional `ensembldb` capabilities
 
@@ -129,9 +130,11 @@ github/twitter: *jotsetung*
     -   `proteinToTranscript`
 
 
-<a id="org9661f63"></a>
+<a id="org5be21c5"></a>
 
 ## Finally&#x2026;
 
 **Thank you for your attention!**
+
+**&#x2026; and good luck to the brave runners &#x2026;**
 

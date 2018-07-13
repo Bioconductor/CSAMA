@@ -1,7 +1,7 @@
 ---
-title: "CSAMA 2017: Clustering, classification, and regression with genomic examples"
+title: "CSAMA 2018: Clustering, classification, and regression with genomic examples"
 author: Vince Carey
-date: June 15, 2017
+date: July 12, 2018
 output: 
   ioslides_presentation:
     fig_height: 4.8
@@ -40,6 +40,14 @@ library(shiny)
 })
 ```
 
+## Useful resources for high-dimensional data analysis in genomics
+
+James, Witten, Hastie, Tibshirani, [Introduction to Statistical Learning](https://www-bcf.usc.edu/~gareth/ISL/ISLR%20Seventh%20Printing.pdf), a freely available PDF of a Springer monograph, with applications in R
+
+Hastie, Tibshirani and Friedman, [Elements of Statistical Learning](https://web.stanford.edu/~hastie/ElemStatLearn/printings/ESLII_print12.pdf), a freely available PDF of a Springer monograph
+
+Holmes and Huber, [Modern Statistics for Modern Biology](http://web.stanford.edu/class/bios221/book/introduction.html), open HTML of a Cambridge University Press monograph
+
 ## Road map
 - use cases
 - user interface concepts
@@ -48,40 +56,9 @@ library(shiny)
 - classifier components
     - role of metapackages like caret/mlr/MLInterfaces
 
-## Use case 1: transcript profiles to distinguish tissue source
+## Use case 1: Species and organ of origin
 
-- illumina bodymap in GEO
-- another application: adequacy of mouse models of human biology
-
-## Species and organ of origin: microarrays and orthologues (McCall et al., _NAR_ 2012)
-
-```{r basicbarco,fig=TRUE,echo=FALSE,fig.height=4.4}
-im = readPNG("figures_vjc/barcoTree.png")
-grid.raster(im)
-```
-
-## Species, organ of origin, and batch: RNA-seq and orthologues (Lin et al., _PNAS_ 2014)
-
-```{r basicsnypc,fig=TRUE,echo=FALSE,fig.height=3.6}
-library(png)
-im = readPNG("figures_vjc/snyderPC12.png")
-grid.raster(im)
-```
-
-- Between-species disparity stronger than within-organ similarity
-
-## Conflict
-
-* Distinguishing organ of origin through gene expression patterns
-    - McCall _et al._, _NAR_ 2011
-    - adjusted arrays yield 85 22215-vectors
-    - barcode transformation: transcriptomes cluster by organ
-* Comparison of human and mouse transcriptomes
-    - Lin _et al._, _PNAS_ 2014
-    - mRNA abundance for orthologous genes by RNA-seq, 30 15106-vectors
-    - transcriptomes cluster by species
-
-
+<img src="newbarco.png" width=950/>
 
 ## Use case 2: Oncotype DX gene signature for breast cancer survival
 
@@ -134,47 +111,11 @@ p1p = as.party(prune(r1, cp=.05))
 plot(p1p)
 ```
 
-## Use case 3: Cell fate signatures from the fruitfly blastocyst
-
-
-```{r lksiq,fig=TRUE,echo=FALSE}
-im = readPNG("siqiTitle.png")
-grid.raster(im)
-```
-
-## Data setup
-
-```{r getdr}
-library(drosmap) # biocLite("vjcitn/drosmap")
-data(expressionPatterns)
-data(template); template=template[,-1]
-data(uniqueGenes)
-uex = expressionPatterns[,uniqueGenes]
-uex[1:5,1:5]
-```
-
-## Spatial gene-specific patterns
-
-```{r lkspa,fig=TRUE}
-imageBatchDisplay(uex[,1:16], nrow=4, ncol=4, template=template)
-```
-
-## Can we transform spatial patterns for 701 genes to cohere with this fate map?
-
-```{r lksiq2,fig=TRUE,echo=FALSE}
-im = readPNG("springmap1.png")
-grid.raster(im)
-```
-
-## An assignment of "principal patterns"
-
-```{r lippp,fig=TRUE,echo=FALSE}
-im = readPNG("fullFateMap.png")
-grid.raster(im)
-```
 
 ## Comments
 
+* *Data type diversity*: discrete factors, 
+ censored biomarker values or survival times, missing values
 * *Curse of dimensionality:* as the number of features increases, utility
 of distance metrics for object grouping diminishes (space is mostly
 empty, distances generally small) 
@@ -186,9 +127,96 @@ their own robustness
 
 ## Remainder of talk
 
-* Bioconductor strategies: user interface and object designs
+* Details of some clustering algorithms
+* R/Bioconductor strategies: user interface and object designs
 * Cluster analysis formalities; hclustWidget
 * Classifier formalities; mlearnWidget
+
+## Unsupervised learning/exploratory data analysis
+
+* Basic formalism: $x_{ij}$ is the value of feature $j$ on sample $i$
+* Samples are enumerated $i = 1, \ldots, n$, features $j = 1, \ldots, p$
+* Clustering: Allocate samples to $C_1, \ldots, C_K$, that are mutually exclusive subsets of $\{1, \ldots, N\}$
+* Principle: allocation should lead to clusters whose members are **similar**
+* Need a quantification of similarity/dissimilarity for the $x$ in terms of their features
+
+
+## Distance algebra
+
+![wikipedia](figures_vjc/metricDef.png)
+
+
+## Examples: 
+
+### Euclidean distance
+
+- High-school analytic geometry: distance between two points in $R^3$
+- $p_1 = (x_1, y_1, z_1)$, $p_2 = (x_2, y_2, z_2)$
+- $\Delta x = x_1 - x_2$, etc.
+- $d(p_1, p_2) = \sqrt{(\Delta x)^2 + (\Delta y)^2 + (\Delta z)^2}$
+
+### Manhattan distance
+
+- $d(p_1, p_2) = |\Delta x| + |\Delta y| + |\Delta z|$
+
+### New concept of distance for categorical vectors:
+
+Sam Buttrey and Lyn Whitaker's `r CRANpkg("treeClust")` ([R Journal article](https://journal.r-project.org/archive/2015-2/buttrey-whitaker.pdf))
+
+## Comparing 20-vectors
+
+![corre](corrEucDist.png)
+
+## Contours (from Holmes, Huber)
+
+<img src="MSMBdistance.png" width=600\>
+
+
+## Generalized Euclidean (from Holmes, Huber)
+
+<img src="mahalanobis.png" width=700\>
+
+## Algorithm: K-means
+
+* The number of clusters is determined in advance to be $K$
+* Initially, data are allocated randomly to $K$ clusters, and
+centroids are computed as multivariate means
+* Points closest to centroids are allocated to that centroid's cluster,
+and centroids are recomputed
+* Algorithm iterates to convergence
+
+## Illustration from James, Witten et al.
+
+<img src="kmeansProgress.png" width=550\>
+
+## Allocation sensitivity to initial assignment
+
+<img src="kmeansNonUnique.png" width=550\>
+
+## Hierarchical clustering: building
+
+<img src="treeBuilding.png" width=550\>
+
+## Hierarchical clustering: cutting
+
+<img src="treeCutting.png" width=750\>
+
+## The ward.D2 agglomeration method?
+- Enables very rapid update upon change of distance or # genes
+
+```{r wardalg,fig=TRUE,echo=FALSE,fig.height=5.2}
+library(png)
+im = readPNG("figures_vjc/wards.png")
+grid.raster(im)
+```
+
+## The Jaccard similarity coefficient?
+
+```{r jacc,fig=TRUE,echo=FALSE,fig.height=5.2}
+library(png)
+im = readPNG("figures_vjc/jaccdef.png")
+grid.raster(im)
+```
 
 ## On the user interface
 
@@ -276,48 +304,6 @@ sink(NULL)
 nicehclustWidget(t(etiss))
 ```
 
-## Some definitions: general distance
-
-```{r distdef,fig=TRUE,echo=FALSE,fig.height=5.2}
-library(png)
-im = readPNG("figures_vjc/metricDef.png")
-grid.raster(im)
-```
-
-
-## Examples: 
-
-### Euclidean distance
-
-- High-school analytic geometry: distance between two points in $R^3$
-- $p_1 = (x_1, y_1, z_1)$, $p_2 = (x_2, y_2, z_2)$
-- $\Delta x = x_1 - x_2$, etc.
-- $d(p_1, p_2) = \sqrt{(\Delta x)^2 + (\Delta y)^2 + (\Delta z)^2}$
-
-### Manhattan distance
-
-- $d(p_1, p_2) = |\Delta x| + |\Delta y| + |\Delta z|$
-
-### New concept of distance for categorical vectors:
-
-Sam Buttrey and Lyn Whitaker's `r CRANpkg("treeClust")` ([R Journal article](https://journal.r-project.org/archive/2015-2/buttrey-whitaker.pdf))
-
-## What is the ward.D2 agglomeration method?
-- Enables very rapid update upon change of distance or # genes
-
-```{r wardalg,fig=TRUE,echo=FALSE,fig.height=5.2}
-library(png)
-im = readPNG("figures_vjc/wards.png")
-grid.raster(im)
-```
-
-## What is the Jaccard similarity coefficient?
-
-```{r jacc,fig=TRUE,echo=FALSE,fig.height=5.2}
-library(png)
-im = readPNG("figures_vjc/jaccdef.png")
-grid.raster(im)
-```
 
 ## Summary
 

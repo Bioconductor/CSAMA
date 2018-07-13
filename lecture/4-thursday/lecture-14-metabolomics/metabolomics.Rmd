@@ -321,7 +321,7 @@ Analyze the data along retention time.
 
 ## Chromatographic peak detection
 
-- Aim: identify chromatographic peaks in the data.
+- **Aim:** identify chromatographic peaks in the data.
 
 ```{r out.width = "500px", echo = FALSE}
 knitr::include_graphics("images/LCMS-data.png")
@@ -329,7 +329,7 @@ knitr::include_graphics("images/LCMS-data.png")
 
 ## Chromatographic peak detection
 
-- Aim: identify chromatographic peaks in the data.
+- **Aim:** identify chromatographic peaks in the data.
 
 ```{r out.width = "500px", echo = FALSE}
 knitr::include_graphics("images/LCMS-data-peaks.png")
@@ -351,7 +351,7 @@ knitr::include_graphics("images/centWave-ROI.png")
 ## Chromatographic peak detection
 
 - Step 2: peak detection using continuous wavelet transform.
-- Allows detection of peaks with different widths.
+- Allows detection of peaks with different rt widths.
 
 ```{r out.width = "500px", echo = FALSE}
 knitr::include_graphics("images/centWave-CWT.png")
@@ -390,17 +390,19 @@ head(chromPeaks(data), n = 3)
 ## Alignment {.build}
 
 <div>
-- Alignment: adjust differences in retention times between samples.
+- **Aim:** adjust differences in retention times between samples.
 </div>
 <div>
-- Why? Chromatography setup, age of the column, column gets dirty...
-- Result: same analyte may elute at different time between measurements.
-</div>
+- Same analyte may elute at different time between measurements.
 
 ```{r echo = FALSE, out.width = "370px"}
 knitr::include_graphics("images/alignment.png")
 ```
+</div>
 
+<div>
+- **Why?** Chromatography setup, age of the column, column gets dirty...
+</div>
 
 ## Alignment {.build}
 
@@ -431,7 +433,8 @@ plot(chromatogram(data, aggregationFun = "max", rt = c(70, 220)),
 
 ## Correspondence {.build}
 
-- Aim: group peaks across samples, assuming they represent the same ion.
+- **Aim:** group peaks across samples, assuming they represent the same ion.
+- **Result:** matrix of abundances, rows features, columns samples.
 - Depends on proper alignment.
 
 ```{r echo = FALSE, out.width = "700px"}
@@ -440,7 +443,8 @@ knitr::include_graphics("images/correspondence2_01.png")
 
 ## Correspondence
 
-- Aim: group peaks across samples, assuming they represent the same ion.
+- **Aim:** group peaks across samples, assuming they represent the same ion.
+- **Result:** matrix of abundances, rows features, columns samples.
 - Depends on proper alignment.
 
 ```{r echo = FALSE, out.width = "700px"}
@@ -449,7 +453,8 @@ knitr::include_graphics("images/correspondence2_02.png")
 
 ## Correspondence
 
-- Aim: group peaks across samples, assuming they represent the same ion.
+- **Aim:** group peaks across samples, assuming they represent the same ion.
+- **Result:** matrix of abundances, rows features, columns samples.
 - Depends on proper alignment.
 
 ```{r echo = FALSE, out.width = "700px"}
@@ -493,7 +498,7 @@ knitr::include_graphics("images/correspondence2_density.png")
 </div>
 
 <div>
-```{r echo = FALSE, out.width = "700px"}
+```{r echo = FALSE, out.width = "740px"}
 knitr::include_graphics("images/FT07853.png")
 ```
 </div>
