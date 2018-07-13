@@ -62,10 +62,28 @@ compute_pi_vec <- function(m) {
 }
 ```
 
+## Rcpp
+
+Iterative algorithms can often be implemented in C / C++. However, one has to be able to program in multiple languages and the development process can be slow.
+
+```{r compute_pi}
+library(Rcpp)
+compute_pi_cpp <- cppFunction("
+    double compute_pi_cpp(int m) {
+        double s = 0, sign = 1;
+        for (int n = 0; n <= m; ++n) {
+            s = s + sign / (2 * n + 1);
+            sign = -sign;
+        }
+        return 4 *s;
+    }
+")
+```
+
 # Benchmark
 
 ```{r benchmark}
-pis <- rep(NA_real_, 4)
+pis <- rep(NA_real_, 5)
 m <- 5e8
 ```
 
@@ -97,11 +115,17 @@ system.time(pis[3] <- renjin(compute_pi(m)))
 system.time(pis[4] <- compute_pi_vec(m))
 ```
 
+## Rcpp
+
+```{r b5}
+system.time(pis[5] <- compute_pi_cpp(m))
+```
+
 ## Check that the results are the same
 
 ```{r check}
 print(pis)
-max(abs(pis[1:3] - pis[4]))
+max(abs(pis[-length(pis)] - pis[length(pis)]))
 ```
 
 <!-- .. at least for the 2nd to 4th calculation; for the 1st we had used a smaller `m`. -->
