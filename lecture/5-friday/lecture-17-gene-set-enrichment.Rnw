@@ -22,7 +22,7 @@
   \item E.g., Are there unusually many up-regulated genes in the gene
     set?
   \end{itemize}
-  Many methods, a recent review is Kharti et al., 2012.
+  Many methods, a review is Kharti et al., 2012.
   \begin{itemize}
   \item Over-representation analysis (ORA) -- are differentially
     expressed (DE) genes in the set more common than expected?
@@ -167,9 +167,11 @@
   \begin{itemize}
   \item Competitive null: The genes in the gene set do not have
     stronger association with the subject condition than other
-    genes. (Approach 1, 2)
+    genes. Distinguishing more from less important sets. (Approach 1,
+    2)
   \item Self-contained null: The genes in the gene set do not have any
-    association with the subject condition. (Approach 3)
+    association with the subject condition. Assessing individual
+    sets. (Approach 3)
   \item Probably, self-contained null is closer to actual question of
     interest
   \item Permuting subjects (rather than genes) is appropriate
@@ -260,7 +262,7 @@
                    \Biocpkg{limma}\Rfunction{::fry()} \\
     Pathway topology & \Biocpkg{SPIA} \\
     Sequence-specific & \Biocpkg{goseq} \\
-    Visualization & \Biocpkg{PATHVIEW} \\
+    Visualization & \Biocpkg{pathview} \\
     \hline
   \end{tabular}
 \end{frame}
