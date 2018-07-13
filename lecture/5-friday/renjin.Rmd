@@ -61,6 +61,14 @@ compute_pi_vec <- function(m) {
   4 * sum((-1)^n / (2 * n + 1))
 }
 ```
+A second vectorized approach uses vectors that are 1/2 the full length
+
+```{r vectorized_2}
+compute_pi_vec_2 <- function(m) {
+  n <- seq(0, (m - 1)/ 2, by = 2)
+  4 * sum(1 / (2 * n + 1) - 1 / (2 * (n + 1) + 1))
+}
+```
 
 ## Rcpp
 
@@ -83,7 +91,7 @@ compute_pi_cpp <- cppFunction("
 # Benchmark
 
 ```{r benchmark}
-pis <- rep(NA_real_, 5)
+pis <- rep(NA_real_, 6)
 m <- 5e8
 ```
 
@@ -113,12 +121,13 @@ system.time(pis[3] <- renjin(compute_pi(m)))
 
 ```{r b4}
 system.time(pis[4] <- compute_pi_vec(m))
+system.time(pis[5] <- compute_pi_vec(m))
 ```
 
 ## Rcpp
 
 ```{r b5}
-system.time(pis[5] <- compute_pi_cpp(m))
+system.time(pis[6] <- compute_pi_cpp(m))
 ```
 
 ## Check that the results are the same
