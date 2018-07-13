@@ -61,7 +61,7 @@ compute_pi_vec_1 <- function(m) {
 }
 ```
 
-With a little bit more thinking, we can come with a second vectorized approach, which uses vectors that are 1/2 the full length.
+With a little bit more thinking, we can come up with a second approach, which uses vectors that are half the length of `m`.
 
 ```{r vectorized_2}
 compute_pi_vec_2 <- function(m) {
@@ -106,7 +106,7 @@ system.time(pis[1] <- compute_pi(m))
 
 ## Compiled R function
 
-```{r b2}
+```{r b2, cache = TRUE}
 system.time(pis[2] <- compute_pi_bcc(m))
 ```
 
@@ -116,11 +116,12 @@ Indeed, R will already compile many functions by default, automatically, without
 
 ```{r b3}
 system.time(pis[3] <- renjin(compute_pi(m)))
+system.time(pis[3] <- renjin(compute_pi(m)))
 ```
 
 ## Vectorized
 
-```{r b4and5}
+```{r b4and5, cache = TRUE}
 system.time(pis[4] <- compute_pi_vec_1(m))
 system.time(pis[5] <- compute_pi_vec_2(m))
 ```

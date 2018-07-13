@@ -576,16 +576,19 @@ $(document).ready(function () {
 <li><a href="#computing-pi-via-the-leibniz-formula"><span class="toc-section-number">2</span> Computing pi via the Leibniz formula</a><ul>
 <li><a href="#rs-built-in-byte-code-compiler"><span class="toc-section-number">2.1</span> R’s built-in byte code compiler</a></li>
 <li><a href="#vectorization"><span class="toc-section-number">2.2</span> Vectorization</a></li>
+<li><a href="#rcpp"><span class="toc-section-number">2.3</span> Rcpp</a></li>
 </ul></li>
 <li><a href="#benchmark"><span class="toc-section-number">3</span> Benchmark</a><ul>
 <li><a href="#ordinary-uncompiled-r-function"><span class="toc-section-number">3.1</span> Ordinary uncompiled R function</a></li>
 <li><a href="#compiled-r-function"><span class="toc-section-number">3.2</span> Compiled R function</a></li>
 <li><a href="#renjin"><span class="toc-section-number">3.3</span> renjin</a></li>
 <li><a href="#vectorized"><span class="toc-section-number">3.4</span> Vectorized</a></li>
-<li><a href="#check-that-the-results-are-the-same"><span class="toc-section-number">3.5</span> Check that the results are the same</a></li>
+<li><a href="#rcpp-1"><span class="toc-section-number">3.5</span> Rcpp</a></li>
+<li><a href="#check-that-the-results-are-the-same"><span class="toc-section-number">3.6</span> Check that the results are the same</a></li>
 </ul></li>
-<li><a href="#acknowledgements"><span class="toc-section-number">4</span> Acknowledgements</a></li>
-<li><a href="#session-info"><span class="toc-section-number">5</span> Session Info</a></li>
+<li><a href="#exercise"><span class="toc-section-number">4</span> Exercise</a></li>
+<li><a href="#acknowledgements"><span class="toc-section-number">5</span> Acknowledgements</a></li>
+<li><a href="#session-info"><span class="toc-section-number">6</span> Session Info</a></li>
 </ul>
 </div>
 
@@ -621,62 +624,98 @@ We approximate the below infinite sum by one with a large value of <code>m</code
 <li><p>When starting from a loop-based version, it requires manual rewriting of code. In the example here, that is simple, even trivial, but for more complex calculations, e.g., if the computations in one loop iteration depend on those from previous iterations, this may not always be easy or possible. (An example for that would be an iterative optimization algorithm.)</p></li>
 <li><p>It requires the allocation of large vectors; in the example below, of the vector <code>n</code> as well as several temporary expressions that arise in the evaluation of the second line of the below function. A double precision float vector of length <span class="math inline">\(5\times10^8\)</span> requires 3.7 GB.</p></li>
 </ul>
-<pre class="r"><code>compute_pi_vec &lt;- function(m) {
+<pre class="r"><code>compute_pi_vec_1 &lt;- function(m) {
   n &lt;- 0:m
   4 * sum((-1)^n / (2 * n + 1))
 }</code></pre>
+<p>With a little bit more thinking, we can come up with a second approach, which uses vectors that are half the length of <code>m</code>.</p>
+<pre class="r"><code>compute_pi_vec_2 &lt;- function(m) {
+  n &lt;- seq(0, (m - 1)/ 2, by = 2)
+  den &lt;- 2 * n + 1
+  4 * (sum(1/den) - sum(1/(den+2)))
+}</code></pre>
+</div>
+<div id="rcpp" class="section level2">
+<h2><span class="header-section-number">2.3</span> Rcpp</h2>
+<p>Iterative algorithms can often be implemented in C / C++. However, one has to be able to program in multiple languages and the development process can be slow.</p>
+<pre class="r"><code>library(&quot;Rcpp&quot;)
+compute_pi_cpp &lt;- cppFunction(&quot;
+    double compute_pi_cpp(int m) {
+        double s = 0, sign = 1;
+        for (int n = 0; n &lt;= m; ++n) {
+            s = s + sign / (2 * n + 1);
+            sign = -sign;
+        }
+        return 4*s;
+    }
+&quot;)</code></pre>
 </div>
 </div>
 <div id="benchmark" class="section level1">
 <h1><span class="header-section-number">3</span> Benchmark</h1>
-<pre class="r"><code>pis &lt;- rep(NA_real_, 4)
+<pre class="r"><code>pis &lt;- rep(NA_real_, 6)
 m &lt;- 5e8</code></pre>
 <div id="ordinary-uncompiled-r-function" class="section level2">
 <h2><span class="header-section-number">3.1</span> Ordinary uncompiled R function</h2>
 <pre class="r"><code>system.time(pis[1] &lt;- compute_pi(m))</code></pre>
 <pre><code>##    user  system elapsed 
-## 568.675  18.205 623.819</code></pre>
+## 434.357   9.784 459.340</code></pre>
 <!-- Note that we **reduced `m` by a factor of 10** here to limit runtime. -->
 </div>
 <div id="compiled-r-function" class="section level2">
 <h2><span class="header-section-number">3.2</span> Compiled R function</h2>
 <pre class="r"><code>system.time(pis[2] &lt;- compute_pi_bcc(m))</code></pre>
 <pre><code>##    user  system elapsed 
-##   68.06    1.37   70.66</code></pre>
+##  32.327   0.100  32.555</code></pre>
 <p>Indeed, R will already compile many functions by default, automatically, without your explicit calling of the compiler. This behavior depends on a global state setting of R that is accessed by the <code>enableJIT</code> function in the <code>compiler</code> package. For demonstration purposes, we have above disabled the automatic compilation.</p>
 </div>
 <div id="renjin" class="section level2">
 <h2><span class="header-section-number">3.3</span> renjin</h2>
 <pre class="r"><code>system.time(pis[3] &lt;- renjin(compute_pi(m)))</code></pre>
 <pre><code>##    user  system elapsed 
-##   3.563   0.189   2.934</code></pre>
+##   3.229   0.050   2.513</code></pre>
+<pre class="r"><code>system.time(pis[3] &lt;- renjin(compute_pi(m)))</code></pre>
+<pre><code>##    user  system elapsed 
+##   2.246   0.012   2.185</code></pre>
 </div>
 <div id="vectorized" class="section level2">
 <h2><span class="header-section-number">3.4</span> Vectorized</h2>
-<pre class="r"><code>system.time(pis[4] &lt;- compute_pi_vec(m))</code></pre>
+<pre class="r"><code>system.time(pis[4] &lt;- compute_pi_vec_1(m))</code></pre>
 <pre><code>##    user  system elapsed 
-##  17.693  10.144  29.397</code></pre>
+##  12.042   5.353  17.995</code></pre>
+<pre class="r"><code>system.time(pis[5] &lt;- compute_pi_vec_2(m))</code></pre>
+<pre><code>##    user  system elapsed 
+##   2.531   1.308   3.842</code></pre>
+</div>
+<div id="rcpp-1" class="section level2">
+<h2><span class="header-section-number">3.5</span> Rcpp</h2>
+<pre class="r"><code>system.time(pis[6] &lt;- compute_pi_cpp(m))</code></pre>
+<pre><code>##    user  system elapsed 
+##   0.619   0.001   0.624</code></pre>
 </div>
 <div id="check-that-the-results-are-the-same" class="section level2">
-<h2><span class="header-section-number">3.5</span> Check that the results are the same</h2>
+<h2><span class="header-section-number">3.6</span> Check that the results are the same</h2>
 <pre class="r"><code>print(pis)</code></pre>
-<pre><code>## [1] 3.141593 3.141593 3.141593 3.141593</code></pre>
-<pre class="r"><code>max(abs(pis[1:3] - pis[4]))</code></pre>
-<pre><code>## [1] 5.364598e-13</code></pre>
-<!-- .. at least for the 2nd to 4th calculation; for the 1st we had used a smaller `m`. -->
-<pre><code>## [1] 0</code></pre>
+<pre><code>## [1] 3.141593 3.141593 3.141593 3.141593 3.141593 3.141593</code></pre>
+<pre class="r"><code>max(abs(pis[-length(pis)] - pis[length(pis)]))</code></pre>
+<pre><code>## [1] 5.999458e-09</code></pre>
 </div>
+</div>
+<div id="exercise" class="section level1">
+<h1><span class="header-section-number">4</span> Exercise</h1>
+<p>Do something similar as above, but instead of computing <span class="math inline">\(\pi\)</span>, compute the Mandelbrot set:
+<a href="https://en.wikipedia.org/wiki/Mandelbrot_set" class="uri">https://en.wikipedia.org/wiki/Mandelbrot_set</a></p>
 </div>
 <div id="acknowledgements" class="section level1">
-<h1><span class="header-section-number">4</span> Acknowledgements</h1>
+<h1><span class="header-section-number">5</span> Acknowledgements</h1>
 <p>Parts of the development of renjin was funded by the European Commission through the Horizon 2020 project SOUND: <a href="http://www.sound-biomed.eu" class="uri">http://www.sound-biomed.eu</a></p>
 </div>
 <div id="session-info" class="section level1">
-<h1><span class="header-section-number">5</span> Session Info</h1>
+<h1><span class="header-section-number">6</span> Session Info</h1>
 <pre class="r"><code>devtools::session_info()</code></pre>
 <pre><code>## Session info ---------------------------------------------------------------</code></pre>
 <pre><code>##  setting  value                                             
-##  version  R Under development (unstable) (2018-07-01 r74950)
+##  version  R Under development (unstable) (2018-07-13 r74957)
 ##  system   x86_64, darwin17.6.0                              
 ##  ui       unknown                                           
 ##  language (EN)                                              
@@ -686,32 +725,32 @@ m &lt;- 5e8</code></pre>
 <pre><code>## Packages -------------------------------------------------------------------</code></pre>
 <pre><code>##  package   * version  date       source        
 ##  backports   1.1.2    2017-12-13 CRAN (R 3.6.0)
-##  base      * 3.6.0    2018-07-12 local         
+##  base      * 3.6.0    2018-07-13 local         
 ##  BiocStyle * 2.9.3    2018-06-13 Bioconductor  
 ##  bookdown    0.7      2018-02-18 CRAN (R 3.6.0)
 ##  codetools   0.2-15   2016-10-05 CRAN (R 3.6.0)
-##  compiler    3.6.0    2018-07-12 local         
-##  datasets  * 3.6.0    2018-07-12 local         
+##  compiler    3.6.0    2018-07-13 local         
+##  datasets  * 3.6.0    2018-07-13 local         
 ##  devtools    1.13.6   2018-06-27 CRAN (R 3.6.0)
 ##  digest      0.6.15   2018-01-28 CRAN (R 3.6.0)
 ##  evaluate    0.10.1   2017-06-24 CRAN (R 3.6.0)
-##  graphics  * 3.6.0    2018-07-12 local         
-##  grDevices * 3.6.0    2018-07-12 local         
+##  graphics  * 3.6.0    2018-07-13 local         
+##  grDevices * 3.6.0    2018-07-13 local         
 ##  htmltools   0.3.6    2017-04-28 CRAN (R 3.6.0)
 ##  knitr       1.20     2018-02-20 CRAN (R 3.6.0)
 ##  magrittr    1.5      2014-11-22 CRAN (R 3.6.0)
 ##  memoise     1.1.0    2017-04-21 CRAN (R 3.6.0)
-##  methods   * 3.6.0    2018-07-12 local         
-##  Rcpp        0.12.17  2018-05-18 CRAN (R 3.6.0)
+##  methods   * 3.6.0    2018-07-13 local         
+##  Rcpp      * 0.12.17  2018-05-18 CRAN (R 3.6.0)
 ##  renjin    * 0.9.2648 2018-07-12 local         
 ##  rJava       0.9-10   2018-05-29 CRAN (R 3.6.0)
 ##  rmarkdown   1.10     2018-06-11 CRAN (R 3.6.0)
 ##  rprojroot   1.3-2    2018-01-03 CRAN (R 3.6.0)
-##  stats     * 3.6.0    2018-07-12 local         
+##  stats     * 3.6.0    2018-07-13 local         
 ##  stringi     1.2.3    2018-06-12 CRAN (R 3.6.0)
 ##  stringr     1.3.1    2018-05-10 CRAN (R 3.6.0)
-##  tools       3.6.0    2018-07-12 local         
-##  utils     * 3.6.0    2018-07-12 local         
+##  tools       3.6.0    2018-07-13 local         
+##  utils     * 3.6.0    2018-07-13 local         
 ##  withr       2.1.2    2018-03-15 CRAN (R 3.6.0)
 ##  xfun        0.3      2018-07-06 CRAN (R 3.6.0)
 ##  yaml        2.1.19   2018-05-01 CRAN (R 3.6.0)</code></pre>
