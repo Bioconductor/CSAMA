@@ -66,7 +66,7 @@ compute_pi_vec <- function(m) {
 
 Iterative algorithms can often be implemented in C / C++. However, one has to be able to program in multiple languages and the development process can be slow.
 
-```{r compute_pi}
+```{r compute_pi_cpp}
 library(Rcpp)
 compute_pi_cpp <- cppFunction("
     double compute_pi_cpp(int m) {
