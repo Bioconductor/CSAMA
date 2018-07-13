@@ -65,8 +65,9 @@ With a little bit more thinking, we can come with a second vectorized approach, 
 
 ```{r vectorized_2}
 compute_pi_vec_2 <- function(m) {
-  n <- seq(0, (m-1)/ 2, by = 2)
-  4 * sum(1 / (2 * n + 1) - 1 / (2 * (n + 1) + 1))
+  n <- seq(0, (m - 1)/ 2, by = 2)
+  den <- 2 * n + 1
+  4 * (sum(1/den) - sum(1/(den+2)))
 }
 ```
 
@@ -136,8 +137,6 @@ system.time(pis[6] <- compute_pi_cpp(m))
 print(pis)
 max(abs(pis[-length(pis)] - pis[length(pis)]))
 ```
-
-<!-- .. at least for the 2nd to 4th calculation; for the 1st we had used a smaller `m`. -->
 
 ```{r oldJIT2, echo = FALSE, results = "hide"}
 compiler::enableJIT(oldJIT)
