@@ -110,6 +110,12 @@ max(abs(pis[1:3] - pis[4]))
 compiler::enableJIT(oldJIT)
 ```
 
+# Acknowledgements
+
+Parts of the development of renjin was funded by the European Commission through the Horizon 2020 project SOUND: http://www.sound-biomed.eu
+
+# Session Info
+
 ```{r session}
 devtools::session_info()
 ```
