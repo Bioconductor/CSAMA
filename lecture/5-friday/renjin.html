@@ -594,9 +594,10 @@ $(document).ready(function () {
 </div>
 <div id="computing-pi-via-the-leibniz-formula" class="section level1">
 <h1><span class="header-section-number">2</span> Computing pi via the Leibniz formula</h1>
-<p>We use this as an example of an algebra-heavy computation that involves a lengthy loop.</p>
+<p>We use this as an example of an algebra-heavy computation that involves a lengthy loop.
+We approximate the below infinite sum by one with a large value of <code>m</code>.</p>
 <p><span class="math display">\[\begin{equation}
-\pi = 4 \sum_{n=0}^\infty \frac{(-1)^n}{2n+1}
+\frac{\pi}{4} =  \lim_{m\to\infty}\sum_{n=0}^{m} \frac{(-1)^n}{2n+1}
 \end{equation}\]</span></p>
 <pre class="r"><code>compute_pi &lt;- function(m) {
     s = 0
@@ -630,37 +631,37 @@ $(document).ready(function () {
 m &lt;- 5e8</code></pre>
 <div id="ordinary-uncompiled-r-function" class="section level2">
 <h2><span class="header-section-number">3.1</span> Ordinary uncompiled R function</h2>
-<pre class="r"><code>system.time(pis[1] &lt;- compute_pi(m / 10))</code></pre>
+<pre class="r"><code>system.time(pis[1] &lt;- compute_pi(m))</code></pre>
 <pre><code>##    user  system elapsed 
-##  56.674   1.629  59.945</code></pre>
-<p>Note that we <strong>reduced <code>m</code> by a factor of 10</strong> here to limit runtime.</p>
+## 568.675  18.205 623.819</code></pre>
+<!-- Note that we **reduced `m` by a factor of 10** here to limit runtime. -->
 </div>
 <div id="compiled-r-function" class="section level2">
 <h2><span class="header-section-number">3.2</span> Compiled R function</h2>
 <pre class="r"><code>system.time(pis[2] &lt;- compute_pi_bcc(m))</code></pre>
 <pre><code>##    user  system elapsed 
-##  67.735   1.708  71.459</code></pre>
+##   68.06    1.37   70.66</code></pre>
 <p>Indeed, R will already compile many functions by default, automatically, without your explicit calling of the compiler. This behavior depends on a global state setting of R that is accessed by the <code>enableJIT</code> function in the <code>compiler</code> package. For demonstration purposes, we have above disabled the automatic compilation.</p>
 </div>
 <div id="renjin" class="section level2">
 <h2><span class="header-section-number">3.3</span> renjin</h2>
 <pre class="r"><code>system.time(pis[3] &lt;- renjin(compute_pi(m)))</code></pre>
 <pre><code>##    user  system elapsed 
-##   3.056   0.173   2.889</code></pre>
+##   3.563   0.189   2.934</code></pre>
 </div>
 <div id="vectorized" class="section level2">
 <h2><span class="header-section-number">3.4</span> Vectorized</h2>
 <pre class="r"><code>system.time(pis[4] &lt;- compute_pi_vec(m))</code></pre>
 <pre><code>##    user  system elapsed 
-##  16.831   4.735  22.093</code></pre>
+##  17.693  10.144  29.397</code></pre>
 </div>
 <div id="check-that-the-results-are-the-same" class="section level2">
 <h2><span class="header-section-number">3.5</span> Check that the results are the same</h2>
 <pre class="r"><code>print(pis)</code></pre>
 <pre><code>## [1] 3.141593 3.141593 3.141593 3.141593</code></pre>
-<pre class="r"><code>max(abs(pis[3:4] - pis[2]))</code></pre>
+<pre class="r"><code>max(abs(pis[1:3] - pis[4]))</code></pre>
 <pre><code>## [1] 5.364598e-13</code></pre>
-<p>… at least for the 2nd to 4th calculation; for the 1st we had used a smaller <code>m</code>.</p>
+<!-- .. at least for the 2nd to 4th calculation; for the 1st we had used a smaller `m`. -->
 <pre><code>## [1] 0</code></pre>
 <pre class="r"><code>devtools::session_info()</code></pre>
 <pre><code>## Session info ---------------------------------------------------------------</code></pre>
@@ -678,6 +679,7 @@ m &lt;- 5e8</code></pre>
 ##  base      * 3.6.0    2018-07-12 local         
 ##  BiocStyle * 2.9.3    2018-06-13 Bioconductor  
 ##  bookdown    0.7      2018-02-18 CRAN (R 3.6.0)
+##  codetools   0.2-15   2016-10-05 CRAN (R 3.6.0)
 ##  compiler    3.6.0    2018-07-12 local         
 ##  datasets  * 3.6.0    2018-07-12 local         
 ##  devtools    1.13.6   2018-06-27 CRAN (R 3.6.0)
