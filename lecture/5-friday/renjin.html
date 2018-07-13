@@ -584,6 +584,8 @@ $(document).ready(function () {
 <li><a href="#vectorized"><span class="toc-section-number">3.4</span> Vectorized</a></li>
 <li><a href="#check-that-the-results-are-the-same"><span class="toc-section-number">3.5</span> Check that the results are the same</a></li>
 </ul></li>
+<li><a href="#acknowledgements"><span class="toc-section-number">4</span> Acknowledgements</a></li>
+<li><a href="#session-info"><span class="toc-section-number">5</span> Session Info</a></li>
 </ul>
 </div>
 
@@ -614,10 +616,10 @@ We approximate the below infinite sum by one with a large value of <code>m</code
 </div>
 <div id="vectorization" class="section level2">
 <h2><span class="header-section-number">2.2</span> Vectorization</h2>
-<p>Vectorization is often a very appropriate way to get rid of explicit loops in R, and thus to speed up code. However, it has two potential drawbacks:</p>
+<p>Vectorization is often a very appropriate way to get rid of explicit loops in R, and thus to speed up code, and even make it more readable and more robust. However, vectorization also has two potential drawbacks:</p>
 <ul>
-<li><p>It requires manual rewriting of code. In the example here, this is simple, even trivial, but for more complex calculations, e.g., if the computations in one loop iteration depend on those from previous iterations, this may not always be easy or possible.</p></li>
-<li><p>It requires the allocation of large vectors; in the example below, of the vector <code>n</code> as well as several temporary expressions in the second line of the below function. A double precision float vector of length 5e8 requires 3.7 GB.</p></li>
+<li><p>When starting from a loop-based version, it requires manual rewriting of code. In the example here, that is simple, even trivial, but for more complex calculations, e.g., if the computations in one loop iteration depend on those from previous iterations, this may not always be easy or possible. (An example for that would be an iterative optimization algorithm.)</p></li>
+<li><p>It requires the allocation of large vectors; in the example below, of the vector <code>n</code> as well as several temporary expressions that arise in the evaluation of the second line of the below function. A double precision float vector of length 5e8 requires 3.7 GB.</p></li>
 </ul>
 <pre class="r"><code>compute_pi_vec &lt;- function(m) {
   n &lt;- 0:m
@@ -663,6 +665,14 @@ m &lt;- 5e8</code></pre>
 <pre><code>## [1] 5.364598e-13</code></pre>
 <!-- .. at least for the 2nd to 4th calculation; for the 1st we had used a smaller `m`. -->
 <pre><code>## [1] 0</code></pre>
+</div>
+</div>
+<div id="acknowledgements" class="section level1">
+<h1><span class="header-section-number">4</span> Acknowledgements</h1>
+<p>Parts of the development of renjin was funded by the European Commission through the Horizon 2020 project SOUND: <a href="http://www.sound-biomed.eu" class="uri">http://www.sound-biomed.eu</a></p>
+</div>
+<div id="session-info" class="section level1">
+<h1><span class="header-section-number">5</span> Session Info</h1>
 <pre class="r"><code>devtools::session_info()</code></pre>
 <pre><code>## Session info ---------------------------------------------------------------</code></pre>
 <pre><code>##  setting  value                                             
@@ -705,7 +715,6 @@ m &lt;- 5e8</code></pre>
 ##  withr       2.1.2    2018-03-15 CRAN (R 3.6.0)
 ##  xfun        0.3      2018-07-06 CRAN (R 3.6.0)
 ##  yaml        2.1.19   2018-05-01 CRAN (R 3.6.0)</code></pre>
-</div>
 </div>
 
 
