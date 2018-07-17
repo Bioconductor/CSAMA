@@ -1,5 +1,5 @@
 ---
-title: "Speeding up R code with Renjin"
+title: "Speeding up 'loopy' R code"
 author: "Wolfgang Huber"
 output: BiocStyle::html_document
 ---
@@ -7,7 +7,14 @@ output: BiocStyle::html_document
 ```{r global_options, include = FALSE}
 ```
 
-# Load the renjin R package
+# Versions of this document
+
+- Rmarkdown source: https://gist.github.com/wolfganghuber/909e14e45af6888eec384b82682b3766
+- Rendered HTML: http://rpubs.com/WolfgangHuber/404211
+
+# Purpose of this gist 
+
+To explore the speeding up of R code with the JVM-based implementation of (a subset of) R by [the renjin project](http://www.renjin.org), and to compare it with other options, including R's bytecode compiler, Rcpp, and vectorization.
 
 Renjin in general, and the R package that contains renjin are described at http://docs.renjin.org/en/latest/package. It can be installed via the instructions given there (it is currently not on CRAN). Note that it requires a working instance of the R package `rJava` installed.
 
@@ -116,8 +123,9 @@ Indeed, R will already compile many functions by default, automatically, without
 
 ```{r b3}
 system.time(pis[3] <- renjin(compute_pi(m)))
-system.time(pis[3] <- renjin(compute_pi(m)))
 ```
+
+About half a second of the above timing is spent on the compilation of the code (rather than its execution) and would be saved when called again.
 
 ## Vectorized
 
@@ -147,6 +155,10 @@ compiler::enableJIT(oldJIT)
 
 Do something similar as above, but instead of computing $\pi$, compute the Mandelbrot set:
 https://en.wikipedia.org/wiki/Mandelbrot_set
+
+# Disclaimer
+
+Such kinds of speed optimization are a last resort. First, make sure the code addresses the right problem and computes the correct solution. In comparison, this is more important than being fast. Using  mathematical reasoning, symmetries, good approximations, the right algorithm and data structures is preferable to mindless optimization of clumsy code.
 
 # Acknowledgements
 
