@@ -68,13 +68,17 @@ compute_pi_vec_1 <- function(m) {
 }
 ```
 
+<<<<<<< HEAD
 With a little bit more thinking, we can come up with a second approach, which uses vectors that are half the length of `m`.
+=======
+With a little bit more thinking, we can come up with a second vectorized approach, which avoids calculating `(-1)^n`. The approach also uses vectors that are 1/2 the full length.
+>>>>>>> 23aa989248387139f2cfc97039ebdbd6141c28f9
 
 ```{r vectorized_2}
 compute_pi_vec_2 <- function(m) {
-  n <- seq(0, (m - 1)/ 2, by = 2)
+  n <- seq(0, (m - 1) / 2, by = 2)
   den <- 2 * n + 1
-  4 * (sum(1/den) - sum(1/(den+2)))
+  4 * (sum(1 / den) - sum(1 / (den + 2)))
 }
 ```
 
