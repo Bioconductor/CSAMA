@@ -18,12 +18,11 @@ http://www-huber.embl.de/users/msmith/csama2018/materials/
 ## Organised in collaboration with
 
 <p float="left">
-  <img src="http://www-huber.embl.de/csama2017/wp-content/uploads/2017/01/DSCTV.jpg" width="100" /> 
-  <img src="http://www.sound-biomed.eu/wp-content/uploads/sound_wordmark.svg" width="300" />
-  <img src="http://www-huber.embl.de/csama2017/wp-content/uploads/2017/01/VOICES_RGB_orizzontale.jpg" width="200" />
+  <img src="https://www.bioconductor.org/images/logo/jpg/bioconductor_logo_rgb.jpg" width="300" align="bottom"/>
+  <img src="https://www.huber.embl.de/csama2019/wp-content/uploads/2019/06/logo_rosso_scritta_trasparente.png" width="100" /> 
 </p>
 <p float="left">
-  <img src="https://www.bioconductor.org/images/logo/jpg/bioconductor_logo_rgb.jpg" width="300" align="bottom"/>
   <img src="http://www.huber.embl.de/csama2017/wp-content/uploads/2017/01/de.NBI-Logo.png" width="300" align="bottom"/>
+  <img src="http://www-huber.embl.de/csama2017/wp-content/uploads/2017/01/VOICES_RGB_orizzontale.jpg" width="180" align="bottom"/>
 </p>
 
