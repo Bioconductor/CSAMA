@@ -141,7 +141,7 @@
     \item Permuting subject labels for signficance
     \end{enumerate}
     \column{.5\textwidth}
-    \includegraphics[width=\textwidth]{subramanian-F1-part.jpg}
+    \includegraphics[width=\textwidth]{lec17-figs/subramanian-F1-part.jpg}
     \par {\small Subramanian et al., 2005, fig 1.}
   \end{columns}
 \end{frame}
@@ -156,7 +156,7 @@
     \item Much more straight-forward to implement
     \end{enumerate}
     \column{.5\textwidth}
-    \includegraphics[width=\textwidth]{Category-ribosome.png}
+    \includegraphics[width=\textwidth]{lec17-figs/Category-ribosome.png}
     \par {\small Expression in NEG vs BCR/ABL samples for genes in the
       `ribosome' KEGG pathway; \Biocpkg{Category} vignette.}
   \end{columns}
@@ -212,7 +212,7 @@
     \item Better: read depth??
     \end{itemize}
     \column{.5\textwidth}
-    \includegraphics[width=\textwidth]{young-et-al-gb-2010-11-2-r14-2-cropped.png}
+    \includegraphics[width=\textwidth]{lec17-figs/young-et-al-gb-2010-11-2-r14-2-cropped.png}
     \par {\small DE genes vs.\ transcript length. Points: bins of 300
       genes. Line: fitted probability weighting function.}
   \end{columns}
