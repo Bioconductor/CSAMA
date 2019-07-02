@@ -37,5 +37,7 @@ Organism.dplyr
 ExperimentHub
 AnnotationHub
 BiocFileCache
+rtracklayer
+GenomicAlignments
 
 ## Charlotte Soneson (CS)
