@@ -7,6 +7,27 @@
 ## Robert Gentleman (RG)
 
 ## Wolfgang Huber (WH)
+airway
+bookdown
+curatedMetagenomicData
+DESeq2
+devtools
+dplyr
+e1071
+extrafont
+fdrtool
+ggbeeswarm
+ggplot2
+IHW
+kableExtra
+magick
+parallel
+RColorBrewer
+readr
+rmarkdown
+sysfonts
+tufte
+xfun 
 
 ## Katharina Imkeller (KI)
 
@@ -25,5 +46,56 @@ png
 ## Davide Risso (DR) 
 
 ## Lori Shepherd (LS)
+Biostrings
+GenomicRanges
+SummarizedExperiment
+BSgenome
+BSgenome.Hsapiens.UCSC.hg19
+TxDb.Hsapiens.UCSC.hg19.knownGene
+TxDb.Hsapiens.UCSC.hg38.knownGene
+org.Hs.eg.db
+biomaRt
+Organism.dplyr
+ExperimentHub
+AnnotationHub
+BiocFileCache
+rtracklayer
+GenomicAlignments
 
 ## Charlotte Soneson (CS)
+iSEE
+BiocStyle
+knitr
+rmarkdown
+tximeta
+tximport
+DESeq2
+org.Hs.eg.db
+SummarizedExperiment
+edgeR
+apeglm
+pheatmap
+scRNAseq
+SingleCellExperiment
+scater
+scran
+BiocSingular
+Rtsne
+uwot
+igraph
+mikelove/airway2
+PoiClaClu
+devtools
+jsonlite
+readr
+vsn
+dplyr
+ggplot2
+hexbin
+RColorBrewer
+IHW
+ggbeeswarm
+genefilter
+ReportingTools
+sva
+RUVSeq
