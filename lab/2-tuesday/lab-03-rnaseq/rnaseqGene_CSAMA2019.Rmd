@@ -14,6 +14,8 @@ author:
   affiliation: Centre for Molecular Biology, Univ. Heidelberg (ZMBH), Germany
 - name: Vladislav Kim
   affiliation: &EMBL European Molecular Biology Laboratory (EMBL), Heidelberg, Germany
+- name: Johannes Rainer
+  affiliation: Institute for Biomedicine, Eurac Research, Bolzano, Italy
 - name: Wolfgang Huber
   affiliation: *EMBL
 date: 19 June 2018
