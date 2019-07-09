@@ -328,7 +328,7 @@ all(file.exists(files))
 Because we perform a gene-level analysis we need the mapping of transcripts to
 genes for GENCODE v27. Since GENCODE uses Ensembl transcript identifiers, we use
 the `r Biocpkg("ensembldb")` package [@Rainer:2019jd] to extract these from one
-of the available annotation databases. Pre-build `EnsDb` annotation databases
+of the available annotation databases. Pre-built `EnsDb` annotation databases
 for all species for a large number of Ensembl releases are available through the
 `r Biocpkg("AnnotationHub")` resource. We thus load below an `EnsDb` database
 with human annotations for Ensembl release 91, which corresponds to GENCODE
@@ -336,20 +336,14 @@ v27. The parameter `localHub = TRUE` ensures that we list and load only locally
 stored resources, due to the very limited internet connectivity at the lab site.
 
 ```{r annotationhub, message = FALSE}
-library(AnnotationHub)
-library(ensembldb)
+library("AnnotationHub")
+library("ensembldb")
 ah <- AnnotationHub(localHub = TRUE)
 
 ah_91 <- query(ah, "EnsDb.Hsapiens.v91")
 ah_91
 
 edb <- ah[[names(ah_91)]]
-
-tx2gene2 <- transcripts(edb, columns = c("tx_id_version", "gene_id"),
-                        return.type = "data.frame")
-colnames(tx2gene2) <- c("TXNAME", "GENEID", "tx_id")
-
-txi2 <- tximport(files, type = "salmon", tx2gene = tx2gene)
 ```
 
 We next define a *data.frame* that connects transcripts to genes. Note that the
@@ -1133,7 +1127,7 @@ provides a large variety of annotation packages and resources, most of them
 supporting the `r Biocpkg("AnnotationDbi")` interface which enables a unified
 way to retrieve annotations for given identifiers. The annotation resources from
 Bioconductor range from web-based tools such as `r Biocpkg("biomaRt")` to
-packages working with pre-build databases containing all identifier mappings for
+packages working with pre-built databases containing all identifier mappings for
 a certain species (the `*.org` packages such as `org.Hs.eg.db`) or providing
 gene and transcript models, such as databases build by 
 `r Biocpkg("GenomicFeatures")` (`TxDb` databases/packages) and 
@@ -1141,7 +1135,7 @@ gene and transcript models, such as databases build by
 
 In this section we use the `ensembldb` package to annotate all tested genes
 which are identified by Ensembl gene IDs. The Salmon quantification used in the
-analysis leading to this table was based on Gencode v27 transcripts which is
+analysis leading to this table was based on GENCODE v27 transcripts which is
 linked to Ensembl release 91. We thus load below an `EnsDb` database with human
 annotations for Ensembl release 91 from the `r Biocpkg("AnnotationHub")`
 resource. The parameter `localHub = TRUE` ensures that we list and load only
@@ -1149,8 +1143,8 @@ locally stored resources (due to the very limited internet connectivity at the
 lab site).
 
 ```{r annotationhub-ensdb, message = FALSE}
-library(AnnotationHub)
-library(ensembldb)
+library("AnnotationHub")
+library("ensembldb")
 ah <- AnnotationHub(localHub = TRUE)
 
 ah_91 <- query(ah, "EnsDb.Hsapiens.v91")
@@ -1189,7 +1183,7 @@ rownames(anns) <- anns$gene_id
 We can now combine the RNA-seq result with the annotation.
 
 ```{r annotation-combine}
-resAnn <- cbind(anns[rownames(res), ], res)
+resAnn <- BiocGenerics::cbind(anns[BiocGenerics::rownames(res), ], res)
 
 resAnn
 ```
@@ -1531,7 +1525,7 @@ processed by *write.csv*. Here, we take just the top 100 genes for
 demonstration.
 
 ```{r eval = FALSE}
-resOrderedDF <- as.data.frame(resOrdered)[1:100, ]
+resOrderedDF <- as.data.frame(res[order(res$pvalue), ])[1:100, ]
 write.csv(resOrderedDF, file = "results.csv")
 ```
 
@@ -1548,7 +1542,7 @@ with the following code:
 library("ReportingTools")
 htmlRep <- HTMLReport(shortName = "report", title = "My report",
                       reportDirectory = "./report")
-publish(resOrderedDF, htmlRep)
+publish(resOrderedDF %>% tibble::rownames_to_column("gene"), htmlRep)
 url <- finish(htmlRep)
 browseURL(url)
 ```
