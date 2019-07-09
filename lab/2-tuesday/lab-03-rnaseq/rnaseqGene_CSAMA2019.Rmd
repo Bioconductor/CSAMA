@@ -323,15 +323,41 @@ names(files) <- coldata$run
 all(file.exists(files))
 ```
 
-We load a *data.frame* that connects transcripts to genes for GENCODE v27,
-`tx2gene`. We will show how to construct such a table in a following
-lab. One can also find example code in the `r Biocpkg("tximport")` package
-vignette. The information in `tx2gene` needs to directly match the
-reference transcriptome used by *Salmon*. We can ensure this by
-downloading the *FASTA* and *GTF* from the same version from GENCODE.
+Because we perform a gene-level analysis we need the mapping of transcripts to
+genes for GENCODE v27. Since GENCODE uses Ensembl transcript identifiers, we use
+the `r Biocpkg("ensembldb")` package [@Rainer:2019jd] to extract these from one
+of the available annotation databases. Pre-build `EnsDb` annotation databases
+for all species for a large number of Ensembl releases are available through the
+`r Biocpkg("AnnotationHub")` resource. We thus load below an `EnsDb` database
+with human annotations for Ensembl release 91, which corresponds to GENCODE
+v27. The parameter `localHub = TRUE` ensures that we list and load only locally
+stored resources, due to the very limited internet connectivity at the lab site.
+
+```{r annotationhub, message = FALSE}
+library(AnnotationHub)
+library(ensembldb)
+ah <- AnnotationHub(localHub = TRUE)
+
+ah_91 <- query(ah, "EnsDb.Hsapiens.v91")
+ah_91
+
+edb <- ah[[names(ah_91)]]
+
+tx2gene2 <- transcripts(edb, columns = c("tx_id_version", "gene_id"),
+                        return.type = "data.frame")
+colnames(tx2gene2) <- c("TXNAME", "GENEID", "tx_id")
+
+txi2 <- tximport(files, type = "salmon", tx2gene = tx2gene)
+```
+
+We next define a *data.frame* that connects transcripts to genes. Note that the
+information in `tx2gene` needs to directly match the reference transcriptome
+used by *Salmon*.
 
 ```{r}
-tx2gene <- read.csv(file.path(dir, "gencode.v27.annotation.tx2gene.csv.gz"))
+tx2gene <- transcripts(edb, columns = c("tx_id_version", "gene_id", "tx_id"),
+                       return.type = "data.frame")
+colnames(tx2gene) <- c("TXNAME", "GENEID", "tx_id")
 head(tx2gene)
 ```
 
@@ -1094,6 +1120,180 @@ argument of *results* should be used. Please see the
 help page for the *results* function for details on the additional
 ways to build results tables. In particular, the **Examples** section of
 the help page for *results* gives some pertinent examples.
+
+## Annotation of RNA-seq results
+
+One of the central steps in the analysis of genomic data is the annotation of
+the quantified entities to biologically more relevant representations such as
+transcripts, genes or proteins. Such annotations enable for example pathway
+enrichment analyses and ease the interpretation of the results. Bioconductor
+provides a large variety of annotation packages and resources, most of them
+supporting the `r Biocpkg("AnnotationDbi")` interface which enables a unified
+way to retrieve annotations for given identifiers. The annotation resources from
+Bioconductor range from web-based tools such as `r Biocpkg("biomaRt")` to
+packages working with pre-build databases containing all identifier mappings for
+a certain species (the `*.org` packages such as `org.Hs.eg.db`) or providing
+gene and transcript models, such as databases build by 
+`r Biocpkg("GenomicFeatures")` (`TxDb` databases/packages) and 
+`r Biocpkg("ensembldb")` (`EnsDb` databases/packages) [@Rainer:2019jd].
+
+In this section we use the `ensembldb` package to annotate all tested genes
+which are identified by Ensembl gene IDs. The Salmon quantification used in the
+analysis leading to this table was based on Gencode v27 transcripts which is
+linked to Ensembl release 91. We thus load below an `EnsDb` database with human
+annotations for Ensembl release 91 from the `r Biocpkg("AnnotationHub")`
+resource. The parameter `localHub = TRUE` ensures that we list and load only
+locally stored resources (due to the very limited internet connectivity at the
+lab site).
+
+```{r annotationhub-ensdb, message = FALSE}
+library(AnnotationHub)
+library(ensembldb)
+ah <- AnnotationHub(localHub = TRUE)
+
+ah_91 <- query(ah, "EnsDb.Hsapiens.v91")
+ah_91
+
+#' Load the database
+edb <- ah[[names(ah_91)]]
+```
+
+If we had a working internet connection we could simply list all available
+`EnsDb` databases with `query(ah, "EnsDb")` (after loading `AnnotationHub` with
+`localHub = FALSE`). We can now use the `edb` variable to access the data in
+the database. With the `listColumns` function we can for example list all of the
+available annotation fields (columns) in the database.
+
+```{r listcolumns}
+listColumns(edb)
+```
+
+We could get data from any of these database columns by passing the respective
+column name(s) along with the `column` parameter to any function retrieving
+annotations from an `EnsDb` database. Gene-related annotations can be retrieved
+with the `genes` function, that by default (and similar to the `genes` function
+from the `r Biocpkg("GenomicFeatures")` package) returns a `GRanges` object with
+the genomic coordinates of the genes and additional annotation columns in the
+`GRanges`' *metadata* columns. Below we use the `genes` call to retrieve
+annotations for all human genes. With the parameter `return.type = "DataFrame"`
+we tell the function to return the result as a `DataFrame` instead of the
+default `GRanges`.
+
+```{r annotations-all-genes}
+anns <- genes(edb, return.type = "DataFrame")
+rownames(anns) <- anns$gene_id
+```
+
+We can now combine the RNA-seq result with the annotation.
+
+```{r annotation-combine}
+resAnn <- cbind(anns[rownames(res), ], res)
+
+resAnn
+```
+
+If we had only a reduced set of genes to annotate, e.g. the set of the most
+significant genes, it is faster and more elegant to extract annotations for the
+subset of genes using the filter framework from `ensembldb`. Below we create a
+*top table* by selecting the 20 genes with the smallest p-values.
+
+```{r res-top20}
+resTop20 <- res[order(res$pvalue), ][1:20, ]
+```
+
+To get only annotations for the selected genes we pass the filter expression 
+`~ gene_id == rownames(resTop20)` with the `filter` parameter to the `genes`
+function. Filter expressions have to be written in the form of a formula
+(i.e. starting with `~`) and support any logical R expression and any database
+column/field in the `EnsDb` database (use `supportedFilters(edb)` to list all
+supported fields). Also, by specifying the respective field names with the
+`columns` parameter we extract only the gene name (equivalent with the HGNC
+symbol for most genes), description the gene biotype and the NCBI Entrezgene ID
+from the database.
+
+```{r annotations-top20}
+anns <- genes(edb, filter = ~ gene_id == rownames(resTop20),
+              columns = c("gene_name", "description", "gene_biotype",
+                          "entrezid"), return.type = "DataFrame")
+```
+
+Note that the order of the genes in the returned `data.frame` is **not** the
+same as in `resTop20`. We thus below re-order the annotations to match the
+order of genes in the top table and subsequently join the two data frames.
+
+```{r join-resTop20}
+resTop20 <- cbind(anns[match(rownames(resTop20), anns$gene_id), ],
+                  resTop20)
+```
+
+Be aware that mappings between Ensembl and NCBI identifiers is not necessarily a
+1:1 mapping. In our case we got for some Ensembl gene IDs more than one NCBI
+Entrezgene ID. The column `"entrezid"` in our result table is thus a `list` with
+eventually more than one Entrezgene ID in one row. Exporting such a table could
+be problematic and we collapse therefore Entrezgene IDs in this columns into a
+single character string, with multiple IDs separated by a semicolon (`";"`).
+
+```{r collapse-entrezid}
+resTop20$entrezid <- sapply(resTop20$entrezid, function(z) {
+    if (any(is.na(z))) z
+    else paste(z, collapse = ";")
+})
+```
+
+The 20 most significantly regulated genes in the present analysis are listed
+below.
+
+```{r resTop20Table, results = "asis", echo = FALSE}
+knitr::kable(resTop20)
+```
+
+### Using *ensembldb* to query for genes encoding a specific protein domain
+
+For some experiments it might be interesting to search for genes, or rather
+transcripts, that encode a protein with a certain protein domain. For the
+present data set we could for example search for genes with proteins encoding
+the ligand binding domain of nuclear hormone receptors (such as the
+glucocorticoid receptor, the gene activated by treatment with the synthetic
+glucocorticoid dexamethasone and hence being mainly responsible for the
+transcriptional changes observed in the present dataset). Below we thus query
+the database for all such genes using the protein domain ID
+[PF00104](http://pfam.xfam.org/family/PF00104) from Pfam. The filter used in the
+query below will return all genes with a transcript annotated to the specific
+protein domain restricting to genes that are detected in the present analysis.
+
+```{r protein-domain-query}
+hormoneR <- genes(edb,
+                  filter = ~ protein_domain_id == "PF00104" &
+                      gene_id == rownames(res),
+                  return.type = "data.frame")
+rownames(hormoneR) <- hormoneR$gene_id
+nrow(hormoneR)
+```
+
+In total `r nrow(hormoneR)` genes were identified. Next we identify nuclear
+hormone receptors which are significantly differentially expressed at a 5% FDR
+in the present data set.
+
+```{r hormone-receptors-res}
+resHormoneR <- res[hormoneR$gene_id, ]
+resHormoneR <- resHormoneR[which(resHormoneR$padj < 0.05), ]
+resHormoneR <- cbind(hormoneR[rownames(resHormoneR), ],
+                     resHormoneR)
+```
+
+The table below lists the significantly differentially expressed hormone
+receptors.
+
+```{r hormone-receptors-res-table, results = "asis"}
+knitr::kable(resHormoneR[order(resHormoneR$pvalue),
+                         c("gene_name", "padj", "log2FoldChange")])
+```
+
+Among the regulated hormone receptors are NR4A3, encoding a member of the
+steroid-thyroid hormone-retinoid receptor superfamily (4-fold upregulated), but
+also the glucocorticoid receptor (NR3C1) itself, which is known to down-regulate
+in certain cell types its own gene as part of a negative feedback loop.
+
 
 ## Performing differential expression testing with *edgeR*
 
