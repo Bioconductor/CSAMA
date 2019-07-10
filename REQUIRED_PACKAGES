@@ -63,8 +63,12 @@ GenomicRanges
 SummarizedExperiment
 BSgenome
 BSgenome.Hsapiens.UCSC.hg19
+BSgenome.Hsapiens.UCSC.hg38
 TxDb.Hsapiens.UCSC.hg19.knownGene
 TxDb.Hsapiens.UCSC.hg38.knownGene
+hugene20sttranscriptcluster.db
+Homo.sapiens
+GO.db
 org.Hs.eg.db
 biomaRt
 Organism.dplyr
@@ -73,6 +77,8 @@ AnnotationHub
 BiocFileCache
 rtracklayer
 GenomicAlignments
+curatedTCGAData
+KEGGREST
 
 ## Charlotte Soneson (CS)
 ## In addition to installing the TENxPBMCData package, it would be great if the 

@@ -43,7 +43,7 @@ suppressPackageStartupMessages({
 `columns()`, `mapIds()`, `select()`
 
 ```{r, message=FALSE}
-library(tidyverse)
+library(tidyverse)
 library(org.Hs.eg.db)
 columns(org.Hs.eg.db)
 brca <- c("BRCA1", "BRCA2")
@@ -52,8 +52,8 @@ AnnotationDbi::select(
     org.Hs.eg.db, brca, c("ENSEMBL", "GO"), keytype = "SYMBOL"
 ) %>% as_tibble()
 
-library(TxDb.Hsapiens.UCSC.hg38.knownGene)
-columns(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+columns(TxDb.Hsapiens.UCSC.hg19.knownGene)
 
 library(GO.db)
 columns(GO.db)
@@ -64,20 +64,20 @@ columns(GO.db)
 `exons()`, `genes()`, `transcripts()`, `promoters()`, ..., `exonsBy()`, ...
 
 ```{r}
-ex <- exons(TxDb.Hsapiens.UCSC.hg38.knownGene)
+ex <- exons(TxDb.Hsapiens.UCSC.hg19.knownGene)
 ex
 keepStandardChromosomes(ex, pruning.mode = "coarse")
-cds <- cdsBy(TxDb.Hsapiens.UCSC.hg38.knownGene, "tx", use.names=TRUE)
+cds <- cdsBy(TxDb.Hsapiens.UCSC.hg19.knownGene, "tx", use.names=TRUE)
 ```
 
 `getSeq()`, `extractTranscriptSeqs()`, ...
 
 ```{r, message=FALSE}
 library(GenomicFeatures)
-library(BSgenome.Hsapiens.UCSC.hg38)
+library(BSgenome.Hsapiens.UCSC.hg19)
 rname <- "hg38 cds"
 if (!NROW(BiocFileCache::bfcquery(query=rname, field="rname"))) {
-    seq_cds <- extractTranscriptSeqs(BSgenome.Hsapiens.UCSC.hg38, cds)
+    seq_cds <- extractTranscriptSeqs(BSgenome.Hsapiens.UCSC.hg19, cds)
     saveRDS(seq_cds, BiocFileCache::bfcnew(rname=rname))
 }
 seq_cds <- readRDS(BiocFileCache::bfcrpath(rname = rname))
@@ -102,7 +102,7 @@ translate(seq_cds_clean)
 
 ```{r, message = FALSE}
 library(Organism.dplyr)
-hsap <- src_organism("TxDb.Hsapiens.UCSC.hg38.knownGene")
+hsap <- src_organism("TxDb.Hsapiens.UCSC.hg19.knownGene")
 hsap
 tbl(hsap, "id")
 tbl(hsap, "ranges_tx")
@@ -122,7 +122,7 @@ left_join(tbl(hsap, "id"), tbl(hsap, "ranges_tx"))
 - 'current' but more difficult to version, less reliable, not robust
   to big queries.
 
-```{r, message = FALSE}
+```{r, message = FALSE, eval=FALSE}
 library(biomaRt)
 
 ## Discover and then selected mart
