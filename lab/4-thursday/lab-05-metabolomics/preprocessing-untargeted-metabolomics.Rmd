@@ -22,6 +22,7 @@ references:
 
 ```{r style, message = FALSE, echo = FALSE, warning = FALSE, results = "asis"}
 library("BiocStyle")
+library("knitr")
 library("rmarkdown")
 opts_chunk$set(message = FALSE, error = FALSE, warning = FALSE,
                cache = FALSE, fig.width = 5, fig.height = 5) 
@@ -143,7 +144,7 @@ the function to read only general metadata into memory. The m/z and intensity
 values are not imported but retrieved from the original files on demand, which
 enables also analyses of very large experiments.
 
-```{r  load-data, message = FALSE }
+```{r load-data}
 library(xcms)
 library(magrittr)
 
@@ -164,7 +165,12 @@ registered and available from the beginning of the analysis. All data access and
 analysis functions of `xcms` and `MSnbase` are parallelized on a per-file basis
 and will use this setup by default.
 
-```{r  parallel-setup, message = FALSE }
+```{r serial-processing, echo = FALSE}
+#' Disable parallel processing for non-interactive rendering
+register(SerialParam())
+```
+
+```{r parallel-setup, eval = FALSE}
 #' Set up parallel processing using 2 cores
 if (.Platform$OS.type == "unix") {
     register(bpstart(MulticoreParam(2)))
@@ -178,7 +184,7 @@ The MS experiment data is now represented as an `OnDiskMSnExp` object. Phenotype
 information can be retrieved with the `pData` function, single columns in the
 phenotype table using `$`. Below we access sample descriptions.
 
-```{r  show-pData, message = FALSE }
+```{r show-pData}
 #' Access phenotype information
 pData(data)
 
@@ -190,7 +196,7 @@ General information on each spectrum in the experiment can be accessed with the
 `fData` function, that returns a `data.frame` each row with metadata information
 for one spectrum.
 
-```{r  show-fData, message = FALSE }
+```{r show-fData}
 #' Access spectrum header information
 head(fData(data), n = 3) 
 ```
@@ -206,7 +212,7 @@ respective value for all spectra from all files. Here, the `fromFile` function
 can be helpful which returns for each spectrum the index of the file in which it
 was measured. This is shown in the code block below.
 
-```{r  general-access, message = FALSE }
+```{r general-access}
 #' Get the retention time
 head(rtime(data))
 
@@ -231,7 +237,7 @@ below all spectra measured between 180 and 181 seconds. These contain the signal
 from all compounds that eluted from the LC in that time window. Note that we use
 the pipe operator `%>%` from the `magrittr` package for better readability.
 
-```{r  spectra-filterRt, message = FALSE }
+```{r spectra-filterRt}
 #' Get all spectra measured between 180 and 181 seconds
 #' Use %>% to avoid nested function calls
 sps <- data %>%
@@ -242,7 +248,7 @@ sps <- data %>%
 The result is a `list` of `Spectrum` objects. Below we determine the number of
 spectra we have got.
 
-```{r  spectra-filterRt-length, message = FALSE }
+```{r spectra-filterRt-length}
 #' How many spectra?
 length(sps) 
 ```
@@ -250,7 +256,7 @@ length(sps)
 We can use the `fromFile` function to determine from which file/sample each
 spectrum is.
 
-```{r  spectra-filterRt-fromFile, message = FALSE }
+```{r spectra-filterRt-fromFile}
 #' From which file?
 sapply(sps, fromFile) 
 ```
@@ -259,7 +265,7 @@ We have thus 3 spectra per file. Next we plot the data from the last spectrum
 (i.e. the 3rd spectrum in the present retention time window from the second
 file).
 
-```{r spectrum-plot, message = FALSE, fig.cap = "Spectrum at a retention time of about 180 seconds."}
+```{r spectrum-plot, fig.cap = "Spectrum at a retention time of about 180 seconds."}
 plot(sps[[6]]) 
 ```
 
@@ -287,7 +293,7 @@ file and plot it. The TIC represents the sum of all measured signals per
 spectrum (i.e. per discrete time point) and provides thus a general information
 about compound separation by liquid chromatography.
 
-```{r  chromatogram-tic, message = FALSE, fig.cap = "Total ion chromatogram.", fig.width = 10, fig.height = 5 }
+```{r chromatogram-tic, fig.cap = "Total ion chromatogram.", fig.width = 10, fig.height = 5 }
 #' Get chromatographic data (TIC) for an m/z slice
 chr <- chromatogram(data)
 chr
@@ -301,7 +307,7 @@ The object returned by the `chromatogram` function arranges the individual
 and rows data slices. Below we extract the (total ion) intensities from the TIC
 of the first file.
 
-```{r  chromatogram-tic-intensity, message = FALSE }
+```{r chromatogram-tic-intensity}
 ints <- intensity(chr[1, 1])
 head(ints) 
 ```
@@ -310,7 +316,7 @@ The object contains also all phenotype information from the original `data`
 variable. This can be accessed in the same way than for `OnDiskMSnExp` objects
 (or most other data objects in Bioconductor).
 
-```{r  chromatogram-pdata, message = FALSE }
+```{r chromatogram-pdata}
 #' Access the full phenotype data
 pData(chr) 
 ```
@@ -325,7 +331,7 @@ of a single ion species. Below we extract and plot the ion chromatogram for
 Serine after first filtering the data object to the retention time window and
 m/z range containing signal for this compound.
 
-```{r serine-xic, message = FALSE, fig.cap = "Extracted ion chromatogram for the Serine [M+H]+ ion in both files."}
+```{r serine-xic, fig.cap = "Extracted ion chromatogram for the Serine [M+H]+ ion in both files."}
 #' Extract and plot the XIC for Serine
 data %>%
     filterRt(rt = c(175, 189)) %>%
@@ -362,7 +368,7 @@ combined chromatographic and *map* visualization of the data (i.e. a plot of the
 individual m/z, rt and intensity data tuples with data points colored by their
 intensity in the m/z - retention time space).
 
-```{r serine-profile-mode-data, message = FALSE, fig.cap = "Profile data for Serine.", fig.width = 10, fig.height = 5, fig.pos = "h!", warning = FALSE}
+```{r serine-profile-mode-data, fig.cap = "Profile data for Serine.", fig.width = 10, fig.height = 5, fig.pos = "h!"}
 #' Filter the MS data to the signal from the Serine ion and plot it using
 #' type = "XIC"
 data %>%
@@ -381,7 +387,7 @@ usually improves data quality by reducing noise. Subsequently we perform the
 centroiding based on a simple peak-picking strategy that reports the maximum
 signal for each mass peak in each spectrum.
 
-```{r centroiding, message = FALSE, warning = FALSE, fig.cap = "Centroided data for Serine.", fig.width = 10, fig.height = 5, fig.pos = "h!", warning = FALSE}
+```{r centroiding, fig.cap = "Centroided data for Serine.", fig.width = 10, fig.height = 5, fig.pos = "h!"}
 #' Smooth the signal, then do a simple peak picking.
 data_cent <- data %>%
     smooth(method = "SavitzkyGolay", halfWindowSize = 6) %>%
@@ -407,7 +413,7 @@ intensity values are retrieved. To make any data manipulation on an
 re-read the data again. Below we thus save the centroided data as mzML files and
 import it again.
 
-```{r export-centroided-prepare, message = FALSE, echo = FALSE, warnings = FALSE, results = "hide" }
+```{r export-centroided-prepare, echo = FALSE, results = "hide"}
 #' Silently removing exported mzML files if they do already exist.
 lapply(basename(fileNames(data)), function (z) {
     if (file.exists(z))
@@ -415,7 +421,7 @@ lapply(basename(fileNames(data)), function (z) {
 })
 ```
 
-```{r export-centroided, message = FALSE, warning = FALSE}
+```{r export-centroided}
 #' Write the centroided data to files with the same names in the current
 #' directory
 fls_new <- basename(fileNames(data))
@@ -464,7 +470,7 @@ chromatograms of e.g. internal standards or known compounds in the data. Below
 we extract the chromatographic data for Serine and perform a peak detection on
 the `Chromatogram` object using the default parameters for centWave.
 
-```{r centWave-default, message = FALSE, fig.cap = "XIC for Serine", results = "hide"}
+```{r centWave-default, fig.cap = "XIC for Serine"}
 #' Get the XIC for serine 
 srn_chr <- chromatogram(data_cent, rt = c(165, 200),
                         mz = c(106.03, 106.06),
@@ -483,7 +489,7 @@ findChromPeaks(srn_chr, param = cwp)
 No peaks were identified by the call above. Looking at the default values for
 the centWave parameters helps understanding why peak detection failed:
 
-```{r centWave-default-parameters, message = FALSE}
+```{r centWave-default-parameters}
 cwp
 ```
 
@@ -494,7 +500,7 @@ seconds and re-run the peak detection. In general, it is advised to investigate
 peak widths for several ions in the data set to determine the most appropriate
 `peakwidth` setting.
 
-```{r centWave-adapted, message = FALSE, fig.cap = "XIC for Serine with detected chromatographic peak (colored in grey).", results = "hide" }
+```{r centWave-adapted, fig.cap = "XIC for Serine with detected chromatographic peak (colored in grey)."}
 cwp <- CentWaveParam(peakwidth = c(2, 10))
 
 srn_chr <- findChromPeaks(srn_chr, param = cwp)
@@ -526,7 +532,7 @@ region of interest that is then subject to the CWT-based peak detection (same
 as performed above on the XIC). To illustrate this, we plot the data for
 Serine with the option `type = "XIC"`.
 
-```{r Serine-mz-scattering-plot, message = FALSE, fig.width = 10, fig.height = 8}
+```{r Serine-mz-scattering-plot, fig.width = 10, fig.height = 8}
 #' Restrict the data to signal from Serine
 srn <- data_cent %>%
     filterRt(rt = c(179, 186)) %>%
@@ -541,7 +547,7 @@ in the plot above), that decreases with increasing intensity of the signal. We
 next calculate the differences in m/z values between consecutive scans in this
 data subset.
 
-```{r define-ppm, message = FALSE }
+```{r define-ppm}
 #' Extract the Serine data for one file as a data.frame
 srn_df <- as(filterFile(srn, 1), "data.frame")
 
@@ -556,7 +562,7 @@ a value that allows to capture the full chromatographic peaks for most of the
 tested compounds. We can next perform the peak detection using our settings for
 the `ppm` and `peakwidth` parameters on the full data set.
 
-```{r findPeaks-centWave, message = FALSE}
+```{r findPeaks-centWave}
 #' Perform peak detection
 cwp <- CentWaveParam(peakwidth = c(2, 10), ppm = 30)
 data_cent <- findChromPeaks(data_cent, param = cwp) 
@@ -570,7 +576,7 @@ with the optional `rt` and `mz` parameters, allows to extract identified
 chromatographic peaks from specific areas in the data. Below we extract all
 identified peaks for a certain m/z - rt area.
 
-```{r xcmsnexp, message = FALSE}
+```{r xcmsnexp}
 #' Access the peak detection results from a specific m/z - rt area
 chromPeaks(data_cent, mz = c(106, 107), rt = c(150, 190)) 
 ```
@@ -586,7 +592,7 @@ identified peaks to e.g. identify samples with much less detected peaks. Also,
 we can use the `plotChromPeaks` function to provide some general information on
 the location of the identified chromatographic peaks in the m/z - rt space.
 
-```{r plotChromPeaks, message = FALSE, fig.cap = "Location of the identified chromatographic peaks in the m/z - rt space.", fig.width = 10, fig.height = 5}
+```{r plotChromPeaks, fig.cap = "Location of the identified chromatographic peaks in the m/z - rt space.", fig.width = 10, fig.height = 5}
 par(mfrow = c(1, 2))
 plotChromPeaks(data_cent, 1)
 plotChromPeaks(data_cent, 2) 
@@ -604,7 +610,7 @@ differences. Note that with `peakType = "none"` we disable plotting of
 identified chromatographic peaks that would be drawn by default on chromatograms
 extracted from an object containing peak detection results.
 
-```{r alignment-bpc-raw, message = FALSE, fig.cap = "BPC of all files.", fig.width = 8, fig.height = 4}
+```{r alignment-bpc-raw, fig.cap = "BPC of all files.", fig.width = 8, fig.height = 4}
 #' Extract base peak chromatograms
 bpc_raw <- chromatogram(data_cent, aggregationFun = "max")
 plot(bpc_raw, peakType = "none")
@@ -637,7 +643,7 @@ the retention time axis to be adjusted by a different factor. A value of 0 will
 most likely cause overfitting, while 1 would perform a constant, linear
 shift. Values between 0.4 and 0.6 seem to be reasonable for most experiments.
 
-```{r alignment-correspondence, message = FALSE}
+```{r alignment-correspondence}
 #' Define the settings for the initial peak grouping - details for
 #' choices in the next section.
 pdp <- PeakDensityParam(sampleGroups = data_cent$group, bw = 1.8,
@@ -657,7 +663,7 @@ peaks were adjusted by the `adjustRtime` call. After alignment it is suggested
 to evaluate alignment results e.g. by inspecting differences between raw and
 adjusted retention times.
 
-```{r alignment-result, message = FALSE, fig.width = 8, fig.height = 4, fig.cap = "Alignment results. Shown is the difference between raw and adjusted retention times and the hook peaks that were used for the alignment (shown as points)."}
+```{r alignment-result, fig.width = 8, fig.height = 4, fig.cap = "Alignment results. Shown is the difference between raw and adjusted retention times and the hook peaks that were used for the alignment (shown as points)."}
 #' Plot the difference between raw and adjusted retention times
 plotAdjustedRtime(data_cent) 
 ```
@@ -668,7 +674,7 @@ measured within a short time period and differences are thus expected to be
 small. Also, hook peaks should ideally be present along the full retention time
 range. Next we plot the base peak chromatograms before and after alignment.
 
-```{r bpc-raw-adjusted, message = FALSE, fig.cap = "BPC before (top) and after (bottom) alignment.", fig.width = 10, fig.height = 7}
+```{r bpc-raw-adjusted, fig.cap = "BPC before (top) and after (bottom) alignment.", fig.width = 10, fig.height = 7}
 par(mfrow = c(2, 1))
 #' Plot the raw base peak chromatogram
 plot(bpc_raw, peakType = "none")
@@ -681,7 +687,7 @@ adjustment. The impact of the alignment should also be evaluated on known
 compounds or internal standards. We thus plot below the XIC for Serine before
 and after alignment.
 
-```{r serine-xic-adjusted, message = FALSE, fig.cap = "XIC for Serine before (left) and after (right) alignment", fig.width = 10, fig.height = 4}
+```{r serine-xic-adjusted, fig.cap = "XIC for Serine before (left) and after (right) alignment", fig.width = 10, fig.height = 4}
 #' Use adjustedRtime parameter to access raw/adjusted retention times
 par(mfrow = c(1, 2), mar = c(4, 4.5, 1, 0.5))
 plot(chromatogram(data_cent, mz = c(106.04, 106.06),
@@ -716,7 +722,7 @@ containing the Serine peak and use the `plotChromPeakDensity` function to
 visualize the distribution of peaks along the retention time axis and to
 *simulate* a correspondence analysis based on the provided settings.
 
-```{r correspondence-example, message = FALSE, results = "hide", fig.cap = "BPC for a m/z slice and defined features within this slice based on default settings.", fig.width = 10, fig.height = 7}
+```{r correspondence-example, fig.cap = "BPC for a m/z slice and defined features within this slice based on default settings.", fig.width = 10, fig.height = 7}
 #' Extract an ion chromatogram containing the signal from serine
 chr <- chromatogram(data_cent, mz = c(106.04, 106.06),
                     aggregationFun = "max")
@@ -756,7 +762,7 @@ from multiple ions with the same m/z, including isomers Betaine and Valine
 ([M+H]+ m/z 118.08625).
 
 
-```{r correspondence-bw, message = FALSE, fig.cap = "Correspondence analysis with default settings on a m/z slice containing signal from multiple ions.", fig.width = 10, fig.height = 7}
+```{r correspondence-bw, fig.cap = "Correspondence analysis with default settings on a m/z slice containing signal from multiple ions.", fig.width = 10, fig.height = 7}
 #' Plot the chromatogram for an m/z slice containing Betaine and Valine
 mzr <- 118.08625 + c(-0.01, 0.01)
 chr <- chromatogram(data_cent, mz = mzr, aggregationFun = "max")
@@ -772,7 +778,7 @@ grouped into the same feature. Signal from different ions would thus be treated
 as a single entity. Below we repeat the analysis with a strongly reduced value
 for `bw`.
 
-```{r correspondence-bw-fix, message = FALSE, fig.cap = "Correspondence analysis with reduced bw setting on a m/z slice containing signal from multiple ions.", fig.width = 10, fig.height = 7}
+```{r correspondence-bw-fix, fig.cap = "Correspondence analysis with reduced bw setting on a m/z slice containing signal from multiple ions.", fig.width = 10, fig.height = 7}
 #' Reducing the bandwidth
 pdp <- PeakDensityParam(sampleGroups = data_cent$group, bw = 1.8)
 plotChromPeakDensity(chr, param = pdp)
@@ -783,7 +789,7 @@ With a `bw` of `1.8` we successfully grouped the peaks into different
 features. We can now use these settings for the correspondence analysis on the
 full data set.
 
-```{r correspondence-analysis, message = FALSE}
+```{r correspondence-analysis}
 pdp <- PeakDensityParam(sampleGroups = data_cent$group, bw = 1.8,
                         minFraction = 0.4, binSize = 0.02)
 
@@ -796,7 +802,7 @@ slice containing isomers Leucine and Isoleucine ([M+H]+ m/z 132.10191). Setting
 `simulate = FALSE` in `plotChromPeakDensity` will show the actual results from
 the correspondence analysis.
 
-```{r correspondence-evaluate, message = FALSE, fig.cap = "Result of correspondence on a slice containing the isomers Leucine and Isoleucine.", fig.width = 10, fig.height = 7}
+```{r correspondence-evaluate, fig.cap = "Result of correspondence on a slice containing the isomers Leucine and Isoleucine.", fig.width = 10, fig.height = 7}
 #' Plot the chromatogram for an m/z slice containing Leucine and Isoleucine
 mzr <- 132.10191 + c(-0.01, 0.01)
 chr <- chromatogram(data_cent, aggregationFun = "max", mz = mzr)
@@ -811,7 +817,7 @@ Results from the correspondence analysis can be accessed with the
 retention time and m/z ranges of the apex positions from the peaks assigned to
 the feature and their respective indices in the `chromPeaks` matrix.
 
-```{r correspondence-featureDefinitions, message = FALSE }
+```{r correspondence-featureDefinitions}
 #' Definition of the features
 featureDefinitions(data_cent)
 ```
@@ -822,7 +828,7 @@ number and the percentage of samples in which a peak was detected and the total
 numbers and percentage of these samples in which more than one peak was assigned
 to the feature.
 
-```{r correspondence-featureSummary, message = FALSE }
+```{r correspondence-featureSummary}
 #' Per-feature summary.
 head(featureSummary(data_cent)) 
 ```
@@ -837,7 +843,7 @@ the feature. Below we set `value = "into"` (the default) to extract the total
 integrated peak area and `method = "maxint"` to report the peak area of the peak
 with the largest intensity for features with multiple peaks in a sample.
 
-```{r correspondence-featureValue, message = FALSE}
+```{r correspondence-featureValue}
 #' feature intensity matrix
 fmat <- featureValues(data_cent, value = "into", method = "maxint")
 head(fmat)
@@ -864,7 +870,7 @@ dimension by a constant value. In the example below we fill-in missing peak data
 expanding the feature region by the median width of all chromatographic peaks
 in the data.
 
-```{r fillChromPeaks, message = FALSE}
+```{r fillChromPeaks}
 #' Number of missing values
 sum(is.na(fmat))
 
@@ -896,21 +902,21 @@ preprocessing results, also a history of all processing steps and all parameter
 objects used during the analysis. The process history can be accessed with the
 `processHistory` function.
 
-```{r correspondence-result-object, message = FALSE}
+```{r correspondence-result-object}
 #' Overview of the performed processings
 processHistory(data_cent)
 ```
 
 The parameter object for one analysis step can be accessed with `processParam`:
 
-```{r correspondence-history, message = FALSE}
+```{r correspondence-history}
 #' Access the parameter class for a processing step
 processParam(processHistory(data_cent)[[1]])
 ```
 
 # Session information
 
-```{r  sessionInfo }
+```{r sessionInfo}
 devtools::session_info() 
 ```
 
