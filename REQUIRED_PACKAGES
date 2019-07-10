@@ -3,6 +3,18 @@
 ## Vincent J. Carey (VJC)
 
 ## Laurent Gatto (LG)
+MSnbase
+statOmics/MSqRob
+msdata (>= 0.24.1)
+magrittr
+dplyr
+ggplot2
+pRolocdata
+pRoloc
+RforProteomics
+rpx
+rols
+MSnID
 
 ## Robert Gentleman (RG)
 
