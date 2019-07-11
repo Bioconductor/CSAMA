@@ -2,11 +2,11 @@
 
 * Annotation resources - =ensembldb=
 
-*CSAMA2018*
+*CSAMA2019*
 
 *Johannes Rainer* (Eurac Research, Italy)
 johannes.rainer@eurac.edu
-github/twitter: /jotsetung/
+github: /jorainer/ twitter: /jo_rainer/
 
 ** Annotation of genomic regions
 
@@ -22,7 +22,7 @@ github/twitter: /jotsetung/
   - =txBy=
   - =exonsBy=
   - ... 
-+ Results are returned as =GRanges= or =GRangesList= objects.
++ Results returned as =GRanges=, =GRangesList= or =DataFrame=.
 + _Example_: get all gene annotations from an =EnsDb=:
   #+BEGIN_SRC R
     ## Load the database for human genes, Ensembl release 86.
@@ -99,8 +99,17 @@ github/twitter: /jotsetung/
   - =proteinToGenome=
   - =proteinToTranscript=
 
+** Where to find =EnsDb= databases?
+
++ =AnnotationHub=!
++ _Example_: list =EnsDb= databases in =AnnotationHub=
+  #+BEGIN_SRC R
+    library(AnnotationHub)
+    ah <- AnnotationHub()
+    query(ah, "EnsDb")
+  #+END_SRC
+
 ** Finally...
 
 *Thank you for your attention!*
 
-*... and good luck to the brave runners ...*
