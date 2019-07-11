@@ -914,12 +914,6 @@ The parameter object for one analysis step can be accessed with `processParam`:
 processParam(processHistory(data_cent)[[1]])
 ```
 
-# Session information
-
-```{r sessionInfo}
-devtools::session_info() 
-```
-
 ## Bonus material - peak detection fun
 
 In this section we apply the lessons learned from previous sections, in
@@ -988,6 +982,11 @@ peak, colored red) and the famous [*Drei
 Zinnen*](https://en.wikipedia.org/wiki/Tre_Cime_di_Lavaredo) (right tri-forked
 peak colored green).
 
+# Session information
+
+```{r sessionInfo}
+devtools::session_info() 
+```
 
 # References
 
