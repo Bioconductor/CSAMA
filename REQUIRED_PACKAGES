@@ -78,7 +78,7 @@ BiocFileCache
 rtracklayer
 GenomicAlignments
 curatedTCGAData
-KEGGREST
+airway
 
 ## Charlotte Soneson (CS)
 ## In addition to installing the TENxPBMCData package, it would be great if the 
