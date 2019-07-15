@@ -1,0 +1,57 @@
+/* slides > slide.backdrop { */
+/*   background: white; */
+/*   border-bottom: 0px; */
+/*   box-shadow: 0 0 0; */
+/* } */
+
+slides > slide {
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  border-bottom: 3px solid #d04c29;
+  color: #1e2b38;
+  padding: 20px 20px 30px 30px;	/*top right bottom left*/
+  /* color: #34495e; */
+  /* background: #ffffff; */
+  /* color: #838b93; */
+  /* box-shadow:  0 3px 0 #522D80; */
+}
+
+/* The source code blocks */
+pre {
+    line-height: 20px;
+    /* padding-top: 0px; */
+    /* font-family: 'Inconsolata', sans-serif; */
+}
+
+h1 {
+    color: #d04c29;
+}
+
+h2 {
+    color: #d04c29;
+}
+
+h3 {
+    color: #d04c29;
+}
+
+strong {
+    color: #d04c29;
+}
+
+code {
+    /* color: #6baee2; */
+    color: #446CB3;
+}
+
+ul {
+    list-style: none;
+}
+
+ul li::before {
+    content: "\2022";
+    color: #cccdcc;
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}

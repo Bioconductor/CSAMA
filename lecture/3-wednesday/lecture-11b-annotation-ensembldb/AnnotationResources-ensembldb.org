@@ -46,11 +46,11 @@ github: /jorainer/ twitter: /jo_rainer/
 + _Example_: create filters
   #+BEGIN_SRC R
     ## Create filter using the constructor function
-    gnf <- GenenameFilter("BCL2", condition = "!=")
+    gnf <- GeneNameFilter("BCL2", condition = "!=")
     gnf
 
     ## Create using a filter expression
-    gnf <- AnnotationFilter(~ genename != "BCL2")
+    gnf <- AnnotationFilter(~ gene_name != "BCL2")
     gnf
 
     ## Combine filters
@@ -69,19 +69,20 @@ github: /jorainer/ twitter: /jo_rainer/
 + _Example_: get all transcripts for the gene /BCL2/.
   #+BEGIN_SRC R
     ## Get all transcripts for BCL2
-    txs <- transcripts(edb, filter = ~ genename == "BCL2")
+    txs <- transcripts(edb, filter = ~ gene_name == "BCL2")
     txs
 
     ## Combine filters: only protein coding tx for the gene
-    txs <- transcripts(edb, filter = ~ genename == "BCL2" &
+    txs <- transcripts(edb, filter = ~ gene_name == "BCL2" &
                                 tx_biotype == "protein_coding")
 
 
     ## For the pipe lovers:
     library(magrittr)
     txs <- edb %>%
-        filter(~ genename == "BCL2" & tx_biotype == "protein_coding") %>%
+        filter(~ gene_name == "BCL2" & tx_biotype == "protein_coding") %>%
         transcripts
+    txs
   #+END_SRC
 + Filters speed up queries.
 
