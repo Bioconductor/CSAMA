@@ -38,7 +38,6 @@ fdrtool
 ggbeeswarm
 ggplot2
 IHW
-kableExtra
 magick
 parallel
 RColorBrewer
@@ -46,7 +45,7 @@ readr
 rmarkdown
 sysfonts
 tufte
-xfun 
+xfun
 
 ## Katharina Imkeller (KI)
 
@@ -62,7 +61,16 @@ magrittr
 pander
 png
 
-## Davide Risso (DR) 
+## Davide Risso (DR)
+zinbwave
+scater
+scran
+SingleCellExperiment
+slingshot
+batchelor
+clusterExperiment
+scRNAseq
+TENxPBMCData
 
 ## Lori Shepherd (LS)
 Biostrings
