@@ -121,7 +121,19 @@ ul > li:before {
 
 </article></slide><slide class=""><hgroup><h2>Task</h2></hgroup><article  id="task">
 
-<p>Annotating data is a complex task. For any high-throughput experiment the analyst usually starts with a set of identifiers for each thing that was measured, and in order to make the results useful to collaborators these identifiers need to be mapped to other identifiers that are either more familiar to collaborators, or that can be used for further analyses. As an example, RNA-Seq data may only have Entrez Gene IDs for each gene measured, and as part of the output you may want to include the gene symbols, which are more likely to be familiar to a Biologist.</p>
+<ol>
+<li><p>Start with set of identifers that are measured</p></li>
+<li><p>Map to new identifiers.</p></li>
+</ol>
+
+<p>Why:</p>
+
+<ul>
+<li>more familiar to collaborators</li>
+<li>can be used for further analyses.</li>
+</ul>
+
+<p>As an example, RNA-Seq data may only have Entrez Gene IDs for each gene measured, and as part of the output you may want to include the gene symbols, which are more likely to be familiar to a Biologist.</p>
 
 </article></slide><slide class=""><hgroup><h2>What do we mean by annotation?</h2></hgroup><article  id="what-do-we-mean-by-annotation">
 
@@ -137,36 +149,36 @@ ul > li:before {
 <th align="left">Example</th>
 </tr>
 <tr class="odd">
-<td align="left">ChipDb</td>
-<td align="left">hugene20sttranscriptcluster.db</td>
-</tr>
-<tr class="even">
 <td align="left">OrgDb</td>
 <td align="left">org.Hs.eg.db</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">TxDb/EnsDb</td>
 <td align="left">TxDb.Hsapiens.UCSC.hg19.knownGene; EnsDb.Hsapiens.v75</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">OrganismDb</td>
 <td align="left">Homo.sapiens</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">BSgenome</td>
 <td align="left">BSgenome.Hsapiens.UCSC.hg19</td>
 </tr>
-<tr class="even">
-<td align="left">Others</td>
-<td align="left">GO.db; KEGG.db</td>
-</tr>
 <tr class="odd">
+<td align="left">Others</td>
+<td align="left">GO.db</td>
+</tr>
+<tr class="even">
 <td align="left">AnnotationHub</td>
 <td align="left">Online resource</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">biomaRt</td>
 <td align="left">Online resource</td>
+</tr>
+<tr class="even">
+<td align="left">ChipDb</td>
+<td align="left">hugene20sttranscriptcluster.db</td>
 </tr>
 </table>
 
@@ -213,6 +225,28 @@ ids</pre>
 ## 3 16894087   LINC01247
 ## 4 16813565   NR2F2-AS1
 ## 5 16951883     OSBPL10</pre>
+
+</article></slide><slide class=""><hgroup><h2>Second simple example</h2></hgroup><article  id="second-simple-example">
+
+<p>The data in the airway package is a RangedSummarizedExperiment constructed from an RNA-Seq experiment. Let map the ensembl gene identifiers to gene symbol.</p>
+
+<pre class = 'prettyprint lang-r'>library(airway)
+library(org.Hs.eg.db)
+data(airway)
+ids = head(rownames(airway))
+ids</pre>
+
+<pre >## [1] &quot;ENSG00000000003&quot; &quot;ENSG00000000005&quot; &quot;ENSG00000000419&quot; &quot;ENSG00000000457&quot;
+## [5] &quot;ENSG00000000460&quot; &quot;ENSG00000000938&quot;</pre>
+
+<pre class = 'prettyprint lang-r'>mapIds(org.Hs.eg.db, ids, &quot;SYMBOL&quot;, &quot;ENSEMBL&quot;)</pre>
+
+<pre >## &#39;select()&#39; returned 1:1 mapping between keys and columns</pre>
+
+<pre >## ENSG00000000003 ENSG00000000005 ENSG00000000419 ENSG00000000457 
+##        &quot;TSPAN6&quot;          &quot;TNMD&quot;          &quot;DPM1&quot;         &quot;SCYL3&quot; 
+## ENSG00000000460 ENSG00000000938 
+##      &quot;C1orf112&quot;           &quot;FGR&quot;</pre>
 
 </article></slide><slide class=""><hgroup><h2>Questions!</h2></hgroup><article  id="questions">
 
@@ -302,6 +336,14 @@ select(org.Hs.eg.db, brca, c(&quot;MAP&quot;, &quot;ONTOLOGY&quot;), &quot;SYMBO
 ## $BRCA2
 ## [1] &quot;BP&quot; &quot;CC&quot; &quot;MF&quot;</pre>
 
+<pre class = 'prettyprint lang-r'>mapIds(org.Hs.eg.db, brca, &quot;ONTOLOGY&quot;, &quot;SYMBOL&quot;, multiVals = &quot;CharacterList&quot;)</pre>
+
+<pre >## &#39;select()&#39; returned 1:many mapping between keys and columns</pre>
+
+<pre >## CharacterList of length 2
+## [[&quot;BRCA1&quot;]] BP CC MF
+## [[&quot;BRCA2&quot;]] BP CC MF</pre>
+
 </article></slide><slide class=""><hgroup><h2>TxDb packages</h2></hgroup><article  id="txdb-packages">
 
 <p>TxDb packages contain positional information; the contents can be inferred by the package name</p>
@@ -344,7 +386,7 @@ columns(TxDb.Hsapiens.UCSC.hg19.knownGene)</pre>
 ## 2      1 uc002qsf.2   chr19 58859832 58874214
 ## 3     10 uc003wyw.1    chr8 18248755 18258723</pre>
 
-</article></slide><slide class=""><hgroup><h2>But using <code>select</code> and <code>mapIds</code> are not how one normally uses them&#8230;</h2></hgroup><article  id="but-using-select-and-mapids-are-not-how-one-normally-uses-them...">
+</article></slide><slide class=""><hgroup><h2>But using <code>select</code> and <code>mapIds</code> are not how one normally uses TxDb objects&#8230;</h2></hgroup><article  id="but-using-select-and-mapids-are-not-how-one-normally-uses-txdb-objects...">
 
 <iframe src="https://giphy.com/embed/l0HlKrB02QY0f1mbm" width="380" height="170" frameBorder="0" class="giphy-embed" allowFullScreen>
 
@@ -392,7 +434,7 @@ gns</pre>
 
 <p><font size=4> Or the genomic position of all transcripts <strong>by</strong> gene:</p>
 
-<pre class = 'prettyprint lang-r'>txs &lt;- transcriptsBy(TxDb.Hsapiens.UCSC.hg19.knownGene)
+<pre class = 'prettyprint lang-r'>txs &lt;- transcriptsBy(TxDb.Hsapiens.UCSC.hg19.knownGene, by=&quot;gene&quot;)
 txs</pre>
 
 <pre >## GRangesList object of length 23459:
@@ -454,7 +496,7 @@ head(names(cds))</pre>
 
 <p>The main rationale for *Ranges objects is to allow us to easily select and subset data based on genomic position information. This is really powerful!</p>
 
-<p><code>GRanges</code> and <code>GRangesLists</code> act like data.frames and lists, and can be subsetted using the <code>[</code> function. As a really artificial example:</p>
+<p><code>GRanges</code> and <code>GRangesLists</code> act like vectors and lists, and can be subsetted using the <code>[</code> or <code>[[</code> function. As a really artificial example:</p>
 
 <pre class = 'prettyprint lang-r'>txs[txs %over% gns[1]]</pre>
 
@@ -654,17 +696,19 @@ head(prm, 3)</pre>
 
 </article></slide><slide class=""><hgroup><h2>BSgenome packages</h2></hgroup><article  id="bsgenome-packages">
 
-<p>BSgenome packages contain sequence information for a given species/build. There are many such packages - you can get a listing using <code>available.genomes</code></p>
+<p>BSgenome packages contain sequence information for a given
+  species/build. There are many such packages - you can get a listing
+  using <code>available.genomes</code> or <code>BiocManager::available</code></p>
 
 <pre class = 'prettyprint lang-r'>library(BSgenome)
-head(available.genomes())</pre>
+head(BiocManager::available(&quot;BSgenome&quot;))</pre>
 
-<pre >## [1] &quot;BSgenome.Alyrata.JGI.v1&quot;                
-## [2] &quot;BSgenome.Amellifera.BeeBase.assembly4&quot;  
-## [3] &quot;BSgenome.Amellifera.UCSC.apiMel2&quot;       
-## [4] &quot;BSgenome.Amellifera.UCSC.apiMel2.masked&quot;
-## [5] &quot;BSgenome.Aofficinalis.NCBI.V1&quot;          
-## [6] &quot;BSgenome.Athaliana.TAIR.04232008&quot;</pre>
+<pre >## [1] &quot;BSgenome&quot;                               
+## [2] &quot;BSgenome.Alyrata.JGI.v1&quot;                
+## [3] &quot;BSgenome.Amellifera.BeeBase.assembly4&quot;  
+## [4] &quot;BSgenome.Amellifera.UCSC.apiMel2&quot;       
+## [5] &quot;BSgenome.Amellifera.UCSC.apiMel2.masked&quot;
+## [6] &quot;BSgenome.Aofficinalis.NCBI.V1&quot;</pre>
 
 </article></slide><slide class=""><hgroup><h2>BSgenome packages</h2></hgroup><article  id="bsgenome-packages-1">
 
@@ -730,6 +774,7 @@ Hsapiens</pre>
 <p><br></p>
 
 <p>We will talk more about AnnotationHub when we talk about BiocFileCache in a different lecture.</p>
+
 
 </article></slide><slide class=""><hgroup><h2>biomaRt</h2></hgroup><article  id="biomart">
 
