@@ -51,6 +51,34 @@ xfun
 
 ## Martin Morgan (MM)
 
+ExperimentHub
+AnnotationHub
+ensembldb
+org.Hs.eg.db
+BSgenome.Hsapiens.UCSC.hg38
+TxDb.Hsapiens.UCSC.hg38.knownGene
+GO.db
+KEGGREST
+BiocManager
+S4Vectors
+Biostrings
+GenomicRanges
+GenomicAlignments
+SummarizedExperiment
+VariantAnnotation
+rtracklayer
+DESeq2
+airway
+limma
+biomaRt
+ensemblVEP
+curatedTCGAData
+dplyr
+ggplot2
+readr
+tibble
+tidyr
+
 ## Johannes Rainer (JR)
 ensembldb
 EnsDb.Hsapiens.v86
