@@ -37,6 +37,7 @@ suppressPackageStartupMessages({
     library(AnnotationDbi)
     library(Organism.dplyr)
     library(biomaRt)
+    library(airway)
 })
 ```
 
@@ -49,7 +50,16 @@ There are various annotation packages provided by the Bioconductor project that 
 
 ## Task
 
-Annotating data is a complex task. For any high-throughput experiment the analyst usually starts with a set of identifiers for each thing that was measured, and in order to make the results useful to collaborators these identifiers need to be mapped to other identifiers that are either more familiar to collaborators, or that can be used for further analyses. As an example, RNA-Seq data may only have Entrez Gene IDs for each gene measured, and as part of the output you may want to include the gene symbols, which are more likely to be familiar to a Biologist.
+1. Start with set of identifers that are measured
+
+2. Map to new identifiers. 
+
+   Why: 
+
+  * more familiar to collaborators
+  * can be used for further analyses. 
+  
+As an example, RNA-Seq data may only have Entrez Gene IDs for each gene measured, and as part of the output you may want to include the gene symbols, which are more likely to be familiar to a Biologist.
 
 
 ## What do we mean by annotation?
@@ -66,9 +76,9 @@ knitr::include_graphics("lecture-11-figures/mapping.png")
 
 ```{r, results = "asis", echo = FALSE, warning = FALSE}
 
-df <- data.frame("Package type" = c("ChipDb","OrgDb","TxDb/EnsDb","OrganismDb","BSgenome","Others","AnnotationHub","biomaRt"),
-		 Example = c("hugene20sttranscriptcluster.db","org.Hs.eg.db","TxDb.Hsapiens.UCSC.hg19.knownGene; EnsDb.Hsapiens.v75",
-			     "Homo.sapiens","BSgenome.Hsapiens.UCSC.hg19","GO.db; KEGG.db", "Online resource","Online resource"), check.names = FALSE)
+df <- data.frame("Package type" = c("OrgDb","TxDb/EnsDb","OrganismDb","BSgenome","Others","AnnotationHub","biomaRt", "ChipDb"),
+		 Example = c("org.Hs.eg.db","TxDb.Hsapiens.UCSC.hg19.knownGene; EnsDb.Hsapiens.v75",
+			     "Homo.sapiens","BSgenome.Hsapiens.UCSC.hg19","GO.db", "Online resource","Online resource","hugene20sttranscriptcluster.db"), check.names = FALSE)
 knitr::kable(df)
 
 ```
@@ -111,6 +121,20 @@ select(hugene20sttranscriptcluster.db, ids, "SYMBOL")
 
 ```
 
+## Second simple example
+
+The data in the airway package is a RangedSummarizedExperiment constructed from an RNA-Seq experiment. Let map the ensembl gene
+identifiers to gene symbol. 
+
+```{r, warning=FALSE}
+
+library(airway)
+library(org.Hs.eg.db)
+data(airway)
+ids = head(rownames(airway))
+ids
+mapIds(org.Hs.eg.db, ids, "SYMBOL", "ENSEMBL")
+```
 
 ## Questions!
 
@@ -176,7 +200,7 @@ duplicates. Other choices are `list`, `CharacterList`, `filter`,
 
 mapIds(org.Hs.eg.db, brca, "ONTOLOGY", "SYMBOL", multiVals = "list")
 
-
+mapIds(org.Hs.eg.db, brca, "ONTOLOGY", "SYMBOL", multiVals = "CharacterList")
 ```
 
 
@@ -214,7 +238,7 @@ select(TxDb.Hsapiens.UCSC.hg19.knownGene, c("1","10"),
 
 ```
 
-## But using `select` and `mapIds` are not how one normally uses them...
+## But using `select` and `mapIds` are not how one normally uses TxDb objects...
 
 
 <iframe src="https://giphy.com/embed/l0HlKrB02QY0f1mbm" width="380" height="170" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/colbertlateshow-stephen-colbert-wait-l0HlKrB02QY0f1mbm">via GIPHY</a></p>
@@ -243,7 +267,7 @@ gns
 Or the genomic position of all transcripts **by** gene:
 
 ```{r, warning = FALSE, size="tiny"}
-txs <- transcriptsBy(TxDb.Hsapiens.UCSC.hg19.knownGene)
+txs <- transcriptsBy(TxDb.Hsapiens.UCSC.hg19.knownGene, by="gene")
 txs
 ```
 </font>
@@ -268,7 +292,7 @@ cds["uc009vjk.2"]
 
 The main rationale for *Ranges objects is to allow us to easily select and subset data based on genomic position information. This is really powerful!
 
-`GRanges` and `GRangesLists` act like data.frames and lists, and can be subsetted using the `[` function. As a really artificial example:
+`GRanges` and `GRangesLists` act like vectors and lists, and can be subsetted using the `[` or `[[` function. As a really artificial example:
 
 ```{r, warning = FALSE}
 
@@ -384,12 +408,13 @@ inner_join(tbl(src, "id"), tbl(src, "ranges_gene")) %>%
 ## BSgenome packages
 
 BSgenome packages contain sequence information for a given
-species/build. There are many such packages - you can get a listing using `available.genomes`
+species/build. There are many such packages - you can get a listing using
+`available.genomes` or `BiocManager::available`
 
 ```{r, warning = FALSE}
 
 library(BSgenome)
-head(available.genomes())
+head(BiocManager::available("BSgenome"))
 
 ```
 ## BSgenome packages
