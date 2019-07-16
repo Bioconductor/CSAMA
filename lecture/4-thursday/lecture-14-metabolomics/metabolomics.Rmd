@@ -45,7 +45,7 @@ rmdshot("metabolomics.Rmd", "metabolomics.pdf")
 
 ## Content
 
-- Introduction to metabolomics
+- (Brief) introduction to metabolomics
 - Preprocessing of LC-MS data
 - Normalization
 - Annotation/identification
@@ -57,6 +57,11 @@ rmdshot("metabolomics.Rmd", "metabolomics.pdf")
 ```{r out.width = "750px", echo = FALSE}
 knitr::include_graphics("images/glycolysis_01.png")
 ```
+
+<div style="font-size: 80%;">
+- Key metabolic pathways common to all cells.
+- Creates energy by converting glucose to pyruvate.
+<div>
 
 ## Metabolite? Metabolism?
 
@@ -200,7 +205,7 @@ knitr::include_graphics("images/LC_01.png")
 
 - Sample is dissolved in a fluid (mobile phase).
 
-- Mobile phase carries analytes through a column with a stationary phase.
+- Mobile phase carries analytes through column (stationary phase).
 
 <div style="position:absolute; top:75%;left:25%">
 ```{r out.width = "500px", echo = FALSE}
@@ -479,7 +484,7 @@ knitr::include_graphics("images/correspondence2_01.png")
 knitr::include_graphics("images/correspondence2_density.png")
 ```
 
-## Preprocessing done {.build}
+## Preprocessing result {.build}
 
 - Numeric matrix with *abundances*.
 - Normalization.
@@ -504,13 +509,13 @@ knitr::include_graphics("images/FT07853.png")
 
 <div>
 - Good practice:
-  - QC control samples measured repeatedly.
+  - QC samples measured repeatedly.
   - Internal standards.
   - Replicates.
   - Measurement of study samples in randomized order.
 </div>
 <div>
-- Popular methods:
+- Popular normalization methods:
   - RUV [De Livera et al. Anal. Chem. 2015] 
   - linear models [Wehrens et al. Metabolomics 2016]
   - linear and higher order models [Brunius et al. Metabolomics 2016].
@@ -549,20 +554,20 @@ head(res, n = 4)
 - Mass of an [M+H]+ ion: m/z - mass of 1 hydrogen.
 </div>
 <div>
-- Different ions from the same compound: [M+H]+, [M+2H]++, [M+Na]+, ...
+- Different ions from the same compound: [M+H]+, [M+Na]+, ...
 </div>
 
 ## Improved Annotation {.build}
 
-Identify compounds based on m/z **and**:
+Annotate features based on m/z **and**:
 
 <div>
 - **retention time**: requires measurement of compound/standard on the same
-  LC-MS setup.  
+  LC-MS setup.
 </div>
 <div>
 - **MS2 spectrum**:
-  - Needs MS2 data of the compounds (DDA or DIA).
+  - Requires LC-MS/MS data (DDA or DIA).
   - Reference spectrum has to be available in database.
   - GNPS: spectral similarity network: group spectra/compounds into classes.
 </div>

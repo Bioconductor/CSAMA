@@ -18,6 +18,7 @@ slides > slide {
 /* The source code blocks */
 pre {
     line-height: 20px;
+    font-size: 18px;
     /* padding-top: 0px; */
     /* font-family: 'Inconsolata', sans-serif; */
 }
@@ -40,7 +41,12 @@ strong {
 
 code {
     /* color: #6baee2; */
-    color: #446CB3;
+    /* color: #446CB3; */
+    color: rgb(80, 80, 80);
+    background-color: rgb(230, 230, 230);
+    font-size: 90%;
+    padding-left: 3px;
+    padding-right: 3px;
 }
 
 ul {
