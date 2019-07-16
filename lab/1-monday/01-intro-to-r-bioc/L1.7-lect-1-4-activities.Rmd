@@ -1,10 +1,10 @@
 ---
-title: "Lab 1.6: Lecture Activities"
+title: "Lab 1.7: Lecture Activities"
 output:
   BiocStyle::html_document:
     toc: true
 vignette: >
-  % \VignetteIndexEntry{Lab 1.6: Lecture Activities}
+  % \VignetteIndexEntry{Lab 1.7: Lecture Activities}
   % \VignetteEngine{knitr::rmarkdown}
 ---
 
