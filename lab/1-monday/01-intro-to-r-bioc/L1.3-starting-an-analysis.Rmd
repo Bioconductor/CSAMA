@@ -1,0 +1,92 @@
+---
+title: "Lab 1.3: Starting an analysis"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  % \VignetteIndexEntry{Lab 1.3: Starting an analysis}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+```{r setup, echo=FALSE, messages=FALSE, warnings=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+suppressPackageStartupMessages({
+    library(Biostrings)
+    library(GenomicRanges)
+})
+```
+
+Original Authors: Martin Morgan<br />
+Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
+Date: 22 July, 2019</br >
+Back: [Monday labs](lab-1-intro-to-r-bioc.html)
+
+[Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
+[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
+
+**Objective**: An overview of software available in _Bioconductor_.
+
+**Lessons learned**: 
+
+- How to discover _CRAN_ and _Bioconductor_ packages
+- Finding vignettes, workflows, and tutorials
+- Exploring an existing analysis
+- Approaching your own data
+- How to get help
+
+# _Bioconductor_
+
+Analysis and comprehension of high-throughput genomic data
+
+- Statistical analysis: large data, technological artifacts, designed
+  experiments; rigorous
+- Comprehension: biological context, visualization, reproducibility
+- High-throughput
+    - Sequencing: RNASeq, ChIPSeq, variants, copy number, ...
+    - Microarrays: expression, SNP, ...
+    - Flow cytometry, proteomics, images, ...
+  
+## Packages, vignettes, work flows
+
+![Alt Sequencing Ecosystem](our_figures/SequencingEcosystem.png)
+
+- 1560 software packages
+- Discover and navigate via [biocViews][]
+- Package 'landing page', e.g., `r Biocpkg("Gviz")`
+    - Title, author / maintainer, short description, citation,
+      installation instructions, ..., download statistics
+- All user-visible functions have help pages, most with runnable
+  examples
+- 'Vignettes' an important feature in _Bioconductor_ -- narrative
+  documents illustrating how to use the package, with integrated code
+    - Example: `AnnotationHub` [landing page][AH] references
+      [HOW-TO vignette][AH-howto] illustrating some fun use cases.
+    - Some are extensive; check out [Gviz][], [limma][], [edgeR][],
+      [DESeq2][]!
+- 'Release' (every six months) and 'devel' branches
+
+[AH]: https://bioconductor.org/packages/AnnotationHub
+[AH-howto]: http://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html
+
+# End matter
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
+
+## Acknowledgements
+
+Research reported in this tutorial was supported by the National Human
+Genome Research Institute and the National Cancer Institute of the
+National Institutes of Health under award numbers U41HG004059 and
+U24CA180996.
+
+This project has received funding from the European Research Council
+(ERC) under the European Union's Horizon 2020 research and innovation
+programme (grant agreement number 633974)

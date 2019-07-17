@@ -1,10 +1,10 @@
 ---
-title: "Lab 1.3: Data Representations"
+title: "Lab 1.5: Data Representations"
 output:
   BiocStyle::html_document:
     toc: true
 vignette: >
-  % \VignetteIndexEntry{Lab 1.3: Data Represenations}
+  % \VignetteIndexEntry{Lab 1.5: Data Represenations}
   % \VignetteEngine{knitr::rmarkdown}
 ---
 
@@ -21,7 +21,7 @@ suppressPackageStartupMessages({
 
 Original Authors: Martin Morgan, Sonali Arora<br />
 Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
-Date: 9 July, 2018</br >
+Date: 22 July, 2019</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 [Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
