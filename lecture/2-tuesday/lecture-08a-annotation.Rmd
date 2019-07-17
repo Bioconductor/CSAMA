@@ -117,7 +117,7 @@ library(org.Hs.eg.db)
 data(airway)
 ids = head(rownames(airway))
 ids
-mapIds(org.Hs.eg.db, ids, "SYMBOL", "ENSEMBL")
+select(org.Hs.eg.db, ids, "SYMBOL", "ENSEMBL")
 ```
 
 ## Questions!
@@ -162,7 +162,7 @@ knitr::include_graphics("lecture-08-figures/wall.gif")
 ```
 
 ## The `mapIds` function
-<font size=2>
+<font size=3.5>
 An alternative to `select` is `mapIds`, which gives control of
 duplicates
 
@@ -387,7 +387,7 @@ inner_join(tbl(src, "id"), tbl(src, "ranges_gene")) %>%
 
 ## What about sequences?
 
-```{r, out.width = "90%", out.height="65%", echo = FALSE}
+```{r, out.width = "90%", out.height="50%", echo = FALSE}
 
 knitr::include_graphics("lecture-08-figures/ACTG.jpg")
 
