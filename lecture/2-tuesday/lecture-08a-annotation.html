@@ -208,7 +208,7 @@ ul > li:before {
 <p>Say we have analyzed data from an Affymetrix Human Gene ST 2.0 array and want to know what the genes are. For purposes of this lab, we just select some IDs at random. This is an example of a ChipDb</p>
 
 <pre class = 'prettyprint lang-r'>library(hugene20sttranscriptcluster.db)
-load(&quot;lecture-11-data/eset.Rdata&quot;)
+load(&quot;lecture-08-data/eset.Rdata&quot;)
 set.seed(12345)
 ids &lt;- featureNames(eset)[sample(1:25000, 5)]
 ids</pre>
@@ -696,9 +696,7 @@ head(prm, 3)</pre>
 
 </article></slide><slide class=""><hgroup><h2>BSgenome packages</h2></hgroup><article  id="bsgenome-packages">
 
-<p>BSgenome packages contain sequence information for a given
-  species/build. There are many such packages - you can get a listing
-  using <code>available.genomes</code> or <code>BiocManager::available</code></p>
+<p>BSgenome packages contain sequence information for a given species/build. There are many such packages - you can get a listing using <code>available.genomes</code> or <code>BiocManager::available</code></p>
 
 <pre class = 'prettyprint lang-r'>library(BSgenome)
 head(BiocManager::available(&quot;BSgenome&quot;))</pre>
@@ -774,7 +772,6 @@ Hsapiens</pre>
 <p><br></p>
 
 <p>We will talk more about AnnotationHub when we talk about BiocFileCache in a different lecture.</p>
-
 
 </article></slide><slide class=""><hgroup><h2>biomaRt</h2></hgroup><article  id="biomart">
 
@@ -862,8 +859,6 @@ head(atrib)</pre>
 
 <pre class = 'prettyprint lang-r'>afyids &lt;- c(&quot;1000_at&quot;,&quot;1001_at&quot;,&quot;1002_f_at&quot;,&quot;1007_s_at&quot;)
 getBM(c(&quot;affy_hg_u95av2&quot;, &quot;hgnc_symbol&quot;), c(&quot;affy_hg_u95av2&quot;), afyids, mart)</pre>
-
-<pre >## Cache found</pre>
 
 <pre >##   affy_hg_u95av2 hgnc_symbol
 ## 1      1007_s_at        DDR1

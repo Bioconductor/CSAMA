@@ -68,7 +68,7 @@ Map a known ID to other functional or positional information
 
 ```{r, out.width = "75%", echo = FALSE}
 
-knitr::include_graphics("lecture-11-figures/mapping.png")
+knitr::include_graphics("lecture-08-figures/mapping.png")
 
 ```
 
@@ -113,7 +113,7 @@ This is an example of a ChipDb
 ```{r, warning = FALSE}
 
 library(hugene20sttranscriptcluster.db)
-load("lecture-11-data/eset.Rdata")
+load("lecture-08-data/eset.Rdata")
 set.seed(12345)
 ids <- featureNames(eset)[sample(1:25000, 5)]
 ids
