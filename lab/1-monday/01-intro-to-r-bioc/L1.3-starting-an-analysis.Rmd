@@ -13,7 +13,10 @@ BiocStyle::markdown()
 ```
 
 ```{r setup, echo=FALSE, messages=FALSE, warnings=FALSE}
-knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(
+    eval=as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
+    cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE"))
+)
 suppressPackageStartupMessages({
     library(Biostrings)
     library(GenomicRanges)

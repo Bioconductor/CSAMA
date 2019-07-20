@@ -13,8 +13,11 @@ BiocStyle::markdown()
 ```
 
 ```{r setup, echo=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+    eval=as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
+    cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE"))
+)
 options(max.print=1000)
-knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages({
     library(org.Hs.eg.db)
     library(TxDb.Hsapiens.UCSC.hg38.knownGene)
@@ -460,6 +463,9 @@ transcripts. This can be achieved using an `EnsDb` package along with
 a [BSgenome][] package, or with a combination of `TxDb`, [Homo.sapiens][]
 and [BSgenome][] packages. We will focus here on the former approach.
 
+0. Use AnnotationHub to discover and retrieve a current Ensembl
+   annotation ('EnsDb') for _Homo sapiens_.
+
 1. Use the `cdsBy()` function to retrieve the genomic coordinates of all coding
    sequences for the gene 'BRCA1' from the [EnsDb.Hsapiens.v75][] package. To
    retrieve only data for the specified gene, submit either a `GenenameFilter`
@@ -533,8 +539,8 @@ the `seqlevelsStyle` from the default UCSC chromosome naming to Ensembl naming
 style.
 
 ```{r edb-cds-to-seq}
-library(BSgenome.Hsapiens.UCSC.hg38)
-genome <- BSgenome.Hsapiens.UCSC.hg38
+library(BSgenome.Hsapiens.UCSC.hg19)
+genome <- BSgenome.Hsapiens.UCSC.hg19
 
 ## Change the seqlevelsStyle from UCSC to Ensembl
 seqlevelsStyle(genome) <- "Ensembl"
