@@ -1,13 +1,13 @@
 ---
-title: "Lecture 1 -- Introduction to R"
+title: "Lecture 1 -- Introduction to R / Bioconductor"
 author: "Martin Morgan <Martin.Morgan@RoswellPark.org>"
 date: "12 June 2017"
 output:
-  BiocStyle::html_document2:
+  BiocStyle::html_document:
     toc: true
     toc_depth: 2
 vignette: >
-  % \VignetteIndexEntry{Lecture 1 -- Introduction to R}
+  % \VignetteIndexEntry{Lecture 1 -- Introduction to R / Bioconductor}
   % \VignetteEngine{knitr::rmarkdown}
 ---
 
@@ -17,11 +17,20 @@ knitr::opts_chunk$set(
     cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE")))
 ```
 
-# History
+Author: [Martin Morgan][]</br>
+Date: 22 July, 2019</br >
 
-- Statistical programming language
-- 'Free' software: no cost, open source, broad use
-- Extensible: packages (>11,000 on [CRAN][], >1300 on [Bioconductor][])
+[Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
+
+# _R_
+
+## History of _R_ and _CRAN_
+
+- Statistical programming language. Concieved 1992, initial version
+  1996, stable beta version in 2000; an implementation of _S_. CRAN
+  started in 1997.
+- 'Free' software: no cost, open source, broad use.
+- Extensible: packages (15,000 on [CRAN][], 1750 on [Bioconductor][])
 - Key features
     - Intrinsic _statistical_ concepts
     - _Vectorized_ computation
@@ -29,7 +38,7 @@ knitr::opts_chunk$set(
       for reproducibility!
     - (Advanced) _copy-on-change_ semanatics
 
-# Vectors and data frames
+## Vectors and data frames
 
 ```{r}
 1 + 2
@@ -78,7 +87,7 @@ plot(Dependent ~ Independent, df)  # 'formula' interface
 - Two-dimensional subset and assignment
 - Column access: `df[, 1]`, `df[, "Indep"]`, `df[[1]]`,
   `df[["Indep"]]`, `df$Indep`
-  
+
 Exercise: plot only values with `Dependent > 0`, `Independent > 0`
 
 1. Select rows
@@ -92,7 +101,7 @@ Exercise: plot only values with `Dependent > 0`, `Independent > 0`
     ```{r}
     plot(Dependent ~ Independent, df[ridx, ])
     ```
-    
+
 3. Skin the cat another way
 
     ```{r}
@@ -101,8 +110,8 @@ Exercise: plot only values with `Dependent > 0`, `Independent > 0`
         subset = (Dependent > 0) & (Independent > 0)
     )
     ```
-    
-# Analysis: functions, classes, methods
+
+## Analysis: functions, classes, methods
 
 ```{r}
 fit <- lm(Dependent ~ Independent, df)  # linear model -- regression
@@ -120,14 +129,15 @@ class(fit)
 methods(class="lm")
 ```
 
-# Help!
+## Help!
 
 ```{r, eval=FALSE}
 ?"plot"          # plain-old-function or generic
 ?"plot.formula"  # method
+?"plot.lm"       # method for object of class 'lm', plot(fit)
 ```
 
-# Packages
+## Packages
 
 
 ```{r}
@@ -136,7 +146,7 @@ ggplot(df, aes(x = Independent, y = Dependent)) +
     geom_point() + geom_smooth(method = "lm")
 ```
 
-- General purpose: >11,000 packages on [CRAN][]
+- General purpose: >15,000 packages on [CRAN][]
 - Gain contributor's domain expertise _and_ weird (or other) idiosyncracies
 - _Installation_ (once only per computer) versus _load_ (via
   `library(ggplot2)`, once per session)
@@ -144,6 +154,89 @@ ggplot(df, aes(x = Independent, y = Dependent)) +
 [CRAN]: https://cran.r-project.org
 [Bioconductor]: https://bioconductor.org
 
+# _Bioconductor_
+
+Started 2002 as a platform for understanding analysis of microarray
+data
+
+## Packages
+
+1,750 packages. Domains of expertise:
+
+- Sequencing (RNASeq, ChIPSeq, single-cell, called variants, ...)
+- Microarrays (methylation, expression, copy number, ...)
+- flow cytometry
+- proteomics
+- ...
+
+Important themes
+
+- Reproducible research
+- Interoperability between packages & work kflows
+- Usability
+
+Resources
+
+- https://bioconductor.org
+- https://bioconductor.org/packages -- software, annotation, experiment, workflow
+- https://support.bioconductor.org
+- Community [slack][] ([sign-up][slack-sign-up])
+
+[slack]: https://community-bioc.slack.com
+[slack-sign-up]: https://bioc-community.herokuapp.com/
+
+## Objects
+
+A distinctive feature of _Bioconductor_ -- use of _objects_ for
+representing data
+
+```{r, messages = FALSE}
+library(Biostrings)
+dna <- DNAStringSet(c("AACTCC", "CTGCA"))
+dna
+reverseComplement(dna)
+```
+
+- [Biostrings][]: DNA, RNA, AA representation and manipulation
+- [GenomicRanges][]: Coordinates in genome space
+- [SummarizedExperiment][]: coordinating 'assay' data (e.g., counts
+  from an RNASeq experiment) with row and column annotations (e.g.,
+  information about samples and experimental treatments).
+  
+[Biostrings]: https://bioconductor.org/packages/Biostrings
+[GenomicRanges]: https://bioconductor.org/packages/GenomicRanges
+[SummarizedExperiment]: https://bioconductor.org/packages/SummarizedExperiment
+
+## High-throughput sequence work flow
+
+![](lecture-01-figures/SequencingEcosystem.png)
+
+Web site, https://bioconductor.org
+
+1750 'software' packages, https://bioconductor.org/packages
+
+- Sequence analysis (RNASeq, ChIPSeq, called variants, copy number, 
+  single cell)
+- Microarrays (methylation, copy number, classical expression, ...)
+- Annotation (more about annotations later this morning...)
+- Flow cytometry
+- Proteomics, image analysis, ...
+
+Discovery and use, e.g., [DESeq2][]
+
+- Landing pages: title, description (abstract), installation instructions,
+  badges
+- Vignettes!
+
+Also:
+
+- 'Annotation' packages
+- 'Experiment data' packages
+- Workflows
+- [Course material][], ...
+
+[DESeq2]: https://bioconductor.org/packages/DESeq2
+[Course material]: https://bioconductor.org/help/course-materials/
 
 # End matter
 
