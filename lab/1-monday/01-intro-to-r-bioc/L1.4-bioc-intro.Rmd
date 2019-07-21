@@ -33,7 +33,7 @@ Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 **Objective**: An overview of software available in _Bioconductor_.
 
-**Lessons learned**: 
+**Lessons learned**:
 
 - How to discover _Bioconductor_ packages and their documentation.
 - Essentials of working with S4 objects -- the `DNAStringSet`.
@@ -50,12 +50,12 @@ Analysis and comprehension of high-throughput genomic data
     - Sequencing: RNASeq, ChIPSeq, variants, copy number, ...
     - Microarrays: expression, SNP, ...
     - Flow cytometry, proteomics, images, ...
-  
+
 ## Packages, vignettes, work flows
 
 ![Alt Sequencing Ecosystem](our_figures/SequencingEcosystem.png)
 
-- 1560 software packages
+- 1750 software packages
 - Discover and navigate via [biocViews][]
 - Package 'landing page', e.g., `r Biocpkg("Gviz")`
     - Title, author / maintainer, short description, citation,
@@ -138,147 +138,6 @@ methods(class=class(phiX174Phage))      # 'DNAStringSet' methods
     polymorphic <- which(colSums(m != 0) > 1)
     mapply(substr, polymorphic, polymorphic, MoreArgs=list(x=phiX174Phage))
     ```
-
-# A sequence analysis package tour
-
-This very open-ended topic points to some of the most prominent
-_Bioconductor_ packages for sequence analysis. Use the opportunity in
-this lab to explore the package vignettes and help pages highlighted
-below; many of the material will be covered in greater detail in
-subsequent labs and lectures.
-
-Basics 
-
-- _Bioconductor_ packages are listed on the [biocViews][] page. Each
-  package has 'biocViews' (tags from a controlled vocabulary)
-  associated with it; these can be searched to identify appropriately
-  tagged packages, as can the package title and author.
-- Each package has a 'landing page', e.g., for
-  [GenomicRanges][]. Visit this landing page, and note the
-  description, authors, and installation instructions. Packages are
-  often written up in the scientific literature, and if available the
-  corresponding citation is present on the landing page. Also on the
-  landing page are links to the vignettes and reference manual and, at
-  the bottom, an indication of cross-platform availability and
-  download statistics.
-- A package needs to be installed once, using the instructions on the
-  landing page. Once installed, the package can be loaded into an R
-  session and the help system queried interactively, as outlined
-  above:
-
-```{r require}
-library(GenomicRanges)
-```
-
-```{r help, eval=FALSE}
-help(package="GenomicRanges")
-vignette(package="GenomicRanges")
-vignette(package="GenomicRanges", "GenomicRangesHOWTOs")
-?GRanges
-```
-
-Domain-specific analysis -- explore the landing pages, vignettes, and
-reference manuals of two or three of the following packages.
-
-- Important packages for analysis of differential expression include
-  [edgeR][] and [DESeq2][]; both have excellent vignettes for
-  exploration. Additional research methods embodied in _Bioconductor_
-  packages can be discovered by visiting the [biocViews][] web page,
-  searching for the 'DifferentialExpression' view term, and narrowing
-  the selection by searching for 'RNA seq' and similar.
-- Single-cell 'omics are increasingly important. From the
-  [biocViews][] page, enter 'single cell' in the 'search table'
-  field. Check out the [single-cell workflow][sc-workflow] for an
-  overview of key packages.
-- Popular ChIP-seq packages include [DiffBind][] and [csaw][] for
-  comparison of peaks across samples, [ChIPQC][] for quality
-  assessment, and [ChIPpeakAnno][] and [ChIPseeker][] for annotating
-  results (e.g., discovering nearby genes). What other ChIP-seq
-  packages are listed on the [biocViews][] page?
-- Working with called variants (VCF files) is facilitated by packages
-  such as [VariantAnnotation][], [VariantFiltering][], and
-  [ensemblVEP][]; packages for calling variants include, e.g.,
-  [h5vc][] and [VariantTools][].
-- Several packages identify copy number variants from sequence data,
-  including [cn.mops][]; from the [biocViews][] page, what other copy
-  number packages are available? The [CNTools][] package provides some
-  useful facilities for comparison of segments across samples.
-- Microbiome and metagenomic analysis is facilitated by packages such
-  as [phyloseq][] and [metagenomeSeq][].
-- Metabolomics, chemoinformatics, image analysis, and many other
-  high-throughput analysis domains are also represented in
-  _Bioconductor_; explore these via biocViews and title searches.
-  
-Working with sequences, alignments, common web file formats, and raw
-data; these packages rely very heavily on the [IRanges][] /
-[GenomicRanges][] infrastructure that we will encounter later in the
-course.
-
-- The [Biostrings][] package is used to represent DNA and other
-  sequences, with many convenient sequence-related functions. Check
-  out the functions documented on the help page `?consensusMatrix`,
-  for instance. Also check out the [BSgenome][] package for working
-  with whole genome sequences, e.g., `?"getSeq,BSgenome-method"`
-- The [GenomicAlignments][] package is used to input reads aligned to
-  a reference genome. See for instance the `?readGAlignments` help
-  page and `vigentte(package="GenomicAlignments",
-  "summarizeOverlaps")`
-- The [rtracklayer][] `import` and `export` functions can read in many
-  common file types, e.g., BED, WIG, GTF, ..., in addition to querying
-  and navigating the UCSC genome browser. Check out the `?import` page
-  for basic usage.
-- The [ShortRead][] and [Rsamtools][] packages can be used for
-  lower-level access to FASTQ and BAM files, respectively.
-- Many genomics data files are very large. We'll explore strategies of
-  _restriction_ (only input some of the data in the file) and
-  _iteration_ (read the file in chunks, rather than its entirety) for
-  processing large data in other labs.
-
-Annotation: _Bioconductor_ provides extensive access to 'annotation'
-resources (see the [AnnotationData][] biocViews hierarchy); these are
-covered in greater detail in Thursday's lab, but some interesting
-examples to explore during this lab include:
-
-- [biomaRt][], [PSICQUIC][], [KEGGREST][] and other packages for
-  querying on-line resources; each of these have informative vignettes.
-- [AnnotationDbi][] is a cornerstone of the
-  [Annotation Data][AnnotationData] packages provided by _Bioconductor_.
-  - **org** packages (e.g., [org.Hs.eg.db][]) contain maps between
-    different gene identifiers, e.g., ENTREZ and SYMBOL. The basic
-    interface to these packages is described on the help page `?select`
-  - **TxDb** packages (e.g., [TxDb.Hsapiens.UCSC.hg38.knownGene][])
-    contain gene models (exon coordinates, exon / transcript
-    relationships, etc) derived from common sources such as the hg38
-    knownGene track of the UCSC genome browser. These packages can be
-    queried, e.g., as described on the `?exonsBy` page to retrieve all
-    exons grouped by gene or transcript.
-  - **EnsDb** packages and databases (e.g. [EnsDb.Hsapiens.v86][]) provide,
-    similar to TxDb packages, gene models, but also protein annotations (protein
-    sequences and protein domains within these) and additional annotation
-    columns such as `"gene_biotype"` or `"tx_biotype"` defining the *biotype* of
-    the features (e.g. lincRNA, protein_coding, miRNA etc). EnsDb databases are
-    designed for [Ensembl][] annotations and contain annotations for all genes
-    (protein coding and non-coding) for a specific Ensembl release.
-  - **BSgenome** packages (e.g., [BSgenome.Hsapiens.UCSC.hg38][])
-    contain whole genomes of model organisms.
-- [VariantAnnotation][] and [ensemblVEP][] provide access to sequence
-  annotation facilities, e.g., to identify coding variants; see the
-  [Introduction to VariantAnnotation](http://bioconductor.org/packages/release/bioc/vignettes/ShortRead/inst/doc/Overview.pdf)
-  vignette for a brief introduction; we'll re-visit this during the
-  Thursday lab.
-- Take a quick look (there are more activites in other labs) at the
-  [annotation work flow](http://bioconductor.org/help/workflows/annotation/annotation/)
-  on the _Bioconductor_ web site.
-  
-A number of _Bioconductor_ packages help with visualization and
-reporting, in addition to functions provided by indiidual packages.
-
-- [Gviz][] provides a track-like visualization of genomic regions;
-  it's got an amazing vignette.
-- [ComplexHeatmap][] does an amazing job of all sorts of heatmaps,
-  including OncoPrint-style summaries.
-- [ReportingTools][] provides a flexible way to generate static and
-  dynamic HTML-based reports.
 
 # Summary
 

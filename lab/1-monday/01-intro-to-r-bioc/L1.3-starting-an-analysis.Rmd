@@ -33,7 +33,7 @@ Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 **Objective**: An overview of software available in _Bioconductor_.
 
-**Lessons learned**: 
+**Lessons learned**:
 
 - How to discover _CRAN_ and _Bioconductor_ packages
 - Finding vignettes, workflows, and tutorials
@@ -52,12 +52,12 @@ Analysis and comprehension of high-throughput genomic data
     - Sequencing: RNASeq, ChIPSeq, variants, copy number, ...
     - Microarrays: expression, SNP, ...
     - Flow cytometry, proteomics, images, ...
-  
+
 ## Packages, vignettes, work flows
 
 ![Alt Sequencing Ecosystem](our_figures/SequencingEcosystem.png)
 
-- 1560 software packages
+- 1750 software packages
 - Discover and navigate via [biocViews][]
 - Package 'landing page', e.g., `r Biocpkg("Gviz")`
     - Title, author / maintainer, short description, citation,
@@ -74,6 +74,393 @@ Analysis and comprehension of high-throughput genomic data
 
 [AH]: https://bioconductor.org/packages/AnnotationHub
 [AH-howto]: http://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html
+
+# Packages
+
+## Finding packages
+
+'Domain-specific' analysis
+
+**Exercise**
+
+- Visit the listing of [All Packages][].
+- Use the 'Search biocViews' box in the upper left to identify
+  packages that have been tagged for RNASeq analysis. Explore other
+  analysis like ChIPSeq, Epigenetics, VariantAnnotation, Proteomics,
+  SingleCell, etc. Explore the graph of software packages by
+  expanding and contracting individual terms.
+- Return to RNASeq. Two very popular packages are DESeq2 and
+  edgeR. Visit the 'landing page' of one of these packages. The
+  landing page has a title, authors, instructions for citing use the
+  package, etc.
+- Breifly explore the vignette and reference manual links. When
+  would you consult the vignette? When would the reference manual be
+  helpful?
+
+[All Packages]: https://bioconductor.org/packages/release/BiocViews.html#___Software
+
+_Bioconductor_ provides 'infrastructure' for working with genomic
+data. We'll explore some of these in more detail in a later part of
+this lab. For now...
+
+**Exercise**
+
+- Visit the landing pages of each of the [Biostrings][],
+  [GenomicRanges][], [VariantAnnotation][], and [GenomicAlignment][]
+  packages. Create a short summary describing what each package does,
+  and when it might be useful.
+- Visit the landing page for the [SummarizedExperiment][]
+  package. This package is meant to provide a data representation that
+  helps manage, in a coordinated fashion, 'assays' (e.g., gene x
+  sample matrix of RNASeq counts) and the row (e.g., genomic
+  coordinates, P-values) and column (e.g., sample sheets). Briefly
+  review the user-oriented vignette ('SummarizedExperiment for
+  Coordinating Experimental Assays, Samples, and Regions of Interest')
+  to get a sense for how this package might be used.
+- Visit the landing page for the [rtracklayer][] package. From the
+  reference manual, when would the various `import()` and `export()`
+  functions be useful?
+
+Annotation packages are data-, rather than software-, centric,
+providing information about the relationship between different
+identifiers, gene models, reference genomes, etc.
+
+**Exercise**
+
+- On the page listing [All Packages][], click on the AnnotationData
+  top-level term.
+- Search, using the box on the right-hand side, for annotation
+  packages that start with the following letters to get a sense of the
+  packages and organisms available.
+
+  - `org.*`: symbol mapping
+  - `TxDb.*` and `EnsDb.*`: gene models
+  - `BSgenome.*`: reference genomes
+
+We'll see in a subsequent lab that a wealth of additional annotation
+resources, including updated EnsDb and reference genomes, are
+available through [AnnotationHub][].
+
+Workflow packages are meant to provide a comprehensive introduction to
+work flows that require several different packages. These can be quite
+extensive documents, providing a very rich source of information.
+
+**Exercise**
+
+- Briefly explore the 'Simple Single Cell' workflow (or other workflow
+  relevant to your domain of interest) to get a sense of the material
+  the workflow covers.
+
+## Installing packages
+
+Likely the packages needed for this course are already
+installed. Nonetheless it is useful to know how to install other
+packages.
+
+_Bioconductor_ has a particular approach to making packages
+available. We have a 'devel' branch where new packages and features
+are introduced, and a 'release' branch where users have access to
+stable packages. Each six months, in spring and fall, the current
+'devel' version of packages is branched to become the next
+'release'. Packages within a release are tested with one another, so
+it is important to install packages from the same release. The
+[BiocManager][] package tries to make it easy to do this.
+
+The first step to package installation is to make sure that the
+[BiocManager][] package has been installed using standard _R_
+procedures.
+
+```{r, eval = FALSE}
+if (!require(BiocManager))
+    install.packages("BiocManager", repos = "https://cran.r-project.org")
+```
+
+Then, install the package(s) you would like to use
+
+```{r, eval = FALSE}
+BiocManager::install(c("Biostrings", "GenomicRanges"))
+```
+
+[BiocManager][] knows how to install CRAN and github packages, too.
+
+There are several common problems encountered with package
+installation. Often, packages have been installed using methods
+different from the one recommended here, and the packages are from
+different _Bioconductor_ releases. This leads to problems when
+packages from different releases are incompatible with one another.
+
+**Exercise** Verify that your packages are current and installed from
+the same _Bioconductor_ release with
+
+```{r, eval = FALSE}
+BiocManager::valid()
+```
+
+Two common problems are that some packages are too old (a newer
+version of the package exists) or too new (some packages have been
+installed using a method other than [BiocManager][]). If there are
+packages that are too old or too new, it is almost always a good idea
+to follow the instructions from `BiocManager::valid()` to correct the
+situation.
+
+## Loading and using packages
+
+Packages need to be installed only once for each version of _R_ you
+use, but need to be _loaded_ into each new _R_ session that you
+start. Packages are loaded using
+
+```{r, messages = FALSE}
+library(Biostrings)
+```
+
+Whan a package is loaded, it can sometimes generate messages that are
+informational only, if you are confident this is the case for the
+packages you're loading, use `suppressPackageStartupMessages()` for a
+quieter experience:
+
+```{r}
+suppressPackageStartupMessages({
+    library(GenomicRanges)
+    library(GenomicAlignments)
+})
+```
+
+**Exercise** It is usually very helpful to explore package vignettes.
+
+- Visit the vignette of the [DESeq2][] package, and walk through a few
+  steps to understand what the vignette provides in terms of
+  instructions for starting with the package, functionality the
+  package provides, mathematical and statistical details of the
+  implementation, and how the analysis provided by the package might
+  be extended by other packages in the _Bioconductor_ ecosystem. One
+  can visit vignettes through RStudio, or by running commands such as
+
+  ```{r, eval = FALSE}
+  vignette(package = "DESeq2")
+  browseVignettes("DESeq2")
+  ```
+
+- Most vignettes are written in such a way that the _R_ code of the
+  vignette _must_ be correct for the vignette to be produced. The code
+  itself is available in the package. Find the code for the DESeq2
+  vignette
+
+  ```{r}
+  dir(system.file(package="DESeq2", "doc"))
+  vign <- system.file(package="DESeq2", "doc", "DESeq2.R")
+  ```
+
+  open it in RStudio (e.g., using File -> Open File... menu), step
+  through the first few lines of _R_ code and compare your output to
+  the output in the vignette. Alternatively, run the entire analysis
+  in the vignette with the command
+
+  ```{r, eval = FALSE}
+  source(vign, echo = TRUE, max.lines = Inf)
+  ```
+
+**Exercise** Help pages provide more focused instructions for use of
+particular functions. It is often con
+
+- Load the [Biostrings][] package
+
+    ```{r, message = FALSE}
+    library(Biostrings)
+    ```
+
+- Look for help on the function `letterFrequency()` using the command
+
+    ```
+    ?letterFrequency
+    ```
+
+  note that there is tab completion after the `?` and first few
+  letters of the command.
+
+- The help page is quite complicated, documenting several different
+  functions. In the 'Description' section, find a description of what
+  `letterFrequency()` does. In the 'Usage' section, find the arguments
+  that can be used with `letterFrequency()`, and try to understand,
+  from the `Arguments` section what each argument might be or how it
+  influences the computation. The `Value` section attempts to describe
+  the return value of the `letterFrequency()` function.
+
+- Sometimes an example is worth a thousand words. Can you run the
+  first two sections of the example at the end of the help page (for
+  `alphabetFrequency()` and `letterFrequency()` to arrive at a better
+  understanding of how the `letterFrequency()` function works?
+
+# Getting help
+
+Where to get help?
+
+- Most questions from users: https://support.bioconductor.org
+
+What can you get help on?
+
+- Problems on how to use software
+- Statistical interpretation of results
+- But not: extensive statistical consultation on, e.g., advanced
+  experimental design. Best source: local experts and collaborators.
+
+How to ask a good question
+
+- Simplify to just a few lines of _R_ code.
+
+- Must be able to be run by someone else
+
+  - Use built-in data sets or simple simulations
+  - Don't reference files on your system!
+
+- include the output of `sessionInfo()`, which often shows problems
+  with out-of-date packages.
+
+**Exercise** Visit the support site and review the five most recent
+questions. Which do you think are 'good', from the guidelines offered
+above? Which have received helpful answers? Can you figure out who the
+person answering the question is, i.e., why do they think they have an
+answer?
+
+# A sequence analysis package tour
+
+This very open-ended topic points to some of the most prominent
+_Bioconductor_ packages for sequence analysis. Use the opportunity in
+this lab to explore the package vignettes and help pages highlighted
+below; many of the material will be covered in greater detail in
+subsequent labs and lectures.
+
+Basics
+
+- _Bioconductor_ packages are listed on the [biocViews][] page. Each
+  package has 'biocViews' (tags from a controlled vocabulary)
+  associated with it; these can be searched to identify appropriately
+  tagged packages, as can the package title and author.
+- Each package has a 'landing page', e.g., for
+  [GenomicRanges][]. Visit this landing page, and note the
+  description, authors, and installation instructions. Packages are
+  often written up in the scientific literature, and if available the
+  corresponding citation is present on the landing page. Also on the
+  landing page are links to the vignettes and reference manual and, at
+  the bottom, an indication of cross-platform availability and
+  download statistics.
+- A package needs to be installed once, using the instructions on the
+  landing page. Once installed, the package can be loaded into an R
+  session and the help system queried interactively, as outlined
+  above:
+
+```{r require}
+library(GenomicRanges)
+```
+
+```{r help, eval=FALSE}
+help(package="GenomicRanges")
+vignette(package="GenomicRanges")
+vignette(package="GenomicRanges", "GenomicRangesHOWTOs")
+?GRanges
+```
+
+Domain-specific analysis -- explore the landing pages, vignettes, and
+reference manuals of two or three of the following packages.
+
+- Important packages for analysis of differential expression include
+  [edgeR][] and [DESeq2][]; both have excellent vignettes for
+  exploration. Additional research methods embodied in _Bioconductor_
+  packages can be discovered by visiting the [biocViews][] web page,
+  searching for the 'DifferentialExpression' view term, and narrowing
+  the selection by searching for 'RNA seq' and similar.
+- Single-cell 'omics are increasingly important. From the
+  [biocViews][] page, enter 'single cell' in the 'search table'
+  field. Check out the [single-cell workflow][sc-workflow] for an
+  overview of key packages.
+- Popular ChIP-seq packages include [DiffBind][] and [csaw][] for
+  comparison of peaks across samples, [ChIPQC][] for quality
+  assessment, and [ChIPpeakAnno][] and [ChIPseeker][] for annotating
+  results (e.g., discovering nearby genes). What other ChIP-seq
+  packages are listed on the [biocViews][] page?
+- Working with called variants (VCF files) is facilitated by packages
+  such as [VariantAnnotation][], [VariantFiltering][], and
+  [ensemblVEP][]; packages for calling variants include, e.g.,
+  [h5vc][] and [VariantTools][].
+- Several packages identify copy number variants from sequence data,
+  including [cn.mops][]; from the [biocViews][] page, what other copy
+  number packages are available? The [CNTools][] package provides some
+  useful facilities for comparison of segments across samples.
+- Microbiome and metagenomic analysis is facilitated by packages such
+  as [phyloseq][] and [metagenomeSeq][].
+- Metabolomics, chemoinformatics, image analysis, and many other
+  high-throughput analysis domains are also represented in
+  _Bioconductor_; explore these via biocViews and title searches.
+
+Working with sequences, alignments, common web file formats, and raw
+data; these packages rely very heavily on the [IRanges][] /
+[GenomicRanges][] infrastructure that we will encounter later in the
+course.
+
+- The [Biostrings][] package is used to represent DNA and other
+  sequences, with many convenient sequence-related functions. Check
+  out the functions documented on the help page `?consensusMatrix`,
+  for instance. Also check out the [BSgenome][] package for working
+  with whole genome sequences, e.g., `?"getSeq,BSgenome-method"`
+- The [GenomicAlignments][] package is used to input reads aligned to
+  a reference genome. See for instance the `?readGAlignments` help
+  page and `vigentte(package="GenomicAlignments",
+  "summarizeOverlaps")`
+- The [rtracklayer][] `import` and `export` functions can read in many
+  common file types, e.g., BED, WIG, GTF, ..., in addition to querying
+  and navigating the UCSC genome browser. Check out the `?import` page
+  for basic usage.
+- The [ShortRead][] and [Rsamtools][] packages can be used for
+  lower-level access to FASTQ and BAM files, respectively.
+- Many genomics data files are very large. We'll explore strategies of
+  _restriction_ (only input some of the data in the file) and
+  _iteration_ (read the file in chunks, rather than its entirety) for
+  processing large data in other labs.
+
+Annotation: _Bioconductor_ provides extensive access to 'annotation'
+resources (see the [AnnotationData][] biocViews hierarchy); these are
+covered in greater detail in Thursday's lab, but some interesting
+examples to explore during this lab include:
+
+- [biomaRt][], [PSICQUIC][], [KEGGREST][] and other packages for
+  querying on-line resources; each of these have informative vignettes.
+- [AnnotationDbi][] is a cornerstone of the
+  [Annotation Data][AnnotationData] packages provided by _Bioconductor_.
+  - **org** packages (e.g., [org.Hs.eg.db][]) contain maps between
+    different gene identifiers, e.g., ENTREZ and SYMBOL. The basic
+    interface to these packages is described on the help page `?select`
+  - **TxDb** packages (e.g., [TxDb.Hsapiens.UCSC.hg38.knownGene][])
+    contain gene models (exon coordinates, exon / transcript
+    relationships, etc) derived from common sources such as the hg38
+    knownGene track of the UCSC genome browser. These packages can be
+    queried, e.g., as described on the `?exonsBy` page to retrieve all
+    exons grouped by gene or transcript.
+  - **EnsDb** packages and databases (e.g. [EnsDb.Hsapiens.v86][]) provide,
+    similar to TxDb packages, gene models, but also protein annotations (protein
+    sequences and protein domains within these) and additional annotation
+    columns such as `"gene_biotype"` or `"tx_biotype"` defining the *biotype* of
+    the features (e.g. lincRNA, protein_coding, miRNA etc). EnsDb databases are
+    designed for [Ensembl][] annotations and contain annotations for all genes
+    (protein coding and non-coding) for a specific Ensembl release.
+  - **BSgenome** packages (e.g., [BSgenome.Hsapiens.UCSC.hg38][])
+    contain whole genomes of model organisms.
+- [VariantAnnotation][] and [ensemblVEP][] provide access to sequence
+  annotation facilities, e.g., to identify coding variants; see the
+  [Introduction to VariantAnnotation](http://bioconductor.org/packages/release/bioc/vignettes/ShortRead/inst/doc/Overview.pdf)
+  vignette for a brief introduction; we'll re-visit this during the
+  Thursday lab.
+- Take a quick look (there are more activites in other labs) at the
+  [annotation work flow](http://bioconductor.org/help/workflows/annotation/annotation/)
+  on the _Bioconductor_ web site.
+
+A number of _Bioconductor_ packages help with visualization and
+reporting, in addition to functions provided by indiidual packages.
+
+- [Gviz][] provides a track-like visualization of genomic regions;
+  it's got an amazing vignette.
+- [ComplexHeatmap][] does an amazing job of all sorts of heatmaps,
+  including OncoPrint-style summaries.
+- [ReportingTools][] provides a flexible way to generate static and
+  dynamic HTML-based reports.
 
 # End matter
 

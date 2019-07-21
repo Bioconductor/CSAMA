@@ -3,7 +3,8 @@ SOURCES_RNW = $(shell ls *Rnw)
 
 %.html: %.Rmd
 	@echo "KNITR_CACHE=TRUE Sweave $<"
-	@KNITR_CACHE=TRUE "$(R_HOME)"/bin/R --vanilla CMD Sweave $<
+	@BIOCONDUCTOR_ONLINE_VERSION_DIAGNOSIS=FALSE \
+	KNITR_CACHE=TRUE "$(R_HOME)"/bin/R --vanilla CMD Sweave $<
 
 %.R: %.Rmd
 	@echo "KNITR_CACHE=FALSE Stangle $<"
