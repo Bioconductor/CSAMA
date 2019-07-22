@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
     cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE"))
 )
 suppressPackageStartupMessages({
+    library(Biostrings)
     library(GenomicRanges)
 })
 ```
@@ -65,10 +66,85 @@ _methods_ operate on the classes to perform useful functions.  Classes
 and methods are placed together and distributed as _packages_ so that
 we can all benefit from the hard work and tested code of others.
 
-# Case study: _IRanges_ and _GRanges_
+## Objects
+
+Load the [Biostrings][] and [GenomicRanges][] package
+
+```{r setup-objects}
+library(Biostrings)
+library(GenomicRanges)
+```
+
+- _Bioconductor_ makes extensive use of classes to represent
+  complicated data types
+- Classes foster interoperability -- many different packages can work
+  on the same data -- but can be a bit intimidating for the user.
+- Formal 'S4' object system
+    - Often a class is described on a particular home page, e.g.,
+      `?GRanges`, and in vignettes, e.g.,
+      `vignette(package="GenomicRanges")`,
+      `vignette("GenomicRangesIntroduction")`
+    - Many methods and classes can be discovered interactively , e.g.,
+      `methods(class="GRanges")` to find out what one can do with a
+      `GRanges` instance, and `methods(findOverlaps)` for classes that
+      the `findOverlaps()` function operates on.
+    - In more advanced cases, one can look at the actual definition of
+      a class or method using `getClass()`, `getMethod()`
+- Interactive help
+    - `?findOverlaps,<tab>` to select help on a specific method,
+      `?GRanges-class` for help on a class.
+
+## Example & short exercise: _Biostrings_
+
+Example: _Biostrings_ for DNA sequences
+
+```{r Biostrings, message=FALSE}
+library(Biostrings)                     # Biological sequences
+data(phiX174Phage)                      # sample data, see ?phiX174Phage
+phiX174Phage
+m <- consensusMatrix(phiX174Phage)[1:4,] # nucl. x position counts
+polymorphic <- which(colSums(m != 0) > 1)
+m[, polymorphic]
+```
+```{r methods, eval=FALSE}
+methods(class=class(phiX174Phage))      # 'DNAStringSet' methods
+```
+
+**Exercises**
+
+1. Load the [Biostrings][] package and phiX174Phage data set. What class
+   is phiX174Phage? Find the help page for the class, and identify
+   interesting functions that apply to it.
+2. Discover vignettes in the Biostrings package with
+   `vignette(package="Biostrings")`. Add another argument to the
+   `vignette` function to view the 'BiostringsQuickOverview' vignette.
+3. If the internet is available, navigate to the Biostrings landing
+   page on http://bioconductor.org. Do this by visiting the
+   [biocViews][] page. Can you find the BiostringsQuickOverview
+   vignette on the web site?
+4. The following code loads some sample data, 6 versions of the
+   phiX174Phage genome as a DNAStringSet object.
+
+    ```{r phiX}
+    library(Biostrings)
+    data(phiX174Phage)
+    ```
+
+   Explain what the following code does, and how it works
+
+    ```{r consensusMatrix}
+    m <- consensusMatrix(phiX174Phage)[1:4,]
+    polymorphic <- which(colSums(m != 0) > 1)
+    mapply(substr, polymorphic, polymorphic, MoreArgs=list(x=phiX174Phage))
+    ```
+
+# Working with genomic ranges
+
+## _IRanges_ and _GRanges_
 
 The [IRanges][] package defines an important class for specifying
 integer ranges, e.g.,
+
 ```{r iranges}
 library(IRanges)
 ir <- IRanges(start=c(10, 20, 30), width=5)
@@ -77,6 +153,7 @@ ir
 
 There are many interesting operations to be performed on ranges, e.g,
 `flank()` identifies adjacent ranges
+
 ```{r iranges-flank}
 flank(ir, 3)
 ```
@@ -106,6 +183,7 @@ features relevant to application of ranges in sequence analysis,
 particularly the ability to associate a range with a sequence name
 (e.g., chromosome) and a strand. Create a `GRanges` instance based on
 our `IRanges` instance, as follows
+
 ```{r granges}
 library(GenomicRanges)
 gr <- GRanges(c("chr1", "chr1", "chr2"), ir, strand=c("+", "-", "+"))
@@ -117,6 +195,7 @@ biology. In particular we might expect that flanking sequence on the
 `+` strand would precede the range, but on the minus strand would
 follow it. Verify that `flank` applied to a `GRanges` object has this
 behavior.
+
 ```{r granges-flank}
 flank(gr, 3)
 ```
@@ -124,13 +203,16 @@ flank(gr, 3)
 Discover what classes `GRanges` extends, find the help page
 documenting the behavior of `flank` when applied to a `GRanges` object,
 and verify that the help page documents the behavior we just observed.
+
 ```{r granges-class}
 class(gr)
 getClass(class(gr))
 ```
+
 ```{r granges-flank-method, eval=FALSE}
 ?"flank,GenomicRanges-method"
 ```
+
 Notice that the available `flank()` methods have been augmented by the
 methods defined in the _GenomicRanges_ package.
 
@@ -153,7 +235,49 @@ vignette(package="GenomicRanges")
 vignette(package="GenomicRanges", "GenomicRangesHOWTOs")
 ```
 
-# High-throughput sequence data
+## Range-based operations
+
+![Alt Ranges Algebra](our_figures/RangeOperations.png)
+
+Ranges
+- IRanges
+  - `start()` / `end()` / `width()`
+  - Vector-like -- `length()`, subset, etc.
+  - 'metadata', `mcols()`
+- GRanges
+  - 'seqnames' (chromosome), 'strand'
+  - `Seqinfo`, including `seqlevels` and `seqlengths`
+
+Intra-range methods
+- Independent of other ranges in the same object
+- GRanges variants strand-aware
+- `shift()`, `narrow()`, `flank()`, `promoters()`, `resize()`,
+  `restrict()`, `trim()`
+- See `?"intra-range-methods"`
+
+Inter-range methods
+- Depends on other ranges in the same object
+- `range()`, `reduce()`, `gaps()`, `disjoin()`
+- `coverage()` (!)
+- see `?"inter-range-methods"`
+
+Between-range methods
+- Functions of two (or more) range objects
+- `findOverlaps()`, `countOverlaps()`, ..., `%over%`, `%within%`,
+  `%outside%`; `union()`, `intersect()`, `setdiff()`, `punion()`,
+  `pintersect()`, `psetdiff()`
+
+IRangesList, GRangesList
+- List: all elements of the same type
+- Many *List-aware methods, but a common 'trick': apply a vectorized
+  function to the unlisted representaion, then re-list
+
+        grl <- GRangesList(...)
+        orig_gr <- unlist(grl)
+        transformed_gr <- FUN(orig)
+        transformed_grl <- relist(transformed_gr, grl)
+
+# How to use high-throughput sequence data types in _Bioconductor_
 
 The following sections briefly summarize some of the most important
 file types in high-throughput sequence analysis. _Briefly_ review
@@ -327,7 +451,7 @@ Input: [rtracklayer][] `import()`
               ...
               ...
               
-# Data representation in _R_ / _Bioconductor_
+# Exercises: Data representation in _R_ / _Bioconductor_
 
 This section briefly illustrates how different high-throughput
 sequence data types are represented in _R_ / _Bioconductor_. Select
@@ -336,94 +460,6 @@ examples. Take time to consult help pages, understand the output of
 function calls, and the relationship between standard data formats
 (summarized in the previous section) and the corresponding _R_ /
 _Bioconductor_ representation. 
-
-## Background: Ranges
-
-![Alt Ranges Algebra](our_figures/RangeOperations.png)
-
-Ranges
-- IRanges
-  - `start()` / `end()` / `width()`
-  - List-like -- `length()`, subset, etc.
-  - 'metadata', `mcols()`
-- GRanges
-  - 'seqnames' (chromosome), 'strand'
-  - `Seqinfo`, including `seqlevels` and `seqlengths`
-
-Intra-range methods
-- Independent of other ranges in the same object
-- GRanges variants strand-aware
-- `shift()`, `narrow()`, `flank()`, `promoters()`, `resize()`,
-  `restrict()`, `trim()`
-- See `?"intra-range-methods"`
-
-Inter-range methods
-- Depends on other ranges in the same object
-- `range()`, `reduce()`, `gaps()`, `disjoin()`
-- `coverage()` (!)
-- see `?"inter-range-methods"`
-
-Between-range methods
-- Functions of two (or more) range objects
-- `findOverlaps()`, `countOverlaps()`, ..., `%over%`, `%within%`,
-  `%outside%`; `union()`, `intersect()`, `setdiff()`, `punion()`,
-  `pintersect()`, `psetdiff()`
-
-Example
-
-```{r ranges, message=FALSE}
-library(GenomicRanges)
-gr <- GRanges(c("chr1:10-14:+", "chr1:20-24:+", "chr1:22-26:+"))
-shift(gr, 1)                            # 1-based coordinates!
-range(gr)                               # intra-range
-reduce(gr)                              # inter-range
-coverage(gr)
-setdiff(range(gr), gr)                  # 'introns'
-```
-
-IRangesList, GRangesList
-- List: all elements of the same type
-- Many *List-aware methods, but a common 'trick': apply a vectorized
-  function to the unlisted representaion, then re-list
-
-        grl <- GRangesList(...)
-        orig_gr <- unlist(grl)
-        transformed_gr <- FUN(orig)
-        transformed_grl <- relist(transformed_gr, grl)
-
-**Exercises**
-
-1. Which of my SNPs overlap genes?
-
-    ```{r}
-    genes <- GRanges(c("chr1:30-40:+", "chr1:60-70:-"))
-    snps <- GRanges(c("chr1:35", "chr1:60", "chr1:45"))
-    countOverlaps(snps, genes) > 0
-    ```
-
-2. Which gene is 'nearest' my regulatory region? Which gene does my
-   regulatory region _precede_ (i.e., upstream of)
-
-    ```{r}
-    reg <- GRanges(c("chr1:50-55", "chr1:75-80"))
-    nearest(reg, genes)
-    precede(reg, genes)
-    ```
-
-3. What range do short reads cover? depth of coverage?
-
-    ```{r}
-    reads <- GRanges(c("chr1:10-19", "chr1:15-24", "chr1:30-41"))
-    coverage(reads, width = 100)
-    as(coverage(reads, width = 100), "GRanges")
-    ```
-        
-Reference
-
-- Lawrence M, Huber W, Pag&egrave;s H, Aboyoun P, Carlson M, et al. (2013)
-  Software for Computing and Annotating Genomic Ranges. PLoS Comput
-  Biol 9(8): e1003118. doi:10.1371/journal.pcbi.1003118
-
 
 ## _Biostrings_ (DNA or amino acid sequences)
 
@@ -530,42 +566,6 @@ Example
     mcols(cds[1:3], use.names = FALSE)
     ```
 
-## _GenomicAlignments_ (Aligned reads)
-
-Classes -- GenomicRanges-like behaivor
-
-- GAlignments, GAlignmentPairs, GAlignmentsList
-
-Methods
-
-- `readGAlignments()`, `readGAlignmentsList()`
-  - Easy to restrict input, iterate in chunks
-- `summarizeOverlaps()`
-
-**Exercises**
-
-1. Find reads supporting the junction identified above, at position
-   19653707 + 66M = 19653773 of chromosome 14
-
-    ```{r bam-require}
-    library(GenomicRanges)
-    library(GenomicAlignments)
-    library(Rsamtools)
-    
-    ## our 'region of interest'
-    roi <- GRanges("chr14", IRanges(19653773, width=1)) 
-    ## sample data
-    library('RNAseqData.HNRNPC.bam.chr14')
-    bf <- BamFile(RNAseqData.HNRNPC.bam.chr14_BAMFILES[[1]], asMates=TRUE)
-    ## alignments, junctions, overlapping our roi
-    paln <- readGAlignmentsList(bf)
-    j <- summarizeJunctions(paln, with.revmap=TRUE)
-    j_overlap <- j[j %over% roi]
-    
-    ## supporting reads
-    paln[j_overlap$revmap[[1]]]
-    ```
-
 ## _SummarizedExperiment_
 
 ![](our_figures/SummarizedExperiment.png)
@@ -611,11 +611,11 @@ Example 1: Bulk RNA-seq `airway` data
     colSums(assay(airway))
     ```
 
-Example 2: single-cell RNA-seq.
+Example 2 (advanced): single-cell RNA-seq.
 
 - Hemberg lab [scRNA-seq Datasets][] 'Manno' [Mouse brain data set (rds)][]
 
-    ```
+    ```{r, message=FALSE}
     url <- "https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/manno_mouse.rds"
     fl <- BiocFileCache::bfcrpath(rnames = url)
     sce <- readRDS(fl)
@@ -633,6 +633,89 @@ Example 2: single-cell RNA-seq.
 
 [scRNA-seq Datasets]: https://hemberg-lab.github.io/scRNA.seq.datasets/
 [Mouse brain data set (rds)]: https://scrnaseq-public-datasets.s3.amazonaws.com/scater-objects/manno_mouse.rds
+
+## _GenomicRanges_
+
+Example
+
+```{r ranges, message=FALSE}
+library(GenomicRanges)
+gr <- GRanges(c("chr1:10-14:+", "chr1:20-24:+", "chr1:22-26:+"))
+shift(gr, 1)                            # 1-based coordinates!
+range(gr)                               # intra-range
+reduce(gr)                              # inter-range
+coverage(gr)
+setdiff(range(gr), gr)                  # 'introns'
+```
+
+**Exercises**
+
+1. Which of my SNPs overlap genes?
+
+    ```{r}
+    genes <- GRanges(c("chr1:30-40:+", "chr1:60-70:-"))
+    snps <- GRanges(c("chr1:35", "chr1:60", "chr1:45"))
+    countOverlaps(snps, genes) > 0
+    ```
+
+2. Which gene is 'nearest' my regulatory region? Which gene does my
+   regulatory region _precede_ (i.e., upstream of)
+
+    ```{r}
+    reg <- GRanges(c("chr1:50-55", "chr1:75-80"))
+    nearest(reg, genes)
+    precede(reg, genes)
+    ```
+
+3. What range do short reads cover? depth of coverage?
+
+    ```{r}
+    reads <- GRanges(c("chr1:10-19", "chr1:15-24", "chr1:30-41"))
+    coverage(reads, width = 100)
+    as(coverage(reads, width = 100), "GRanges")
+    ```
+        
+Reference
+
+- Lawrence M, Huber W, Pag&egrave;s H, Aboyoun P, Carlson M, et al. (2013)
+  Software for Computing and Annotating Genomic Ranges. PLoS Comput
+  Biol 9(8): e1003118. doi:10.1371/journal.pcbi.1003118
+
+## _GenomicAlignments_ (Aligned reads)
+
+Classes -- GenomicRanges-like behaivor
+
+- GAlignments, GAlignmentPairs, GAlignmentsList
+
+Methods
+
+- `readGAlignments()`, `readGAlignmentsList()`
+  - Easy to restrict input, iterate in chunks
+- `summarizeOverlaps()`
+
+**Exercises**
+
+1. Find reads supporting the junction identified above, at position
+   19653707 + 66M = 19653773 of chromosome 14
+
+    ```{r bam-require}
+    library(GenomicRanges)
+    library(GenomicAlignments)
+    library(Rsamtools)
+    
+    ## our 'region of interest'
+    roi <- GRanges("chr14", IRanges(19653773, width=1)) 
+    ## sample data
+    library('RNAseqData.HNRNPC.bam.chr14')
+    bf <- BamFile(RNAseqData.HNRNPC.bam.chr14_BAMFILES[[1]], asMates=TRUE)
+    ## alignments, junctions, overlapping our roi
+    paln <- readGAlignmentsList(bf)
+    j <- summarizeJunctions(paln, with.revmap=TRUE)
+    j_overlap <- j[j %over% roi]
+    
+    ## supporting reads
+    paln[j_overlap$revmap[[1]]]
+    ```
     
 ## _VariantAnnotation_ (Called variants)
 

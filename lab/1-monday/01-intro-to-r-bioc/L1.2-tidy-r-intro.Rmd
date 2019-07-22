@@ -90,14 +90,20 @@ brfss
 A `tibble()` can be manipulated like a data.frame, but usually
 operations in the tidyverse are 'piped' using the `%>%` symbol from
 one representation to another. We start with some clean-up using the
-`mutate()` function to update or add individual columns.
+`mutate()` function to update or add individual columns. Start with an
+interactive exploration...
 
 ```{r}
 brfss %>% mutate( Sex = factor(Sex), Year = factor(Year) )
+```
+
+...and when the pipeline looks good re-assign the updated tibble.
+
+```{r}
 brfss <- brfss %>% mutate( Sex = factor(Sex), Year = factor(Year) )
 ```
 
-One common operation is to `filter()` rows to those containing only
+Common operations are to `filter()` rows to those containing only
 certain values, and to `select()` a subset of columns.
 
 ```{r}
@@ -109,9 +115,11 @@ Another common operation is to `group_by()` one or more columns, and
 `summarize()` data in other columns, e.g.,
 
 ```{r}
-brfss %>% group_by(Sex, Year) %>% 
+brfss %>%
+    group_by(Sex, Year) %>% 
     summarize(
-        AveAge = mean(Age, na.rm=TRUE), AveWeight = mean(Weight, na.rm=TRUE)
+        AveAge = mean(Age, na.rm=TRUE),
+        AveWeight = mean(Weight, na.rm=TRUE)
     )
 ```
 
@@ -132,6 +140,8 @@ The main features of 'tidy' data are
 # Case studies
 
 ## Revisiting the ALL phenotypic data
+
+### Data input and basic manipulation
 
 Revisit case study 2.1, ALL Phenotype Data in Lab 1.1: Introduction to
 _R_ using a tidy approach to data exploration.
@@ -154,6 +164,8 @@ _R_ using a tidy approach to data exploration.
    individuals in each combination of `BT` and `mol.biol`. Can you
    perform this same computation using only `count()`?
    
+### Using un-tidy functions: `t.test()`
+
 We'd like to compare the average age of males and females in the study
 using `t.test()`. In base _R_ , we can write
 
@@ -266,6 +278,10 @@ with.
 Use `gather()` to transform the wide format data into long-format
 'tidy' data. `gather()` is a tricky function to work with, so study
 the help page carefully.
+
+```{r, message=FALSE}
+library(tidyr)
+```
 
 ```{r}
 tbl <- gather(data, "Gene", "Count", -(1:3))
