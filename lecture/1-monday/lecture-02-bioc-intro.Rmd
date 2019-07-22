@@ -502,6 +502,7 @@ Many package make use of or extend the ideas of SummarizedExperiment
 
 knitr::include_graphics("lecture-02-figures/SE.png")
 
+knitr::include_graphics("lecture-02-figures/MAE.png")
 
 knitr::include_graphics("lecture-02-figures/SCE.png")
 ```
