@@ -8,7 +8,7 @@
 johannes.rainer@eurac.edu
 github: /jorainer/ twitter: /jo_rainer/
 
-** Annotation of genomic regions
+** Annotation of genomic features
 
 + Annotations for genomic features (genes, transcripts, exons) provided by
   =TxDb= (=GenomicFeatures=) and =EnsDb= (=ensembldb=) databases.
@@ -32,26 +32,21 @@ github: /jorainer/ twitter: /jo_rainer/
     ## Get all genes from the database.
     gns <- genes(edb)
 
-    head(gns)
-
-    ## Metadata columns; gene biotype
-    head(gns$gene_biotype)
+    gns
   #+END_SRC
 
 ** =AnnotationFilter=: basic classes for filtering annotation resources
 
 + Extracting the full data not always required: filter databases.
-+ =AnnotationFilter= provides basic classes and concepts for filtering.
++ =AnnotationFilter= defines *concepts* for filtering data resources.
 + One filter class for each annotation type/database column.
 + _Example_: create filters
   #+BEGIN_SRC R
     ## Create filter using the constructor function
-    gnf <- GeneNameFilter("BCL2", condition = "!=")
-    gnf
+    GeneNameFilter("BCL2", condition = "!=")
 
     ## Create using a filter expression
-    gnf <- AnnotationFilter(~ gene_name != "BCL2")
-    gnf
+    AnnotationFilter(~ gene_name != "BCL2")
 
     ## Combine filters
     AnnotationFilter(~ seq_name == "X" & gene_biotype == "lincRNA")
@@ -64,8 +59,8 @@ github: /jorainer/ twitter: /jo_rainer/
     ## List all supported filters by an EnsDb
     supportedFilters(edb)
   #+END_SRC
-+ Pass filter(s) to =EnsDb= methods with the =filter= parameter or use the
-  =filter= function to subset the database.
++ Provide filter(s) with the =filter= parameter or use the =filter= function to
+  subset the data resource.
 + _Example_: get all transcripts for the gene /BCL2/.
   #+BEGIN_SRC R
     ## Get all transcripts for BCL2
@@ -75,7 +70,7 @@ github: /jorainer/ twitter: /jo_rainer/
     ## Combine filters: only protein coding tx for the gene
     txs <- transcripts(edb, filter = ~ gene_name == "BCL2" &
                                 tx_biotype == "protein_coding")
-
+    txs
 
     ## For the pipe lovers:
     library(magrittr)
@@ -84,12 +79,12 @@ github: /jorainer/ twitter: /jo_rainer/
         transcripts
     txs
   #+END_SRC
-+ Filters speed up queries.
-
+  
 ** Additional =ensembldb= capabilities
 
-+ =EnsDb= contain also protein annotation data:
++ =EnsDb= contain also protein annotations:
   - Protein sequence.
+  - Mapping of transcripts to proteins.
   - Annotation to Uniprot accessions.
   - Annotation of all protein domains within the protein sequences.
 + Functionality to map coordinates:
