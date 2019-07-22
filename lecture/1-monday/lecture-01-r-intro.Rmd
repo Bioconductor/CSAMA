@@ -1,7 +1,6 @@
 ---
 title: "Lecture 1 -- Introduction to R / Bioconductor"
 author: "Martin Morgan <Martin.Morgan@RoswellPark.org>"
-date: "12 June 2017"
 output:
   BiocStyle::html_document:
     toc: true
