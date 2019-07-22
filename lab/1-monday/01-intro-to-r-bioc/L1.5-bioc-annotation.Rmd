@@ -21,7 +21,7 @@ options(max.print=1000)
 suppressPackageStartupMessages({
     library(org.Hs.eg.db)
     library(TxDb.Hsapiens.UCSC.hg38.knownGene)
-    library(EnsDb.Hsapiens.v75)
+    library(EnsDb.Hsapiens.v86)
     library(BSgenome.Hsapiens.UCSC.hg38)
     library(GenomicRanges)
     library(biomaRt)
@@ -467,7 +467,7 @@ and [BSgenome][] packages. We will focus here on the former approach.
    annotation ('EnsDb') for _Homo sapiens_.
 
 1. Use the `cdsBy()` function to retrieve the genomic coordinates of all coding
-   sequences for the gene 'BRCA1' from the [EnsDb.Hsapiens.v75][] package. To
+   sequences for the gene 'BRCA1' from the [EnsDb.Hsapiens.v86][] package. To
    retrieve only data for the specified gene, submit either a `GenenameFilter`
    or a filter formula/expression to the function's `filter` parameter. This
    avoids to extract the coding region for all genes, which takes a long time.
@@ -487,8 +487,8 @@ Retrieve the coding sequences grouped by transcript for the gene of interest and
 verify that each coding sequence is a multiple of 3.
 
 ```{r edb-brca1-cds, message = FALSE}
-library(EnsDb.Hsapiens.v75)
-edb <- EnsDb.Hsapiens.v75
+library(EnsDb.Hsapiens.v86)
+edb <- EnsDb.Hsapiens.v86
 
 brca1cds <- cdsBy(edb, by = "tx", filter = ~ genename == "BRCA1")
 
@@ -687,7 +687,7 @@ and the [VariantFiltering][] vignette.
 [org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
 [org.Sc.sgd.db]: http://bioconductor.org/packages/org.Sc.sgd.db
 [rtracklayer]: http://bioconductor.org/packages/release/rtracklayer
-[EnsDb.Hsapiens.v75]: http://bioconductor.org/packages/EnsDb.Hsapiens.v75
+[EnsDb.Hsapiens.v86]: http://bioconductor.org/packages/EnsDb.Hsapiens.v86
 
 # End matter
 
