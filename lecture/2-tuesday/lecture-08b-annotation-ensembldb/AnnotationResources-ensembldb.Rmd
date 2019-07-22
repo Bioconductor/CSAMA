@@ -31,6 +31,11 @@ slides > slide {
   transition: opacity 0.1s ease-in-out 0.1s;
 }
 
+```{r echo = FALSE, results = "hide", message = FALSE}
+library(EnsDb.Hsapiens.v86)
+library(magrittr)
+```
+
 </style>
 
 ## Annotation of genomic regions
@@ -56,7 +61,7 @@ genes(edb)
 ## Filtering annotation resources
 
 - Extracting the full data not always required: filter database.
-- `AnnotationFilter`: provides basic classes and concepts for filtering.
+- `AnnotationFilter`: provides *concepts* for filtering data resources.
 - One filter class for each annotation type/database column.
 
 ## Filtering annotation resources {.build}
@@ -96,7 +101,8 @@ edb %>%
 ## Additional `ensembldb` capabilities
 
 - `EnsDb` contain also protein annotation data:
-  - Protein sequence
+  - Protein sequence.
+  - Mapping of transcripts to proteins.
   - Annotation to Uniprot accessions.
   - Annotation of all protein domains within protein sequences.
 - Functionality to map coordinates: 

@@ -59,7 +59,7 @@ knitr::include_graphics("images/glycolysis_01.png")
 ```
 
 <div style="font-size: 80%;">
-- Key metabolic pathways common to all cells.
+- Key metabolic pathway common to all cells.
 - Creates energy by converting glucose to pyruvate.
 <div>
 
@@ -145,7 +145,7 @@ knitr::include_graphics("images/glycolysis_12.png")
 </div>
 
 <div>
-- Metabolites small enough to be directly measured.
+- Metabolites small enough to be directly measured by MS.
 - Most metabolites uncharged - need to create ions first.
 </div>
 
@@ -267,11 +267,23 @@ knitr::include_graphics("images/MS_Spectrum1.png")
 knitr::include_graphics("images/LCMS_Spectrum1.png")
 ```
 
+<div style="position:absolute; left:50%; top:55%">
+We gain an additional dimension:
+
+- retention time.
+</div>
+
 ## | **Liquid Chromatography Mass Spectrometry (LC-MS)** {.notransition}
 
 ```{r out.width = "700px", echo = FALSE}
 knitr::include_graphics("images/LCMS_Spectrum2.png")
 ```
+
+<div style="position:absolute; left:50%; top:55%">
+We gain an additional dimension:
+
+- retention time.
+</div>
 
 ## | **Liquid Chromatography Mass Spectrometry (LC-MS)** {.notransition}
 
@@ -279,11 +291,23 @@ knitr::include_graphics("images/LCMS_Spectrum2.png")
 knitr::include_graphics("images/LCMS_Spectrum3.png")
 ```
 
+<div style="position:absolute; left:50%; top:55%">
+We gain an additional dimension:
+
+- retention time.
+</div>
+
 ## | **Liquid Chromatography Mass Spectrometry (LC-MS)** {.notransition}
 
 ```{r out.width = "700px", echo = FALSE}
 knitr::include_graphics("images/LCMS_Spectrum4.png")
 ```
+
+<div style="position:absolute; left:50%; top:55%">
+We gain an additional dimension:
+
+- retention time.
+</div>
 
 ## | **Liquid Chromatography Mass Spectrometry (LC-MS)** {.notransition}
 
@@ -291,11 +315,11 @@ knitr::include_graphics("images/LCMS_Spectrum4.png")
 knitr::include_graphics("images/LCMS_Spectrum5.png")
 ```
 
-## | **Liquid Chromatography Mass Spectrometry (LC-MS)** {.notransition}
+<div style="position:absolute; left:50%; top:55%">
+We gain an additional dimension:
 
-```{r out.width = "700px", echo = FALSE}
-knitr::include_graphics("images/LCMS_Spectrum6.png")
-```
+- retention time.
+</div>
 
 ## | **Liquid Chromatography Mass Spectrometry (LC-MS)** {.notransition}
 
@@ -304,14 +328,26 @@ knitr::include_graphics("images/LCMS_Spectrum6.png")
 ```
 
 <div style="position:absolute; left:50%; top:55%">
-LC-MS data has 3 dimensions:
+We gain an additional dimension:
 
-- m/z, retention time, intensity.
-
-Analyze data along rt.
-
+- retention time.
 </div>
 
+## | **Liquid Chromatography Mass Spectrometry (LC-MS)** {.notransition}
+
+```{r out.width = "700px", echo = FALSE}
+knitr::include_graphics("images/LCMS_Spectrum6.png")
+```
+
+<div style="position:absolute; left:50%; top:55%">
+We gain an additional dimension:
+
+- retention time.
+</div>
+
+<div style="position:absolute; left:50%; top:70%">
+- LC-MS: analyze data along retention time.
+</div>
 
 ## LC-MS data preprocessing
 
@@ -409,7 +445,7 @@ knitr::include_graphics("images/alignment.png")
 </div>
 
 <div>
-- `xcms`: `adjustRtime` function with `PeakDensityParam` [Smith et al. Anal. chem.
+- `xcms`: `adjustRtime` function with `PeakGroupsParam` [Smith et al. Anal. chem.
     2006] or `ObiwarpParam` [Prince et al. Anal. chem. 2006].
 </div>
 
@@ -422,10 +458,10 @@ pgp <- PeakGroupsParam(minFraction = 1, span = 0.6)
 data <- adjustRtime(data, param = pgp)
 
 par(mfrow = c(1, 2), mar = c(4, 4, 0.9, 0.2))
-plot(chromatogram(data, aggregationFun = "max", adjustedRtime = FALSE,
-                  rt = c(70, 220)), main = "raw", peakType = "none")
-plot(chromatogram(data, aggregationFun = "max", rt = c(70, 220)),
-     main = "adjusted", peakType = "none")
+plot(chromatogram(data, aggregationFun = "sum", adjustedRtime = FALSE,
+                  rt = c(70, 220)), main = "TIC, raw", peakType = "none")
+plot(chromatogram(data, aggregationFun = "sum", rt = c(70, 220)),
+     main = "TIC, adjusted", peakType = "none")
 ```
 </div>
 
@@ -463,22 +499,14 @@ knitr::include_graphics("images/correspondence2_03.png")
   al. Bioinformatics 2006] and `PeakDensityParam` [Smith et al. Anal. chem.
   2006].
 
-<div>
-- peak density approach (for a given m/z slice):
-
-```{r echo = FALSE, out.width = "700px"}
-knitr::include_graphics("images/correspondence2_01.png")
-```
-</div>
-
 
 ## Correspondence
 
 - `xcms`: `groupChromPeaks` with `NearestPeaksParam` [Katajamaa et
   al. Bioinformatics 2006] and `PeakDensityParam` [Smith et al. Anal. chem.
   2006].
-
-- peak density approach (for a given m/z slice):
+- *Peak density* approach (for a given m/z slice):
+- Identify regions along rt with high peak density, group peaks.
 
 ```{r echo = FALSE, out.width = "700px"}
 knitr::include_graphics("images/correspondence2_density.png")
@@ -486,21 +514,22 @@ knitr::include_graphics("images/correspondence2_density.png")
 
 ## Preprocessing result {.build}
 
-- Numeric matrix with *abundances*.
+- Numeric matrix with abundances.
 - Normalization.
 - Identification of features of interest.
 - Annotation.
 
 ## Normalization {.build}
 
+Account for:
 <div>
 - Sample-specific effects.
 - Effects related to batch/measurement run.
-- LC-dependent effects: seem to affect each metabolite in a different way.
+- Injection order-dependent effects: specific to metabolite.
 </div>
 
 <div>
-```{r echo = FALSE, out.width = "740px"}
+```{r echo = FALSE, out.width = "700px"}
 knitr::include_graphics("images/FT07853.png")
 ```
 </div>
@@ -508,7 +537,7 @@ knitr::include_graphics("images/FT07853.png")
 ## Normalization {.build}
 
 <div>
-- Good practice:
+- Good practice for experimental design:
   - QC samples measured repeatedly.
   - Internal standards.
   - Replicates.
@@ -537,16 +566,8 @@ head(res, n = 4)
 
 - Feature characterized by m/z and retention time.
 
-## Annotation based on m/z matching{.build}
+## Annotation based on mass matching{.build}
 
-<div>
-- Match mass against database.
-  - The Human Metabolome Database (HMDB): <small>https://hmdb.ca</small>
-  - Chemical Entities of Biological Interest: https://www.ebi.ac.uk/chebi
-  - PubChem https://pubchem.ncbi.nlm.nih.gov
-  - ...
-- Will result in many hits.
-</div>
 <div>
 - m/z is **not** the mass.
 </div>
@@ -555,6 +576,14 @@ head(res, n = 4)
 </div>
 <div>
 - Different ions from the same compound: [M+H]+, [M+Na]+, ...
+</div>
+<div>
+- Match mass against database.
+  - The Human Metabolome Database (HMDB): <small>https://hmdb.ca</small>
+  - Chemical Entities of Biological Interest: https://www.ebi.ac.uk/chebi
+  - PubChem https://pubchem.ncbi.nlm.nih.gov
+  - ...
+- Will result in many hits.
 </div>
 
 ## Improved Annotation {.build}
@@ -569,7 +598,6 @@ Annotate features based on m/z **and**:
 - **MS2 spectrum**:
   - Requires LC-MS/MS data (DDA or DIA).
   - Reference spectrum has to be available in database.
-  - GNPS: spectral similarity network: group spectra/compounds into classes.
 </div>
 
 
