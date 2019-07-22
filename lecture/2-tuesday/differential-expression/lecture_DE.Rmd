@@ -3,6 +3,10 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+```{r}
+options( max.print=300 )
+```
+
 Differential expression
 =======================
 
@@ -26,6 +30,17 @@ airway
 colData(airway)
 ```
 
+Fix sample names
+
+```{r}
+colnames(dds) <- c( "D1u", "D1t", "D2u", "D2t", "D3u", "D3t", "D4u", "D4t" )
+
+# better:
+colnames(dds) <- paste0( "D", as.integer(dds$cell), substr( dds$dex, 1, 1 ) )
+
+colData(dds)
+```
+
 Count table:
 
 ```{r}
@@ -35,9 +50,14 @@ head( assay(airway) )
 Convert the gene IDs to names:
 
 ```{r}
-a <- AnnotationDbi::intraIDMapper( rownames(airway), species="HOMSA", srcIDType="ENSEMBL", destIDType = "SYMBOL" )  
-# rownames(airway) <- a   # This dows not do what it should
+a <- AnnotationDbi::intraIDMapper( rownames(airway), species="HOMSA", 
+        srcIDType="ENSEMBL", destIDType = "SYMBOL" )  
+
+# Do not simply do this:
+# rownames(airway) <- a 
+
 rownames(airway)[ match( names(a), rownames(airway) ) ] <- unlist(a)
+
 head( assay( airway ) )
 ```
 
@@ -89,14 +109,14 @@ A naive try
 
 Take only the first cell line, "N61311"
 
-```{r}
+```{r fig.asp=1}
 plot( counts(dds)[,1], counts(dds)[,2], asp=1 )
 ```
 
 Log scale
 
-```{r}
-plot( counts(dds)[,1] + 1, counts(dds)[,2] + 1, log="xy" )
+```{r fig.asp=1}
+plot( counts(dds)[,1] + 1, counts(dds)[,2] + 1, log="xy" ) #, pch="." )
 ```
 
 Let's calculate the average and the ratio:
@@ -222,21 +242,63 @@ sapply( 1:8, function(i)
   median( ( counts(dds)[,i] / vref_counts) [ vref_counts>0 ] ) ) 
 ```
 
+Permutation test
+----------------
+
+Let's do a very simple, but actually statistically valid analysis.
+
+First, calculate the log fold changes.
+
+```{r}
+#log norm counts
+lnc <- log2( counts( dds, normalized=TRUE ) + 1 )
+lmeans <- rowMeans( lnc )
+lfc <- rowMeans( 
+   lnc[ , c( "D1t", "D2t", "D3t", "D4t" ) ] - 
+   lnc[ , c( "D1u", "D2u", "D3u", "D4u" ) ] )
+
+plot( lmeans, lfc, cex=.1, ylim=c( -4, 4 ) )
+```
+
+Pick two cell lines at random: For these, swap control and treatment samples, then recalculate
+log fold changes
+
+```{r}
+lfc_perm <- rowMeans( 
+   lnc[ , c( "D1t", "D2u", "D3u", "D4t" ) ] - 
+   lnc[ , c( "D1u", "D2t", "D3t", "D4u" ) ] )
+
+
+plot( lmeans, lfc_perm, log="x", cex=.1, ylim=c( -4, 4 ) )
+
+plot( lmeans, lfc, log="x", cex=.1, ylim=c( -4, 4 ) )
+points( lmeans, lfc_perm, cex=.1, col="purple" )
+```
+
+
+
 Poisson noise
 -------------
 
 Imagine a bag with 10,000 balls, 10% of which are red
 
-```{r fig.height=12}
-a <- cbind( expand.grid( x=1:125, y=1:80 ), col=sample( c( rep( "lightyellow", 9000 ), rep( "indianred1", 1000 ) ) ) )
-ggplot(a) + geom_point( aes( x=x, y=y ), col=a$col, size=1) + theme_dark() + coord_fixed()
+```{r fig.width=12}
+a <- cbind( 
+    expand.grid( x=1:125, y=1:80 ), 
+    col=sample( c( rep( "lightyellow", 9000 ), rep( "indianred1", 1000 ) ) ) )
+
+ggplot(a) + 
+  geom_point( aes( x=x, y=y ), col=a$col, size=.5) + 
+  theme_dark() + coord_fixed()
 ```
 
 Each of you is allowed to look at 20 balls, then estimate the percentage of red balls.
 
 
 ```{r fig.height=12}
-ggplot(a) + geom_point( aes( x=x, y=y ), col=a$col, size=5) + theme_dark() + coord_fixed( xlim=c(0,19.5), ylim=c(0,19.5))
+ggplot(a) + 
+  geom_point( aes( x=x, y=y ), col=a$col, size=5) + theme_dark() + 
+  coord_fixed( xlim=c(0,19.5), ylim=c(0,19.5))
 ```
 
 ```{r}
@@ -294,3 +356,60 @@ plot(
   xlim = c( 0, 1 ),
   main = "expected: 100 of 1000 (10%)" )
 ```
+
+
+The negative binomial distribution
+----------------------------------
+
+Assume a gene is expressed with 5 reads in your control sample and 8 reads in your treated samples
+
+```{r}
+library(magrittr)
+library(ggbeeswarm)
+
+conds <- rep( c( "C", "T" ), each=4 )
+data.frame( 
+  cond = conds, 
+  nreads = rpois( 8, c( C=5, T=8 )[ conds ] ) ) %>%
+ggplot +
+  geom_beeswarm( aes( x=cond, y=nreads ) )
+```
+
+```{r}
+table( replicate( 1000, mean( rpois( 4, 5 ) ) - mean( rpois( 4, 8 ) ) ) > 0 )
+```
+
+Now, C: 1000, T: 1010
+
+```{r}
+library(magrittr)
+library(ggbeeswarm)
+
+conds <- rep( c( "C", "T" ), each=4 )
+data.frame( 
+  cond = conds, 
+  nreads = rpois( 8, c( C=1000, T=1100 )[ conds ] ) ) %>%
+ggplot +
+  geom_beeswarm( aes( x=cond, y=nreads ) )
+```
+
+```{r}
+table( replicate( 10000, mean( rpois( 4, 1000 ) ) - mean( rpois( 4, 1100 ) ) ) > 0 )
+```
+
+More realistic: 
+
+```{r}
+ctrl <- rnorm( 4, mean=1000, sd=200 )
+trt  <- rnorm( 4, mean=1100, sd=200 )
+rpois( 4, lambda=ctrl )
+rpois( 4, lambda=trt )
+
+
+table(
+  replicate( 10000, 
+    mean( rpois( 4, lambda = rnorm( 4, mean=1000, sd=200 ) ) ) -
+    mean( rpois( 4, lambda = rnorm( 4, mean=1100, sd=200 ) ) ) ) > 0 )
+```
+
+Getting the SD right is crucial.
