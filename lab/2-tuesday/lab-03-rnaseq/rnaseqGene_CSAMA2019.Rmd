@@ -18,7 +18,7 @@ author:
   affiliation: Institute for Biomedicine, Eurac Research, Bolzano, Italy
 - name: Wolfgang Huber
   affiliation: *EMBL
-date: 19 June 2018
+date: 22 July 2019
 output: BiocStyle::html_document
 bibliography: bibliography.bib
 vignette: >
@@ -43,7 +43,7 @@ library("knitr")
 library("rmarkdown")
 ## options(width=70) # Andrzej said this is not needed
 opts_chunk$set(message=FALSE, error=FALSE, warning=FALSE,
-               cache=TRUE, fig.width=5, fig.height=5)
+               cache=TRUE, fig.width=5, fig.height=5, eval=FALSE)
 ```
 
 # Abstract
@@ -1266,7 +1266,7 @@ rownames(hormoneR) <- hormoneR$gene_id
 nrow(hormoneR)
 ```
 
-In total `r nrow(hormoneR)` genes were identified. Next we identify nuclear
+How many genes were identified? Next we identify nuclear
 hormone receptors which are significantly differentially expressed at a 5% FDR
 in the present data set.
 
