@@ -106,7 +106,7 @@ this lab. For now...
 **Exercise**
 
 - Visit the landing pages of each of the [Biostrings][],
-  [GenomicRanges][], [VariantAnnotation][], and [GenomicAlignment][]
+  [GenomicRanges][], [VariantAnnotation][], and [GenomicAlignments][]
   packages. Create a short summary describing what each package does,
   and when it might be useful.
 - Visit the landing page for the [SummarizedExperiment][]
@@ -480,3 +480,58 @@ U24CA180996.
 This project has received funding from the European Research Council
 (ERC) under the European Union's Horizon 2020 research and innovation
 programme (grant agreement number 633974)
+
+
+[biocViews]: http://bioconductor.org/packages/release/BiocViews.html#___Software
+[AnnotationData]: http://bioconductor.org/packages/release/BiocViews.html#___AnnotationData
+
+[aprof]: http://cran.r-project.org/web/packages/aprof/index.html
+[hexbin]: http://cran.r-project.org/web/packages/hexbin/index.html
+[lineprof]: https://github.com/hadley/lineprof
+[microbenchmark]: http://cran.r-project.org/web/packages/microbenchmark/index.html
+
+[AnnotationDbi]: http://bioconductor.org/packages/AnnotationDbi
+[AnnotationHub]: https://bioconductor.org/packages/AnnotationHub
+[BSgenome]: http://bioconductor.org/packages/BSgenome
+[BiocManager]: https://cran.r-project.org/package=BiocManager
+[Biostrings]: http://bioconductor.org/packages/Biostrings
+[CNTools]: http://bioconductor.org/packages/CNTools
+[ChIPQC]: http://bioconductor.org/packages/ChIPQC
+[ChIPpeakAnno]: http://bioconductor.org/packages/ChIPpeakAnno
+[ChIPseeker]: http://bioconductor.org/packages/ChIPseeker
+[ComplexHeatmap]: http://bioconductor.org/packages/ComplexHeatmap
+[csaw]: http://bioconductor.org/packages/csaw
+[DESeq2]: http://bioconductor.org/packages/DESeq2
+[DiffBind]: http://bioconductor.org/packages/DiffBind
+[GenomicAlignments]: http://bioconductor.org/packages/GenomicAlignments
+[GenomicRanges]: http://bioconductor.org/packages/GenomicRanges
+[Gviz]: http://bioconductor.org/packages/Gviz
+[IRanges]: http://bioconductor.org/packages/IRanges
+[KEGGREST]: http://bioconductor.org/packages/KEGGREST
+[PSICQUIC]: http://bioconductor.org/packages/PSICQUIC
+[rtracklayer]: http://bioconductor.org/packages/rtracklayer
+[Rsamtools]: http://bioconductor.org/packages/Rsamtools
+[ReportingTools]: http://bioconductor.org/packages/ReportingTools
+[ShortRead]: http://bioconductor.org/packages/ShortRead
+[SummarizedExperiment]: http://bioconductor.org/packages/SummarizedExperiment
+[VariantAnnotation]: http://bioconductor.org/packages/VariantAnnotation
+[VariantFiltering]: http://bioconductor.org/packages/VariantFiltering
+[VariantTools]: http://bioconductor.org/packages/VariantTools
+[biomaRt]: http://bioconductor.org/packages/biomaRt
+[cn.mops]: http://bioconductor.org/packages/cn.mops
+[h5vc]: http://bioconductor.org/packages/h5vc
+[edgeR]: http://bioconductor.org/packages/edgeR
+[ensemblVEP]: http://bioconductor.org/packages/ensemblVEP
+[limma]: http://bioconductor.org/packages/limma
+[metagenomeSeq]: http://bioconductor.org/packages/metagenomeSeq
+[phyloseq]: http://bioconductor.org/packages/phyloseq
+[snpStats]: http://bioconductor.org/packages/snpStats
+
+[org.Hs.eg.db]: http://bioconductor.org/packages/org.Hs.eg.db
+[TxDb.Hsapiens.UCSC.hg38.knownGene]: http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg38.knownGene
+[BSgenome.Hsapiens.UCSC.hg38]: http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg38
+
+[EnsDb.Hsapiens.v86]: http://bioconductor.org/packages/EnsDb.Hsapiens.v86
+[Ensembl]: http://www.ensembl.org
+
+[sc-workflow]: http://bioconductor.org/packages/release/workflows/html/simpleSingleCell.html

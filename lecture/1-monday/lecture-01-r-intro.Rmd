@@ -190,7 +190,7 @@ Resources
 A distinctive feature of _Bioconductor_ -- use of _objects_ for
 representing data
 
-```{r, messages = FALSE}
+```{r, message = FALSE}
 library(Biostrings)
 dna <- DNAStringSet(c("AACTCC", "CTGCA"))
 dna
