@@ -3192,6 +3192,8 @@ slides > slide {
   transition: opacity 0.1s ease-in-out 0.1s;
 }
 
+
+
 </style>
 
 <slide class=""><hgroup><h2>Annotation of genomic regions</h2></hgroup><article  id="annotation-of-genomic-regions">
@@ -3208,7 +3210,7 @@ slides > slide {
 <li>Results returned as <code>GRanges</code>, <code>GRangesList</code> or <code>DataFrame</code>.</li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Annotation of genomic regions</h2></hgroup><article  id="annotation-of-genomic-regions-1" class="build">
+</article></slide><slide class=""><hgroup><h2>Annotation of genomic regions</h2></hgroup><article  class="build" id="annotation-of-genomic-regions-1">
 
 <ul>
 <li>Example: get all gene annotations from an <code>EnsDb</code>:</li>
@@ -3254,11 +3256,11 @@ genes(edb)</pre>
 
 <ul>
 <li>Extracting the full data not always required: filter database.</li>
-<li><code>AnnotationFilter</code>: provides basic classes and concepts for filtering.</li>
+<li><code>AnnotationFilter</code>: provides <em>concepts</em> for filtering data resources.</li>
 <li>One filter class for each annotation type/database column.</li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Filtering annotation resources</h2></hgroup><article  id="filtering-annotation-resources-1" class="build">
+</article></slide><slide class=""><hgroup><h2>Filtering annotation resources</h2></hgroup><article  class="build" id="filtering-annotation-resources-1">
 
 <ul>
 <li>Example: create filters</li>
@@ -3281,7 +3283,7 @@ genes(edb)</pre>
 <pre >## AnnotationFilterList of length 2 
 ## seq_name == &#39;X&#39; &amp; gene_biotype == &#39;lincRna&#39;</pre>
 
-</article></slide><slide class=""><hgroup><h2>Filtering <code>EnsDb</code> databases</h2></hgroup><article  id="filtering-ensdb-databases" class="build">
+</article></slide><slide class=""><hgroup><h2>Filtering <code>EnsDb</code> databases</h2></hgroup><article  class="build" id="filtering-ensdb-databases">
 
 <ul>
 <li>Example: what filters can we use?</li>
@@ -3318,7 +3320,7 @@ genes(edb)</pre>
 ## 26             UniprotFilter               uniprot
 ## 27  UniprotMappingTypeFilter  uniprot_mapping_type</pre>
 
-</article></slide><slide class=""><hgroup><h2>Filtering <code>EnsDb</code> databases</h2></hgroup><article  id="filtering-ensdb-databases-1" class="build">
+</article></slide><slide class=""><hgroup><h2>Filtering <code>EnsDb</code> databases</h2></hgroup><article  class="build" id="filtering-ensdb-databases-1">
 
 <ul>
 <li>Example: get all protein coding transcripts for the gene <em>BCL2</em>.</li>
@@ -3346,7 +3348,7 @@ genes(edb)</pre>
 ##   -------
 ##   seqinfo: 1 sequence from GRCh38 genome</pre>
 
-</article></slide><slide class=""><hgroup><h2>Filtering <code>EnsDb</code> databases</h2></hgroup><article  id="filtering-ensdb-databases-2" class="build">
+</article></slide><slide class=""><hgroup><h2>Filtering <code>EnsDb</code> databases</h2></hgroup><article  class="build" id="filtering-ensdb-databases-2">
 
 <ul>
 <li>Example: <em>filter</em> the whole database</li>
@@ -3382,7 +3384,8 @@ edb %&gt;%
 <li><code>EnsDb</code> contain also protein annotation data:
 
 <ul>
-<li>Protein sequence</li>
+<li>Protein sequence.</li>
+<li>Mapping of transcripts to proteins.</li>
 <li>Annotation to Uniprot accessions.</li>
 <li>Annotation of all protein domains within protein sequences.</li>
 </ul></li>
@@ -3395,7 +3398,7 @@ edb %&gt;%
 </ul></li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Where to find <code>EnsDb</code> databases?</h2></hgroup><article  id="where-to-find-ensdb-databases" class="build">
+</article></slide><slide class=""><hgroup><h2>Where to find <code>EnsDb</code> databases?</h2></hgroup><article  class="build" id="where-to-find-ensdb-databases">
 
 <ul>
 <li><code>AnnotationHub</code>!</li>
