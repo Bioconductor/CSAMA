@@ -1,0 +1,329 @@
+---
+title: "Evening 2.1: Efficient _R_"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  % \VignetteIndexEntry{Evening 2.1: Efficient R}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(
+    eval=as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
+    cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE"))
+)
+```
+
+# Inspiration: correlated coin tosses
+
+Wolfgang mentioned on Monday that observing 50 heads and then 50 tails
+would not be evidence of a 'fair' coin, even though the observed
+number of head (50) was exactly that expected of a fair coin.
+
+I wonder, how do you generate correlated coin tosses?
+
+Criteria (most to least important)
+
+1. Correct
+2. Understandable
+3. Robust
+4. Fast
+
+# First approach
+
+## Implementation
+
+Suppose we represent heads as '0' and tails as '1'. Let `p` be the
+probability that a coin that is currently a head is tossed and remains
+a head, and similarly for tails. If `p == 0.5`, then the tosses would
+seem to be uncorrelated. We implement this idea as a simple function
+
+```{r}
+f1 <- function(n, p) {
+    current <- rbinom(1, 1, 0.5)
+    outcome <- NULL
+    for (i in 1:n) {
+        if (runif(1) > p)
+            current <- (current + 1) %% 2
+        outcome <- c(outcome, current)
+    }
+    outcome
+}
+```
+
+## Assessment
+
+Is it correct?
+
+```{r}
+f1(10, .5)
+table(f1(1000, .5))
+res <- f1(1000, .9)
+mean(rle(res)$length) # expectation: 1 / (1 - p)
+```
+
+Is it understandable? Pretty much
+
+Is it robust? We'll come back to this.
+
+Is it fast? Seems so initially, but it scales poorly!
+
+```{r}
+system.time(f1(5000, .5))
+system.time(f1(10000, .5))
+system.time(f1(20000, .5))
+```
+
+Doubling the problem size (`n`) causes a 4-fold increase in execution time.
+
+What's the problem? `c(outcome, current)` causes `outcome` to be
+copied each time through the loop!
+
+# Second approach
+
+## Implementation
+
+Pre-allocate and fill the outcome vector; `outome` updated in place,
+without copying.
+
+```{r}
+f2 <- function(n, p) {
+    current <- rbinom(1, 1, 0.5)
+    outcome <- numeric(n)
+    for (i in 1:n) {
+        if (runif(1) > p)
+            current <- (current + 1) %% 2
+        outcome[i] <- current
+    }
+    outcome
+}
+```
+
+## Assessment
+
+Is it correct?
+
+```{r}
+set.seed(123)
+res1 <- f1(100, .9)
+set.seed(123)
+res2 <- f2(100, .9)
+identical(res1, res2)
+```
+
+Is it understandable? As understandable as `f1()`.
+
+Is it robust? In a minute...
+
+Is it fast?
+
+```{r}
+system.time(f2(5000, .5))
+system.time(f2(10000, .5))
+system.time(f2(20000, .5))
+```
+
+`f2()` seems to scale linearly, so performs increasingly well compared
+to `f1()`.
+
+
+# Third approach
+
+## Implementation
+
+Note that `runif()` is called `n` times, but the program could be
+modified, and still be understandable, if it were called just once --
+_hoist_ `runif(1) > p` out of the loop.
+
+```{r}
+f3 <- function(n, p) {
+    current <- rbinom(1, 1, 0.5)
+    outcome <- numeric(n)
+    test <- runif(n) > p
+    for (i in 1:n) {
+        if (test[i])
+            current <- (current + 1) %% 2
+        outcome[i] <- current
+    }
+    outcome
+}
+```
+
+## Assessment
+
+1. Correct?
+
+```{r}
+set.seed(123)
+res1 <- f1(100, .9)
+set.seed(123)
+res3 <- f3(100, .9)
+identical(res1, res3)
+```
+
+2. Understandable? Yes.
+
+3. Robust? None of them have been, and `f3()` really isn't!
+
+```{r}
+set.seed(123)
+f1(0, .5)
+
+set.seed(123)
+try(f3(0, .5))
+```
+
+4. Fast? Yes, about 10 times faster than `f3()`
+
+```{r}
+n <- 100000
+system.time(f2(n, .5))
+system.time(f3(n, .5))
+```
+
+... with linear scaling.
+
+```{r}
+system.time(f3(n * 10, .5))
+```
+
+# Fourth approach
+
+## Implementation
+
+The problem is that `1:n` is not robust, especially `1:0` generates
+the sequence `c(1, 0)`, whereas we were expecting a zero-length
+sequence!
+
+Solution: use `seq_len(n)`
+
+```{r}
+lapply(3:1, seq_len)
+```
+
+```{r}
+f4 <- function(n, p) {
+    current <- rbinom(1, 1, 0.5)
+    outcome <- numeric(n)
+    test <- runif(n) > p
+    for (i in seq_len(n)) {
+        if (test[i])
+            current <- (current + 1) %% 2
+        outcome[i] <- current
+    }
+    outcome
+}
+```
+
+## Assessment
+
+1. Correct? Yes
+
+2. Understandable? Yes
+
+3. Robust? Yes
+
+```{r}
+set.seed(123)
+f4(3, .5)
+f4(2, .5)
+f4(1, .5)
+f4(0, .5)
+```
+
+4. Fast? Yes
+
+# Fifth approach
+
+## Implementation
+
+Use `cumsum()` (cummulative sum) to produce sequential groups that
+have the same head or tail status. Use `%%` on the cummulative sum to
+translate those groups into heads (`cummsum() %% 2 == 0` or tails
+`(cummsum() %% 2 == 1`).
+
+```{r}
+f5 <- function(n, p) {
+    current <- rbinom(1, 1, 0.5)
+    test <- runif(n) > p
+    cumsum(current + test) %% 2
+}
+```
+
+## Assessment
+
+1. Correct?
+
+```{r}
+set.seed(123); res1 <- f1(10, .8)
+set.seed(123); res5 <- f5(10, .8)
+identical(res1, res5)
+```
+
+2. Understandable? Harder to understand...
+
+3. Robust? Yes
+
+```{r}
+f5(0, .8)
+```
+
+4. Fast?
+
+```{r}
+n <- 1000000
+system.time(f4(n, .5))
+system.time(f5(n, .5))
+system.time(f5(n * 10, .5))
+```
+
+About 4x faster than `f4()`, scales linearly, fast even for very large `n`.
+
+Could be used to generate a large data set for developing methods
+about correlated samples, along the lines of
+
+```{r}
+correlated_tosses_expts <- function(m, n, p) {
+    ## m tosses (rows) in each of n experiments
+    start0 <- rep(rbinom(m, 1, .5), each = m)
+    group0 <- cumsum(runif(m * n) > p)
+    toss <- (start0 + group0) %% 2
+    matrix(toss, m)
+}
+system.time({
+    expt <- correlated_tosses_expts(1000, 10000, .8)
+})
+hist(colSums(expt))
+```
+
+# XXX Approach
+
+Probably we have reached the point of diminishing gains, we've already
+spent far more time developing `f5()` than we'll ever save by further
+investigation... However,
+
+- Avoid adding `current` to `cumsum()` vector.
+- Use `rgeom()` to generate change points.
+- 'Is there a package for that?'
+
+Other tools
+
+- [microbenchmark][] for comparing fine-scale performance differences
+  (but do we really care about speed when, e.g., timing differences
+  are less than a couple of seconds for large-scale data?)
+- [testthat][] for writing 'unit tests' that allow easy implementation
+  of tests for correct and robust code.
+  
+[microbenchmark]: https://cran.r-project.org/package=microbenchmark
+[testthat]: https://cran.r-project.org/package=testthat
+
+# Session info
+
+```{r}
+sessionInfo()
+```
