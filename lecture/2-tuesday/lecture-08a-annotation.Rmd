@@ -1,7 +1,7 @@
 ---
 title: "Introduction to Bioconductor Annotation Resources"
 author: "Lori Shepherd  <Lori.Shepherd@roswellpark.org> <br> Martin Morgan <Martin.Morgan@RoswellPark.org> <br> James W. MacDonald"
-date: 22-26 July | CSAMA 2018
+date: 22-26 July | CSAMA 2019
 output:
   ioslides_presentation:
     fig_retina: null
