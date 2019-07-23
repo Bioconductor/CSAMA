@@ -1757,7 +1757,7 @@ small counts, which otherwise generate spikes in the histogram.</p>
 <h2><span class="header-section-number">7.3</span> Counts plot with <em>edgeR</em></h2>
 <p>As we made a counts plot previously, we can also make this with the
 top gene from the <em>edgeR</em> analysis:</p>
-<pre class="r"><code>cpms &lt;- cpm(dge)
+<pre class="r"><code>cpms &lt;- edgeR::cpm(dge)
 topGene &lt;- as.character(tt10$table$gene.id[1])
 ord &lt;- order(dge$samples$dex)
 col &lt;- as.integer(dge$samples$dex[ord])
@@ -1833,6 +1833,8 @@ if (interactive()) {
 test, to the <em>rowData</em> of the object before providing it to <em>iSEE</em>.</p>
 <pre class="r"><code>stopifnot(all(rownames(dds) == rownames(res)))
 res$neglog10pvalue &lt;- -log10(res$pvalue)
+res$log10baseMean &lt;- log10(res$baseMean)
+assay(dds, &quot;normcounts&quot;) &lt;- counts(dds, normalized=TRUE)
 rowData(dds)$res &lt;- res
 if (interactive()) {
   iSEE(dds)

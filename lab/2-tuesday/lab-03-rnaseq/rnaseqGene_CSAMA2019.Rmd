@@ -1466,7 +1466,7 @@ As we made a counts plot previously, we can also make this with the
 top gene from the *edgeR* analysis:
 
 ```{r plot-counts-edger, fig.cap="CPM per sample for the top gene from the *edgeR* analysis."}
-cpms <- cpm(dge)
+cpms <- edgeR::cpm(dge)
 topGene <- as.character(tt10$table$gene.id[1])
 ord <- order(dge$samples$dex)
 col <- as.integer(dge$samples$dex[ord])
@@ -1567,6 +1567,8 @@ test, to the *rowData* of the object before providing it to *iSEE*.
 ```{r}
 stopifnot(all(rownames(dds) == rownames(res)))
 res$neglog10pvalue <- -log10(res$pvalue)
+res$log10baseMean <- log10(res$baseMean)
+assay(dds, "normcounts") <- counts(dds, normalized=TRUE)
 rowData(dds)$res <- res
 if (interactive()) {
   iSEE(dds)
