@@ -1,5 +1,5 @@
 ---
-title: "Preprocessing of untargeted metabolomics data"
+title: "Preprocessing of untargeted (LC-MS) metabolomics data"
 author: 
 - name: "Johannes Rainer"
   affiliation: "Institute for Biomedicine, Eurac Research, Bolzano, Italy"
@@ -71,10 +71,10 @@ BiocManager::install(c("xcms",
 
 ## Mass spectrometry
 
-Mass spectrometry allows to measure abundances of charged ions in a
+Mass spectrometry allows to measure abundances of charged molecules (ions) in a
 sample. Abundances are determined as ion counts for a specific mass-to-charge
 ratio m/z. The measured signal is represented as a spectrum: intensities along
-mass-to-charge ratios.
+m/z.
 
 ![](images/MS.png)
 
@@ -914,7 +914,7 @@ The parameter object for one analysis step can be accessed with `processParam`:
 processParam(processHistory(data_cent)[[1]])
 ```
 
-## Bonus material - peak detection fun
+# Bonus material - peak detection fun
 
 In this section we apply the lessons learned from previous sections, in
 particular how to adapt peak detection setting on a rather noisy
