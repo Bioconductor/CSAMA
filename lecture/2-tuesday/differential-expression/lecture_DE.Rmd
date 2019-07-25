@@ -1,0 +1,415 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+options( max.print=300 )
+```
+
+Differential expression
+=======================
+
+Our example data
+----------------
+
+Himes et al (PLOS One, 2014, PMID: 24926665):
+  - effect of dexamethasone treatment on airway epithelium
+  - 4 cell lines, derived from 4 donors
+  - 2 sample each: dexamethasone and control
+
+```{r}
+library( airway )
+data( airway )
+airway
+```
+
+8 samples:
+
+```{r}
+colData(airway)
+```
+
+Fix sample names
+
+```{r}
+colnames(dds) <- c( "D1u", "D1t", "D2u", "D2t", "D3u", "D3t", "D4u", "D4t" )
+
+# better:
+colnames(dds) <- paste0( "D", as.integer(dds$cell), substr( dds$dex, 1, 1 ) )
+
+colData(dds)
+```
+
+Count table:
+
+```{r}
+head( assay(airway) )
+```
+
+Convert the gene IDs to names:
+
+```{r}
+a <- AnnotationDbi::intraIDMapper( rownames(airway), species="HOMSA", 
+        srcIDType="ENSEMBL", destIDType = "SYMBOL" )  
+
+# Do not simply do this:
+# rownames(airway) <- a 
+
+rownames(airway)[ match( names(a), rownames(airway) ) ] <- unlist(a)
+
+head( assay( airway ) )
+```
+
+
+A quick analysis with DESeq2
+----------------------------
+
+```{r}
+library( DESeq2 )
+
+dds <- DESeqDataSet( airway, ~ cell + dex )
+dds <- DESeq( dds )
+res <- results(dds)
+
+res[ order(res$padj), ]
+```
+
+Plot the top hit
+
+```{r}
+library( ggplot2 )
+
+ggplot( cbind( 
+     as.data.frame( colData(dds) ), 
+     expr_SPARCL1 = counts( dds, normalized=TRUE )["SPARCL1",] ) ) +
+  geom_point( aes( 
+     x = cell, y = expr_SPARCL1, col = dex ) ) +
+  scale_y_log10()
+```
+
+Get an overview
+
+```{r}
+plotMA( dds, ylim = c( -5, 5 ) )
+```
+
+
+A more detailed look
+--------------------
+
+Open questions (that you may have)
+- What determines the black/red decision boundary?
+- What are "normalized counts"?
+- Why the "trumpet shape"?
+
+
+A naive try
+-----------
+
+Take only the first cell line, "N61311"
+
+```{r fig.asp=1}
+plot( counts(dds)[,1], counts(dds)[,2], asp=1 )
+```
+
+Log scale
+
+```{r fig.asp=1}
+plot( counts(dds)[,1] + 1, counts(dds)[,2] + 1, log="xy" ) #, pch="." )
+```
+
+Let's calculate the average and the ratio:
+
+```{r}
+avg_N61311 <- ( counts(dds)[,1] + counts(dds)[,2] )/2
+ratio_N61311 <- counts(dds)[,2] / counts(dds)[,1]
+
+plot( avg_N61311, ratio_N61311 )
+```
+
+```{r}
+avg_N61311 <- ( counts(dds)[,1] + counts(dds)[,2] )/2
+ratio_N61311 <- ( counts(dds)[,2] + 1 ) / ( counts(dds)[,1] + 1 )
+
+plot( avg_N61311, ratio_N61311, log="xy", pch="." )
+```
+
+How well does this agree with the second cell line, N052611?
+
+```{r fig.asp=1}
+ratio_N052611 <- ( counts(dds)[,4] + 1 ) / ( counts(dds)[,3] + 1 )
+
+plot( ratio_N61311, ratio_N052611, log="xy", pch="." )
+```
+
+Some genes agree well, others are in complete contradiction.
+
+How to enforce consistency? And what exactly do we actually want?
+
+But before, some more topics.
+
+
+Normalization
+-------------
+
+Back to our MA plot, here for the second cell line (N052611):
+
+```{r}
+avg_N052611 <- ( counts(dds)[,3] + counts(dds)[,4] )/2
+ratio_N052611 <- counts(dds)[,4] / counts(dds)[,3] 
+
+plot( avg_N052611, ratio_N052611, log="xy", pch=".", ylim=c(.1, 10) )
+abline( h=1, col=adjustcolor("green",.4), lwd=3 )
+```
+
+The line is too high
+
+This may be because the untreated sample has more counts in total
+
+```{r}
+colSums( counts(dds) )/ 1e6
+```
+
+Should we simply move the green line to the ratio of the two sums?
+
+```{r}
+plot( avg_N052611, ratio_N052611, log="xy", pch=".", ylim=c(.1, 10) )
+abline( h = 1, col=adjustcolor("green",.4), lwd=3 )
+```
+
+Should we simply move the green line to the ratio of the two sums?
+
+```{r}
+plot( avg_N052611, ratio_N052611, log="xy", pch=".", ylim=c(.1, 10) )
+abline( h = 15.16342 / 25.34865, col=adjustcolor("green",.4), lwd=3 )
+```
+
+That works, but why not move it into the center of the point cloud?
+
+```{r}
+hist( log2( ratio_N052611 ), breaks=50 )
+abline( v = log2( 15.16342 / 25.34865 ), col=adjustcolor("green",.4), lwd=3 )
+
+median_ratio_N052611 <- median( ratio_N052611, na.rm=TRUE )
+abline( v = log2( median_ratio_N052611 ), col=adjustcolor("orange",.4), lwd=3 )
+```
+
+The median is a tad better. Let's multiply
+
+```{r}
+plot( avg_N052611, ratio_N052611 / median_ratio_N052611, log="xy", pch=".", ylim=c(.1, 10) )
+abline( h = 1, col=adjustcolor("orange",.4), lwd=3 )
+```
+
+We could calculate the medians of ratios of all pairs of samples
+
+```{r}
+sapply( 1:8, function(i)
+   sapply( 1:8, function(j)
+     median( counts(dds)[,j] / counts(dds)[,i], na.rm=TRUE ) ) )
+```
+
+That's too many numbers.
+
+Let's make one averaged "reference" sample, and normalize everything against that one.
+
+Virtual reference sample: geometric average of all counts
+
+```{r}
+vref_counts <- apply( counts(dds), 1, function(x) prod(x) ^ (1/length(x)) )
+
+head( vref_counts, 20 )
+```
+
+Normalize each against that one
+
+```{r}
+sapply( 1:8, function(i) 
+  median( counts(dds)[,i] / vref_counts, na.rm=TRUE ) )
+```
+
+DESeq does this automatically:
+
+```{r}
+sizeFactors(dds)
+```
+
+It's not the same. Why? Because, above, the `na.rm=TRUE` does not exclude zeroes. This is better:
+
+```{r}
+sapply( 1:8, function(i) 
+  median( ( counts(dds)[,i] / vref_counts) [ vref_counts>0 ] ) ) 
+```
+
+Permutation test
+----------------
+
+Let's do a very simple, but actually statistically valid analysis.
+
+First, calculate the log fold changes.
+
+```{r}
+#log norm counts
+lnc <- log2( counts( dds, normalized=TRUE ) + 1 )
+lmeans <- rowMeans( lnc )
+lfc <- rowMeans( 
+   lnc[ , c( "D1t", "D2t", "D3t", "D4t" ) ] - 
+   lnc[ , c( "D1u", "D2u", "D3u", "D4u" ) ] )
+
+plot( lmeans, lfc, cex=.1, ylim=c( -4, 4 ) )
+```
+
+Pick two cell lines at random: For these, swap control and treatment samples, then recalculate
+log fold changes
+
+```{r}
+lfc_perm <- rowMeans( 
+   lnc[ , c( "D1t", "D2u", "D3u", "D4t" ) ] - 
+   lnc[ , c( "D1u", "D2t", "D3t", "D4u" ) ] )
+
+
+plot( lmeans, lfc_perm, log="x", cex=.1, ylim=c( -4, 4 ) )
+
+plot( lmeans, lfc, log="x", cex=.1, ylim=c( -4, 4 ) )
+points( lmeans, lfc_perm, cex=.1, col="purple" )
+```
+
+
+
+Poisson noise
+-------------
+
+Imagine a bag with 10,000 balls, 10% of which are red
+
+```{r fig.width=12}
+a <- cbind( 
+    expand.grid( x=1:125, y=1:80 ), 
+    col=sample( c( rep( "lightyellow", 9000 ), rep( "indianred1", 1000 ) ) ) )
+
+ggplot(a) + 
+  geom_point( aes( x=x, y=y ), col=a$col, size=.5) + 
+  theme_dark() + coord_fixed()
+```
+
+Each of you is allowed to look at 20 balls, then estimate the percentage of red balls.
+
+
+```{r fig.height=12}
+ggplot(a) + 
+  geom_point( aes( x=x, y=y ), col=a$col, size=5) + theme_dark() + 
+  coord_fixed( xlim=c(0,19.5), ylim=c(0,19.5))
+```
+
+```{r}
+barplot( table( rowSums( matrix( a$col, ncol=20 ) == "indianred1" ) ) )
+```
+
+```{r}
+expected_number_of_red_balls <- 0.1 * 20
+
+plot( 
+  0:10, 
+  dpois( 0:10, expected_number_of_red_balls ), 
+  type = "h", lwd=4,
+  xlab = "number k of red balls",
+  ylab = "probability",
+  main = "Poisson distribution with expectation 2" )
+```
+
+
+```{r}
+expected_number_of_red_balls <- 0.1 * 1000
+
+plot( 
+  0:200, 
+  dpois( 0:200, expected_number_of_red_balls ), 
+  type = "h", lwd=1,
+  xlab = "number k of red balls",
+  ylab = "probability",
+  main = "Poisson distribution with expectation 100" )
+```
+
+What *fraction* of red balls do we estimate in the first case (expected number: 2 of 20),
+and in the second case (100 of 1000)?
+
+```{r fig.height=4,fig.width=10}
+expected_number_of_red_balls <- 0.1 * 20
+
+par( mfrow=c(1,2) )
+
+plot( 
+  0:20 / 20, 
+  dpois( 0:20, 2 ), 
+  type = "h", lwd=5, lend=2,
+  xlab = "estimated fraction of red balls",
+  ylab = "probability",
+  xlim = c( 0, 1 ),
+  main = "expected: 2 of 20 (10%)" )
+
+plot( 
+  0:1000 / 1000, 
+  dpois( 0:1000, 100 ), 
+  type = "h", lwd=1, lend=2,
+  xlab = "estimated fraction of red balls",
+  ylab = "probability",
+  xlim = c( 0, 1 ),
+  main = "expected: 100 of 1000 (10%)" )
+```
+
+
+The negative binomial distribution
+----------------------------------
+
+Assume a gene is expressed with 5 reads in your control sample and 8 reads in your treated samples
+
+```{r}
+library(magrittr)
+library(ggbeeswarm)
+
+conds <- rep( c( "C", "T" ), each=4 )
+data.frame( 
+  cond = conds, 
+  nreads = rpois( 8, c( C=5, T=8 )[ conds ] ) ) %>%
+ggplot +
+  geom_beeswarm( aes( x=cond, y=nreads ) )
+```
+
+```{r}
+table( replicate( 1000, mean( rpois( 4, 5 ) ) - mean( rpois( 4, 8 ) ) ) > 0 )
+```
+
+Now, C: 1000, T: 1010
+
+```{r}
+library(magrittr)
+library(ggbeeswarm)
+
+conds <- rep( c( "C", "T" ), each=4 )
+data.frame( 
+  cond = conds, 
+  nreads = rpois( 8, c( C=1000, T=1100 )[ conds ] ) ) %>%
+ggplot +
+  geom_beeswarm( aes( x=cond, y=nreads ) )
+```
+
+```{r}
+table( replicate( 10000, mean( rpois( 4, 1000 ) ) - mean( rpois( 4, 1100 ) ) ) > 0 )
+```
+
+More realistic: 
+
+```{r}
+ctrl <- rnorm( 4, mean=1000, sd=200 )
+trt  <- rnorm( 4, mean=1100, sd=200 )
+rpois( 4, lambda=ctrl )
+rpois( 4, lambda=trt )
+
+
+table(
+  replicate( 10000, 
+    mean( rpois( 4, lambda = rnorm( 4, mean=1000, sd=200 ) ) ) -
+    mean( rpois( 4, lambda = rnorm( 4, mean=1100, sd=200 ) ) ) ) > 0 )
+```
+
+Getting the SD right is crucial.

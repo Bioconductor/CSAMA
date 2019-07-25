@@ -1,6 +1,13 @@
 ## Simon Anders (SA)
 
 ## Vincent J. Carey (VJC)
+HumanTranscriptomeCompendium
+MLInterfaces
+restfulSE
+ssrch
+gwascat
+ontoProc
+TxRegInfra
 
 ## Laurent Gatto (LG)
 MSnbase
@@ -31,7 +38,6 @@ fdrtool
 ggbeeswarm
 ggplot2
 IHW
-kableExtra
 magick
 parallel
 RColorBrewer
@@ -39,11 +45,39 @@ readr
 rmarkdown
 sysfonts
 tufte
-xfun 
+xfun
 
 ## Katharina Imkeller (KI)
 
 ## Martin Morgan (MM)
+
+ExperimentHub
+AnnotationHub
+ensembldb
+org.Hs.eg.db
+BSgenome.Hsapiens.UCSC.hg38
+TxDb.Hsapiens.UCSC.hg38.knownGene
+GO.db
+KEGGREST
+BiocManager
+S4Vectors
+Biostrings
+GenomicRanges
+GenomicAlignments
+SummarizedExperiment
+VariantAnnotation
+rtracklayer
+DESeq2
+airway
+limma
+biomaRt
+ensemblVEP
+curatedTCGAData
+dplyr
+ggplot2
+readr
+tibble
+tidyr
 
 ## Johannes Rainer (JR)
 ensembldb
@@ -55,7 +89,16 @@ magrittr
 pander
 png
 
-## Davide Risso (DR) 
+## Davide Risso (DR)
+zinbwave
+scater
+scran
+SingleCellExperiment
+slingshot
+batchelor
+clusterExperiment
+scRNAseq
+TENxPBMCData
 
 ## Lori Shepherd (LS)
 Biostrings
@@ -63,8 +106,12 @@ GenomicRanges
 SummarizedExperiment
 BSgenome
 BSgenome.Hsapiens.UCSC.hg19
+BSgenome.Hsapiens.UCSC.hg38
 TxDb.Hsapiens.UCSC.hg19.knownGene
 TxDb.Hsapiens.UCSC.hg38.knownGene
+hugene20sttranscriptcluster.db
+Homo.sapiens
+GO.db
 org.Hs.eg.db
 biomaRt
 Organism.dplyr
@@ -73,6 +120,8 @@ AnnotationHub
 BiocFileCache
 rtracklayer
 GenomicAlignments
+curatedTCGAData
+airway
 
 ## Charlotte Soneson (CS)
 ## In addition to installing the TENxPBMCData package, it would be great if the 

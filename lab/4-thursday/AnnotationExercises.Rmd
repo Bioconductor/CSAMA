@@ -1,0 +1,217 @@
+---
+title: "Lab 6: <br> BiocFileCache and Annotation Resources"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  % \VignetteIndexEntry{Lab 6: BiocFileCache and Annotation Resources}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+```{r setup, echo=FALSE, warning=FALSE}
+options(max.print=1000)
+knitr::opts_chunk$set(cache=TRUE)
+suppressPackageStartupMessages({
+    library(org.Hs.eg.db)
+    library(hugene20sttranscriptcluster.db)
+    library(EnsDb.Hsapiens.v86)
+    library(org.Hs.eg.db)
+    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+    library(Homo.sapiens)
+    library(BSgenome)
+    library(BSgenome.Hsapiens.UCSC.hg19)
+    library(AnnotationHub)
+    library(Organism.dplyr)
+    })
+```
+Original Authors: James W. MacDonald, Lori Shepherd<br />
+Presenting Authors: [Lori Shepherd][]</br >
+Date: 25 July, 2019</br >
+
+[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
+
+**Objective**: Learn about _Bioconductor_ resources for caching files and gene and genome annotation.
+
+# ChipDb/OrgDb Exercises
+
+Load the example ChipDb and OrgDb libraries. While most of these questions either object can be used, OrgDb should be used unless a specific ChipDb object is available for your given experiment/research. 
+
+```{r}
+# Example orgDb
+library(org.Hs.eg.db)
+
+# Example chipDb
+library(hugene20sttranscriptcluster.db)
+```
+
+1. What is the central key for each of these AnnoDb objects? Can you print out the first 10 keys for each? 
+
+2. Can all of the available columns be used as keytypes for each of these?   
+
+3. What gene symbol corresponds to Entrez Gene ID 1000? 
+
+4. What is the Ensembl Gene ID for PPARG?
+
+5. What is the UniProt ID for GAPDH?
+
+6. How many of the probeset ids from the ChipDb map to a single gene? How many don't map to a gene at all? 
+
+7. Get all the gene alias for a given Entrez Gene ID displayed as a CharacterList. What are the alias for Entrez Gene ID 1000?
+
+# TxDb/EnsDb
+
+Load the TxDb library.
+
+```{r}
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(EnsDb.Hsapiens.v86)
+```
+
+1. How many Bioconductor TxDb packages are there? How many EnsDb packages are there?
+
+2. What information can be inferred from the name? What about for  TxDb.Ggallus.UCSC.galGal4.refGene and TxDb.Rnorvegicus.BioMart.igis?
+
+3. What do you think is the central key for TxDb objects? What other keytypes can be used? Can all of the available columns be used as keytypes?  
+
+4. List all the genomic positions of the transcripts by gene. 
+
+5. List all the promoter regions 1000bp upstream and 200bp download
+
+6. How many transcripts does PPARG have, according to UCSC? And does Ensembl agree? Is it right to compare these results? 
+
+7. How many genes are between 2858473 and 3271812 on chr2 in the hg19 genome? 
+    - Hint: you make a `GRanges` object
+    
+    
+# Organism.Db
+
+We didn't discuss Organism.Db packages.  They combined the data from OrgDb and TxDb. 
+The limitation is there are only three available in Bioconductor: Human, Rat, Mouse. 
+Organism.dplyr has many more species available and is the recommened package to use
+even for these three species.  
+
+But... for practice, Try these:
+
+```{r}
+library(Homo.sapiens)
+```
+
+1. Get all the GO terms for BRCA1
+
+2. What gene does the UCSC transcript ID uc002fai.3 map to?
+
+3. How many other transcripts does that gene have?
+
+4. Get all the transcripts from the hg19 genome build, along with their Ensembl gene ID, UCSC transcript ID and gene symbol
+
+# Organism.dplyr
+
+Use the light version for exercise. 
+
+```{r}
+library(Organism.dplyr)
+src <- src_organism(dbpath = hg38light())
+```
+
+1. How many supported organisms are implemented in Organism.dplyr?
+
+2. Display the ensembl Id and genename description for symbol "NAT2".
+
+3. Show all the alias for "NAT2" in the database.
+
+4. Get all the promoter regions.
+
+5. Extract the "id" table. 
+
+6. Display Gene ontology (GO) information for gene symbol "Nat2".
+
+
+# BSgenome
+
+Load the libraries
+
+```{r}
+library(BSgenome)
+library(BSgenome.Hsapiens.UCSC.hg19)
+```
+
+1. How many BSgenomes are there in Bioconductor?
+
+2. Get the sequence from UCSC hg19 builds for chromosome 1. And print the frequency of each letter.
+
+3. Get the sequence corresponding to chr6 35310335-35395968. Get the complement and reverse complement of it.
+
+4. Get the sequences for all transcripts of the TP53 gene
+
+
+# AnnotationHub
+
+Load AnnotationHub. This section depends on internet. You may not be able to run this section without internet access.
+
+```{r}
+library(AnnotationHub)
+```
+
+1. How many resources are available in AnnotationHub?
+
+2. How many resources are on AnnotationHub for Atlantic salmon (Salmo salar)?
+
+3. Get the most recent Ensembl build for domesticated dog (Canis familiaris) and make a TxDb
+
+4. Get information on the following ids "AH73986", "AH73881","AH64538", "AH69344".
+
+# biomaRt
+
+Load biomaRt. This section depends on internet. You may not be able to run this section without internet access.
+
+```{r}
+library(biomaRt)
+```
+
+1. List available marts
+
+2. Use mart corresponding to Ensembl Genes 97 and list available datasets.
+
+3. Create mart with Homo sapiens ensembl genes dataset
+
+4. Get the Ensembl gene IDs and HUGO symbol for Entrez Gene IDs 672, 5468 and 7157
+
+5. What do you get if you query for the 'gene_exon' for GAPDH?
+
+6. What are the avaiable search terms?
+
+
+# BiocFileCache
+
+Load BiocFileCache. This section depends on internet. You many not be able to run this section without internet access. 
+
+```{r}
+library(BiocFileCache)
+```
+
+1. Create a temporary cache using `tempdir()`. We use a temporary directory so it
+will be cleaned up at the end.  If using to manage file would want a more permanent location.
+
+2. What is the path to your cache? 
+
+3. What columns do we store in the database by default? 
+
+4. Get a file path to save an object so that it is tracked in the cache.
+Assume the object will be saved as a RData object. 
+
+5. Add a remote resource to the cache. The `httpbin` site has mock urls that can be used for testing
+"http://httpbin.org/get".
+
+6. Add another remote resource to the cache but do not automatically download. Call this resource "TestNoDownload"
+You can use the same url as above or any of your choosing. 
+
+7. Check that the resources have been added to the cache.
+Do a query for resources matching "Test". How many resources match? 
+
+8. Do resources need to be updated? 
+
+9. Make a data.frame of metadata and add it to the cache. Do a query that would use the metadata.
