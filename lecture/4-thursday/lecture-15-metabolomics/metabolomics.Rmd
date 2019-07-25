@@ -377,21 +377,13 @@ knitr::include_graphics("images/LCMS-data-peaks.png")
 - __centWave__ [Tautenhahn et al. BMC Bioinformatics, 2008]:
 </div>
 <div>
-- Step 1: identify regions of interest.
-
-```{r out.width = "500px", echo = FALSE}
-knitr::include_graphics("images/centWave-ROI.png")
-```
-</div>
-
-## Chromatographic peak detection
-
-- Step 2: peak detection using continuous wavelet transform.
 - Allows detection of peaks with different rt widths.
 
 ```{r out.width = "500px", echo = FALSE}
 knitr::include_graphics("images/centWave-CWT.png")
 ```
+</div>
+
 
 ## Chromatographic peak detection {.build}
 
