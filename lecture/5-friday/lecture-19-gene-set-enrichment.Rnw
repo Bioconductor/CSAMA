@@ -9,7 +9,7 @@
   Roswell Park Cancer Institute \\
   Buffalo, NY, USA
 }
-\date{13 July, 2018}
+\date{26 July, 2019}
 
 \begin{document}
 
@@ -29,6 +29,7 @@
   \item Functional class scoring (FCS) -- summarize statistic of DE of
     genes in a set, and compare to null
   \item Issues with sequence data?
+  \item Issues with single-cell data?
   \end{itemize}
 \end{frame}
 
@@ -60,7 +61,7 @@
   Pathways
   \begin{itemize}
   \item \href{http://www.broadinstitute.org/gsea/msigdb/}{MSigDb}
-  \item \href{http://genome.jp/kegg}{KEGG} (no longer freely available)
+  \item \href{http://genome.jp/kegg}{KEGG}
   \item \href{http://reactome.org}{reactome}
   \item \href{http://pantherdb.org}{PantherDB}
   \item \ldots
@@ -141,7 +142,7 @@
     \item Permuting subject labels for signficance
     \end{enumerate}
     \column{.5\textwidth}
-    \includegraphics[width=\textwidth]{lec17-figs/subramanian-F1-part.jpg}
+    \includegraphics[width=\textwidth]{lecture-19-our-figures/subramanian-F1-part.jpg}
     \par {\small Subramanian et al., 2005, fig 1.}
   \end{columns}
 \end{frame}
@@ -156,7 +157,7 @@
     \item Much more straight-forward to implement
     \end{enumerate}
     \column{.5\textwidth}
-    \includegraphics[width=\textwidth]{lec17-figs/Category-ribosome.png}
+    \includegraphics[width=\textwidth]{lecture-19-our-figures/Category-ribosome.png}
     \par {\small Expression in NEG vs BCR/ABL samples for genes in the
       `ribosome' KEGG pathway; \Biocpkg{Category} vignette.}
   \end{columns}
@@ -212,7 +213,7 @@
     \item Better: read depth??
     \end{itemize}
     \column{.5\textwidth}
-    \includegraphics[width=\textwidth]{lec17-figs/young-et-al-gb-2010-11-2-r14-2-cropped.png}
+    \includegraphics[width=\textwidth]{lecture-19-our-figures/young-et-al-gb-2010-11-2-r14-2-cropped.png}
     \par {\small DE genes vs.\ transcript length. Points: bins of 300
       genes. Line: fitted probability weighting function.}
   \end{columns}
@@ -231,6 +232,14 @@
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Issues with single-cell data?}
+  \begin{itemize}
+  \item Often, projections into reduced dimensions.
+  \item Not genes \emph{per se}, but weightings.
+  \item An open issue, with opportunities for new methods!
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Representing gene sets in R}
   \begin{itemize}
   \item Named \Rcode{list()}, where names of the list are sets, and
@@ -241,6 +250,17 @@
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Benchmarks}
+  A recent
+  \href{https://twitter.com/LeviWaldron1/status/1142092301403115521}{tweet}
+  from Levi Waldron provides a nice summary.
+  \begin{itemize}
+  \item \Biocpkg{GSEABenchmarkR} for running benchmarks
+  \item Self-contained tests often call random gene sets significant
+  \item Hypergeometric test performs relatively well!
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Conclusions}
   Gene set enrichment classifications
   \begin{itemize}
@@ -248,8 +268,8 @@
     scoring; pathway topology
   \item Goemann \& B\"uhlmann: Competitive vs.\ self-contained null
   \end{itemize}
-  \medskip\par 
-  Selected \Bioconductor{} Packages
+  \medskip\par Selected \Bioconductor{} packages (see
+  \href{http://bioconductor.org/packages/release/BiocViews.html\#___GeneSetEnrichment}{biocViews})
   \medskip\par
   \begin{tabular}{ll}
     Approach & Packages \\
@@ -265,76 +285,6 @@
     Visualization & \Biocpkg{pathview} \\
     \hline
   \end{tabular}
-\end{frame}
-
-<<echo=FALSE>>=
-suppressPackageStartupMessages({
-    library(DESeq2)
-    library(airway)
-    library(org.Hs.eg.db)
-    library(limma)
-})
-@ 
-
-\begin{frame}[fragile, allowframebreaks]{Example -- \Biocpkg{DESeq2} lab}
-  Example: hypergeometric test using \Biocpkg{limma}\Rcode{::goana()}
-  \begin{itemize}
-    \item Data input and massage
-<<input>>=
-library(DESeq2)
-library(airway)
-data(airway)
-airway$dex <- relevel(airway$dex, "untrt")
-@ 
-
-\framebreak
-    \item Differential expression analysis
-<<de>>=
-des <- DESeqDataSet(airway, design = ~ cell + dex)
-des <- DESeq(des)
-res <- results(des)
-@ 
-
-\framebreak
-    \item Need 'entrez' identifiers, but have 'ensembl'
-<<mapIds>>=
-library(org.Hs.eg.db)
-res$egid <- mapIds(
-  org.Hs.eg.db, rownames(res), "ENTREZID", "ENSEMBL"
-)
-@ 
-
-    \item Trim 'universe' to those genes that can be assessed for
-      differential expression (i.e., \Rcode{!is.na(padj)}) and
-      assigned to gene set (\Rcode{!is.na(entre)})
-<<trim>>=
-table(is.na(res$padj), is.na(res$egid))
-res <- subset(res, !is.na(padj) & !is.na(egid))
-dim(res)
-@ 
-
-\framebreak
-    \item Test and order
-<<goana>>=
-library(limma)
-go <- goana(res$egid[res$padj < .05], res$egid, "Hs")
-go <- go[ order(go$P.DE), ]
-t(go[1,])
-@  
-
-\framebreak
-    \item Sanity check -- glucocorticoid sets present?
-<<sanity>>=
-head(subset(go, grepl("glucocorticoid", Term)), 3)
-@       
-      \item What genes in gene sets?
-<<term-id-mapping>>=
-map <- select(
-  org.Hs.eg.db, res$egid, "GO", "ENTREZID"
-)
-head(map)
-@ 
-  \end{itemize}
 \end{frame}
 
 \begin{frame}{References}
@@ -357,8 +307,8 @@ head(map)
 
 \begin{frame}{Acknowledgments}
   \begin{itemize}
-  \item Core: Valerie Obenchain, Herv\'e Pag\`es,
-    Lori Shepherd, Marcel Ramos, Nitesh Turaga, Daniel van Twisk.
+  \item Core: Qian Liu, Kayla Morrel, Herv\'e Pag\`es, Lori Shepherd,
+    Marcel Ramos, Nitesh Turaga, Daniel van Twisk, Jeifie Wang.
   \item The research reported in this presentation was supported by
     the National Cancer Institute and the National Human Genome
     Research Institute of the National Institutes of Health under
