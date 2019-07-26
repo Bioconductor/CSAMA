@@ -1,11 +1,11 @@
 ---
-title: "Lab 7b: Efficient and Parallel Evaluation"
+title: "Lab 9.1: Efficient and Parallel Evaluation"
 output:
   BiocStyle::html_document:
     toc: true
     number_sections: false
 vignette: >
-  % \VignetteIndexEntry{Lab 7b: Efficient and Parallel Evaluation}
+  % \VignetteIndexEntry{Lab 9.1: Efficient and Parallel Evaluation}
   % \VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -20,29 +20,31 @@ opts_chunk$set(cache=TRUE, error=FALSE)
 ```
 
 Original Authors: Martin Morgan, Sonali Arora<br />
-Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
-Date: 16 June, 2017
+Presenting Author: [Martin Morgan][]</br >
+Date: 26 July, 2019
 
 [Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
 [Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
 # Efficient _R_ code
 
-The goal of this section is to highlight practices for writing correct, robust
-and efficient R code.
+The goal of this section is to highlight practices for writing
+correct, understandable, robust and efficient R code.
 
 ## Priorities
 
 1. Correct: consistent with hand-worked examples (`identical()`, `all.equal()`)
-2. Robust: supports realistic inputs, e.g., 0-length vectors, `NA`
+2. Understandable: easy to understand next month; easy to describe
+   what it does to a colleague; easy to spot logical errors; easy to
+   enhance.
+3. Robust: supports realistic inputs, e.g., 0-length vectors, `NA`
    values, ...
-3. Simple: easy to understand next month; easy to describe what it
-   does to a colleague; easy to spot logical errors; easy to enhance.
 4. Fast, or at least reasonable given the speed of modern computers.
 
 ## Strategies
 
 1. Profile
+
    - _Look_ at the script to understand in general terms what it is doing.
    - _Step_ through the code to see how it is executed, and to gain an
      understanding of the speed of each line.
@@ -52,12 +54,16 @@ and efficient R code.
      spent in each function call or line -- the built-in `Rprof()`
      function, or packages such as `r CRANpkg("lineprof")` or 
      `r CRANpkg("aprof")`
+
 2. Vectorize -- operate on vectors, rather than explicit loops
+
     ```{r vectorize}
     x <- 1:10
     log(x)     ## NOT for (i in seq_along) x[i] <- log(x[i])
     ```
+
 3. Pre-allocate memory, then fill in the result
+
     ```{r pre-allocate}
     result <- numeric(10)
     result[1] <- runif(1)
@@ -65,12 +71,16 @@ and efficient R code.
            result[i] <- runif(1) * result[i - 1]
     result
     ```
+
 4. Hoist common sub-expressions outside of repeated calculations, so
    that the sub-expression is only calculated once
+
    - Simple, e.g., 'hoist' constant multiplications from a `for` loop
    - Higher-level, e.g., use `lm.fit()` rather than repeatedly fitting
      the same design matrix.
+
 5. Re-use existing, tested code
+
    - Efficient implementations of common operations -- `tabulate()`,
      `rowSums()` and friends, `%in%`, ...
    - Efficient domain-specific implementations, e.g., 
@@ -86,14 +96,15 @@ and efficient R code.
 
 ### Case Study: Pre-allocate and vectorize 
 
-Here's an obviously inefficient function:
+Here's an inefficient function:
+
 ```{r inefficient}
 f0 <- function(n, a=2) {
     ## stopifnot(is.integer(n) && (length(n) == 1) &&
     ##           !is.na(n) && (n > 0))
     result <- numeric()
     for (i in seq_len(n))
-        result[[i]] <- a * log(i)
+        result <- c(result, a * log(i))
     result
 }
 ```
@@ -125,7 +136,7 @@ package to compare the two versions
 f1 <- function(n, a=2) {
     result <- numeric()
     for (i in seq_len(n))
-        result[[i]] <- log(i)
+        result <- c(result, log(i))
     a * result
 }
 identical(expected, f1(n))
@@ -192,34 +203,37 @@ Lessons learned:
 
 <a href="#top">Back to top</a>
 
-
 # Iteration and restriction to manage memory
 
 When data are too large to fit in memory, we can iterate through files in
 chunks or subset the data by fields or genomic positions.
 
 Iteration
-   - Chunk-wise
-   - `open()`, read chunk(s), `close()`.
-   - e.g., `yieldSize` argument to `Rsamtools::BamFile()`
-   - Framework: `GenomicFiles::reduceByYield()`
+
+- Chunk-wise
+- `open()`, read chunk(s), `close()`.
+- e.g., `yieldSize` argument to `Rsamtools::BamFile()`
+- Framework: `GenomicFiles::reduceByYield()`
 
 Restriction
-   - Limit to columns and / or rows of interest
-   - Exploit domain-specific formats
-   -- BAM files and `Rsamtools::ScanBamParam()`
-   -- BAM files and `Rsamtools::PileupParam()`
-   -- VCF files and `VariantAnnotation::ScanVcfParam()`
-   - Use a data base
+
+- Limit to columns and / or rows of interest
+- Exploit domain-specific formats
+
+  - BAM files and `Rsamtools::ScanBamParam()`
+  - BAM files and `Rsamtools::PileupParam()`
+  - VCF files and `VariantAnnotation::ScanVcfParam()`
+
+- Use a data base
 
 
 ## Exercise: Counting overlaps
 
-Iterate through files: `GenomicFiles::reduceByYield()
+Iterate through files: `GenomicFiles::reduceByYield()`
 
-(1) yield a chunk
-(2) map from the input chunk to a possibly transformed representation
-(3) reduce mapped chunks
+1. Yield a chunk
+2. Map from the input chunk to a possibly transformed representation
+3. Reduce mapped chunks
 
 ```{r reduceByYield-setup}
 suppressPackageStartupMessages({
@@ -645,14 +659,16 @@ simplify2array(cts)
 
 ## Other resources
 
-- [Bioconductor Amazon AMI](http://bioconductor.org/help/bioconductor-cloud-ami/)
+- [Bioconductor Amazon AMI][bioc-ami]
 
     - easily 'spin up' 10's of instances
     - Pre-configured with Bioconductor packages and StarCluster
       management
 
-- `r Biocpkg("GoogleGenomics")` to interact with google compute cloud
-  and resources
+- [Bioconductor docker images][bioc-docker]
+
+[bioc-ami]: https://bioconductor.org/help/bioconductor-cloud-ami/
+[bioc-docker]: https://bioconductor.org/help/docker/
 
 <a href="#top">Back to top</a>
 
