@@ -1,12 +1,12 @@
 ---
-title: "Lecture 19 -- Working with Large Data"
+title: "20.1 -- Working with Large Data"
 author: "Martin Morgan <Martin.Morgan@RoswellPark.org>"
 output:
   BiocStyle::html_document:
     toc: true
     toc_depth: 2
 vignette: >
-  % \VignetteIndexEntry{Lecture 19 -- Working with Large Data}
+  % \VignetteIndexEntry{20.1 -- Working with Large Data}
   % \VignetteEngine{knitr::rmarkdown}
 ---
 

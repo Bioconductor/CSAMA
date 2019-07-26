@@ -3,7 +3,7 @@
 
 \documentclass{beamer}
 \usepackage{BioconductorSlides}
-\title{Gene Set Enrichment -- Introduction}
+\title{19.1: Gene Set Enrichment -- Introduction}
 \author{Martin Morgan 
   (\href{mailto:martin.morgan@roswellpark.org}{martin.morgan@roswellpark.org}) \\
   Roswell Park Cancer Institute \\

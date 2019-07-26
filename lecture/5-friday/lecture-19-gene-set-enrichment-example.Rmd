@@ -1,0 +1,142 @@
+---
+title: "19.2: Gene Set Enrichment Analysis"
+author:
+- name: Martin Morgan
+  affiliation: Roswell Park Comprehensive Cancer Center
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteIndexEntry{19.2: Gene Set Enrichment Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document:
+    number_sections: yes
+    toc: true
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+knitr::opts_chunk$set(
+    eval=as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
+    cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE"))
+)
+options(width = 75)
+```
+
+# Theory
+
+See [slides][].
+
+[slides]: ./lecture-19-gene-set-enrichment.pdf
+
+A recent [tweet][] provides a nice summary of efforts to benchmark
+gene set enrichement analysis methods using the [GSEABenchmarkR][]
+package.
+
+# Practice
+
+```{r, message = FALSE, echo = FALSE}
+library(DESeq2)
+library(airway)
+library(dplyr)
+library(org.Hs.eg.db)
+library(GO.db)
+library(limma)
+```
+
+Data input and massage
+
+```{r}
+library(airway)
+data(airway)
+airway$dex <- relevel(airway$dex, "untrt")
+```
+
+Differential expression analysis
+
+```{r, message = FALSE}
+library(DESeq2)
+des <- DESeqDataSet(airway, design = ~ cell + dex)
+des <- DESeq(des)
+res <- results(des)
+```
+
+Transition to tidy data
+
+```{r}
+library(dplyr)
+library(tibble)
+tbl <- res %>%
+    as.data.frame() %>%
+    as_tibble(rownames = "ENSEMBL")
+tbl
+```
+
+## Example: hypergeometric test using [limma][]`::goana()`
+
+Requires ENTREZ identifiers
+
+```{r, message=FALSE}
+library(org.Hs.eg.db)
+tbl <- tbl %>%
+    mutate(
+        ENTREZID = mapIds(org.Hs.eg.db, ENSEMBL, "ENTREZID", "ENSEMBL")
+    ) %>%
+    dplyr::select(ENSEMBL, ENTREZID, everything())
+tbl
+```
+
+Universe -- must be testable for DE
+
+```{r}
+tbl <- tbl %>%
+    filter(!is.na(padj), !is.na(ENTREZID))
+tbl
+```
+
+[limma][]`::goana()` -- Hypergeometric
+
+```{r}
+library(limma)
+go <-
+    goana(tbl$ENTREZID[tbl$padj < .05], tbl$ENTREZID, "Hs") %>%
+    as_tibble(rownames = "GOID") %>%
+    dplyr::select(GOID, Ont, everything())
+go
+```
+
+What GO id's are most differentially expressed? (Why do these gene
+sets seem to have a large size, `N`?)
+
+```{r}
+go %>% arrange(P.DE)
+```
+
+Sanity check?
+
+```{r}
+go %>%
+    filter(grepl("glucocorticoid", Term)) %>%
+    arrange(P.DE)
+```
+
+What genes in set?
+
+```{r, message=FALSE}
+genesets <-
+    AnnotationDbi::select(org.Hs.eg.db, tbl$ENTREZID, "GOALL", "ENTREZID") %>%
+    as_tibble() %>%
+    dplyr::select(GOID = GOALL, Ont = ONTOLOGYALL, ENTREZID) %>%
+    distinct() %>%
+    arrange(Ont, GOID)
+genesets
+```
+
+# Provenance
+
+```{r}
+sessionInfo()
+```
+
+[limma]: https://bioconductor.org/packages/limma
+[GSEABenchmarkR]: https://bioconductor.org/packages/GSEABenchmarkR
+[tweet]: https://twitter.com/LeviWaldron1/status/1142092301403115521
