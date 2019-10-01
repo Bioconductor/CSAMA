@@ -28,6 +28,7 @@ library(DelayedArray)
 library(dplyr)
 library(ggplot2)
 theme_set(theme_classic())
+BiocParallel::register(BiocParallel::SerialParam())
 ```
 
 # Introduction
