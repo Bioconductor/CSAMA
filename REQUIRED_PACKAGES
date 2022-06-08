@@ -15,6 +15,26 @@
 ## Davide Risso (DR)
 
 ## Charlotte Soneson (CS)
+apeglm
+pheatmap
+iSEE
+iSEEu
+edgeR
+mikelove/airway2
+tximeta
+DESeq2
+org.Hs.eg.db
+AnnotationDbi
+SummarizedExperiment
+ExploreModelMatrix
+vsn
+rjson
+shiny
+BiocStyle
+knitr
+htmltools
+csoneson/ConfoundingExplorer
+tximport
 
 ## Nitesh Turaga (NT)
 
