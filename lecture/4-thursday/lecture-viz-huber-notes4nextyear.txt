@@ -1,4 +1,0 @@
-Drop the "Horror picture show" in the begin.
- Choose a better segway as entry: maybe great figures from a great paper? (vs terrible figures from a shoddy paper)
-Clean up the HSV stuff at the end.
-
