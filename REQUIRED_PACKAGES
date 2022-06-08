@@ -1,167 +1,19 @@
-## Simon Anders (SA)
-
 ## Vincent J. Carey (VJC)
-HumanTranscriptomeCompendium
-MLInterfaces
-restfulSE
-ssrch
-gwascat
-ontoProc
-TxRegInfra
 
 ## Laurent Gatto (LG)
-MSnbase
-statOmics/MSqRob
-msdata (>= 0.24.1)
-magrittr
-dplyr
-ggplot2
-pRolocdata
-pRoloc
-RforProteomics
-rpx
-rols
-MSnID
 
 ## Robert Gentleman (RG)
 
 ## Wolfgang Huber (WH)
-airway
-bookdown
-curatedMetagenomicData
-DESeq2
-devtools
-dplyr
-e1071
-extrafont
-fdrtool
-ggbeeswarm
-ggplot2
-IHW
-magick
-parallel
-RColorBrewer
-readr
-rmarkdown
-sysfonts
-tufte
-xfun
 
-## Katharina Imkeller (KI)
+## Julia Philipp (JP)
 
 ## Martin Morgan (MM)
 
-ExperimentHub
-AnnotationHub
-ensembldb
-org.Hs.eg.db
-BSgenome.Hsapiens.UCSC.hg38
-TxDb.Hsapiens.UCSC.hg38.knownGene
-GO.db
-KEGGREST
-BiocManager
-S4Vectors
-Biostrings
-GenomicRanges
-GenomicAlignments
-SummarizedExperiment
-VariantAnnotation
-rtracklayer
-DESeq2
-airway
-limma
-biomaRt
-ensemblVEP
-curatedTCGAData
-dplyr
-ggplot2
-readr
-tibble
-tidyr
-
 ## Johannes Rainer (JR)
-ensembldb
-EnsDb.Hsapiens.v86
-AnnotationHub
-xcms
-msdata
-magrittr
-pander
-png
 
 ## Davide Risso (DR)
-zinbwave
-scater
-scran
-SingleCellExperiment
-slingshot
-batchelor
-clusterExperiment
-scRNAseq
-TENxPBMCData
-
-## Lori Shepherd (LS)
-Biostrings
-GenomicRanges
-SummarizedExperiment
-BSgenome
-BSgenome.Hsapiens.UCSC.hg19
-BSgenome.Hsapiens.UCSC.hg38
-TxDb.Hsapiens.UCSC.hg19.knownGene
-TxDb.Hsapiens.UCSC.hg38.knownGene
-hugene20sttranscriptcluster.db
-Homo.sapiens
-GO.db
-org.Hs.eg.db
-biomaRt
-Organism.dplyr
-ExperimentHub
-AnnotationHub
-BiocFileCache
-rtracklayer
-GenomicAlignments
-curatedTCGAData
-airway
 
 ## Charlotte Soneson (CS)
-## In addition to installing the TENxPBMCData package, it would be great if the 
-## installation script would run the following line so that the data is already downloaded:
-## > TENxPBMCData(dataset = "pbmc3k")
-iSEE
-BiocStyle
-knitr
-rmarkdown
-tximeta
-tximport
-DESeq2
-org.Hs.eg.db
-SummarizedExperiment
-edgeR
-apeglm
-pheatmap
-scRNAseq
-SingleCellExperiment
-scater
-scran
-BiocSingular
-Rtsne
-uwot
-igraph
-mikelove/airway2
-PoiClaClu
-devtools
-jsonlite
-readr
-vsn
-dplyr
-ggplot2
-hexbin
-RColorBrewer
-IHW
-ggbeeswarm
-genefilter
-ReportingTools
-sva
-RUVSeq
-TENxPBMCData
-tibble
+
+## Levi Waldon (LW)
