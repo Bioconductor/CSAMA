@@ -19,13 +19,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-Original Authors: Martin Morgan, Sonali Arora<br />
-Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
-Date: 22 July, 2019</br >
+Original Authors: Martin Morgan, Sonali Arora, Lori Shepherd<br />
+Presenting Author: [Martin Morgan][]</br >
+Date: 20 June, 2022</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 [Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
-[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
 **Objective**: Gain confidence working with base R commands and data
   structures.
@@ -42,34 +41,88 @@ Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 ## Language and environment for statistical computing and graphics
 
-- Full-featured programming language
-- Interactive and *interpretted* -- convenient and forgiving
-- Coherent, extensive documentation
+- Interactive and *interpreted* -- convenient and forgiving
 - Statistical, e.g. `factor()`, `NA`
-- Extensible -- CRAN, Bioconductor, github, ...
+- Full-featured programming language
+- Extensible
+  - _Packages_ extend the base langauge
+  - CRAN, Bioconductor, github, ...
+- Coherent, extensive documentation
+  - `?factor`
+  - `browseVignettes()`
 
 ## Vector, class, object
 
 - Efficient _vectorized_ calculations on 'atomic' vectors `logical`,
   `integer`, `numeric`, `complex`, `character`, `byte`
+  
+    ```{r}
+    character_vector <- c("January", "February", "March", "April", "May")
+    logical_vector <- c(FALSE, FALSE, TRUE, TRUE, TRUE)
+    integer_vector <- 1:5  # c(1, 2, 3, 4, 5)
+    ```
+    
 - Atomic vectors are building blocks for more complicated _objects_
+  - `factor` -- enumeration of possible levels
+
+    ```{r}
+    months <- factor(
+        character_vector,     # values realized in 'months'
+        levels = c(           # possible values
+            "January", "February", "March", "April", "May", "June", "July",
+            "August", "September", "October", "November", "December"
+        )
+    )
+    ```
+
   - `matrix` -- atomic vector with 'dim' attribute
-  - `data.frame` -- list of equal length atomic vectors
+  
+    ```{r}
+    matrix(1:6, nrow = 3)  # n.b., 'column-major' order
+    ```
+
+- `data.frame` -- list of equal length atomic vectors
+
+    ```{r}
+    data_frame <- data.frame(
+        month = months,
+        is_spring = logical_vector,
+        month_of_year = integer_vector
+    )
+    ```
+
 - Formal _classes_ represent complicated combinations of vectors,
   e.g., the return value of `lm()`, below
 
 ## Function, generic, method
 
-- Functions transform inputs to outputs, perhaps with side effects,
-  e.g., `rnorm(1000)`
-  - Argument matching first by name, then by position
+- Functions transform inputs to outputs, perhaps with side effects
+  
+    ```{r}
+    rnorm(5)
+    ```
+
+- Argument matching first by name, then by position
   - Functions may define (some) arguments to have default values
+  
+    ```{r}
+    log(1:5)            # default base = exp(1)
+    log(1:5, base = 10)
+    log(base = 10, 1:5) # named arguments match before unnamed
+    ```
+
 - _Generic_ functions dispatch to specific _methods_ based on class of
   argument(s), e.g., `print()`.
 - Methods are functions that implement specific generics, e.g.,
   `print.factor`; methods are invoked _indirectly_, via the generic.
+
+    ```{r, eval = FALSE}
+    ?print        # what does the generic 'print()' do?
+    ?print.factor # what does the method 'print(x)', when x is a factor, do?
+    ```
+
 - Many but not all functions able to manipulate a particular class are
-  methods, e.g., `abline()` used below is a plain-old-funciton.
+  methods, e.g., `abline()` used below is a plain-old-function.
 
 ## Programming
 
@@ -81,9 +134,9 @@ Iteration:
     args(lapply)
     ```
 
-   - Meaning: for a vector `X` (typically a `list()`), apply a
-     function `FUN` to each vector element, returning the result as
-     a **l**ist. `...` are additional arguments to `FUN`.
+   - Meaning: for a vector `X` (an atomic vector or `list()`), apply a
+     function `FUN` to each vector element, returning the result as a
+     **l**ist. `...` are additional arguments to `FUN`.
    - `FUN` can be built-in, or a user-defined function
 
     ```{r lapply-eg}
@@ -168,24 +221,39 @@ Help
 - `methods("plot")`
 - `methods(class="lm")`
 
-## Examples
+# Examples
 
-_R_ vectors, vectorized operations, `data.frame()`, formulas,
-functions, objects, class and method discovery (introspection).
+## Linear model
+
+The following code chunk illustrates _R_ vectors, vectorized
+operations, objects (e.g., `data.frame()`), formulas, functions,
+generics (`plot`) and methods (`plot.formula`), class and method
+discovery (introspection).
 
 ```{r}
 x <- rnorm(1000)                     # atomic vectors
-y <- x + rnorm(1000, sd=.5)
+y <- x + rnorm(1000, sd=.5)          # vectorized computation
 df <- data.frame(x=x, y=y)           # object of class 'data.frame'
 plot(y ~ x, df)                      # generic plot, method plot.formula
 fit <- lm(y ~x, df)                  # object of class 'lm'
-methods(class=class(fit))            # introspection
-anova(fit)
+anova(fit)                           # see help with ?anova.lm
 plot(y ~ x, df)                      # methods(plot); ?plot.formula
 abline(fit, col="red", lwd=3, lty=2) # a function, not generic.method
 ```
 
-Programming example -- group 1000 SYMBOLs into GO identifiers
+Use `methods()` for introspection 9calss and method discovery), e.g.,
+```{r}
+methods(class=class(fit))            # introspection
+```
+
+## GO (gene ontology) identifiers
+
+Programming example -- group 1000 gene SYMBOLs into GO identifiers
+
+The file 'symgo.csv' is from an Excel spreadsheet (exported as 'csv'
+-- comma-separated value -- format) with four columns -- the gene
+'SYMBOL' (e.g., `SOX17`), the gene ontology (GO) term(s) that the
+symbol has been associated with, and additional gene ontology information.
 
 <!--
 ```{r lapply-setup, echo=FALSE}
@@ -196,32 +264,43 @@ fl <- "symgo.csv"
 ## example data
 fl <- file.choose()      ## symgo.csv
 ```
-```{r lapply}
+```{r symgo}
 symgo <- read.csv(fl, row.names=1, stringsAsFactors=FALSE)
 head(symgo)
 dim(symgo)
 length(unique(symgo$SYMBOL))
-## split-sapply
+head(symgo[symgo$SYMBOL == "SOX17",])
+```
+
+How many gene SYMBOLs are associated with each GO term? There are
+several ways to calculate this...
+
+```{r}
+## split + length
 go2sym <- split(symgo$SYMBOL, symgo$GO)
-len1 <- sapply(go2sym, length)          # compare with lapply, vapply
-## built-in functions for common actions
-len2 <- lengths(go2sym)
-identical(len1, len2)
+len1 <- lengths(go2sym)
+head(len1)
 ## smarter built-in functions, e.g., omiting NAs
-len3 <- aggregate(SYMBOL ~ GO, symgo, length)
-head(len3)
-## more fun with aggregate()
-head(aggregate(GO ~ SYMBOL, symgo, length))
-head(aggregate(SYMBOL ~ GO, symgo, c))
+len2 <- aggregate(SYMBOL ~ GO, symgo, length)
+head(len1)
+```
+
+In `aggregate()`, the third argument is `FUN`. The value of `FUN` is
+the function that is applied to each group defined by the formula of
+the first argument. Provide a 'custom' function that uses the unique
+lower-case values
+
+```{r}
 ## your own function -- unique, lower-case identifiers
-uidfun  <- function(x) {
+uidfun  <- function(x)
     unique(tolower(x))
-}
+```
+
+This illustrates how one is not restricted to 'built-in' solutions for
+solving biological problems.
+
+```{r}
 head(aggregate(SYMBOL ~ GO , symgo, uidfun))
-## as an 'anonymous' function
-head(aggregate(SYMBOL ~ GO, symgo, function(x) {
-    unique(tolower(x))
-}))
 ```
 
 # Case studies
@@ -572,9 +651,5 @@ sessionInfo()
 
 Research reported in this tutorial was supported by the National Human
 Genome Research Institute and the National Cancer Institute of the
-National Institutes of Health under award numbers U41HG004059 and
-U24CA180996.
-
-This project has received funding from the European Research Council
-(ERC) under the European Union's Horizon 2020 research and innovation
-programme (grant agreement number 633974)
+National Institutes of Health under award numbers U24HG004059
+(Bioconductor), U24HG010263 (AnVIL) and U24CA180996 (ITCR).

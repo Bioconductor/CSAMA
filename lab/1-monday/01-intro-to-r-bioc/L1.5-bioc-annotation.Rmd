@@ -31,13 +31,12 @@ suppressPackageStartupMessages({
 })
 ```
 
-Original Authors: Martin Morgan, Sonali Arora<br />
-Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
-Date: 22 July, 2019</br >
+Original Authors: Martin Morgan, Sonali Arora, Lori Shepherd<br />
+Presenting Author: [Martin Morgan][]</br >
+Date: 20 June, 2022</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 [Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
-[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
 **Objective**: Learn about _Bioconductor_ resources for gene and
   genome annotation.
@@ -709,9 +708,5 @@ sessionInfo()
 
 Research reported in this tutorial was supported by the National Human
 Genome Research Institute and the National Cancer Institute of the
-National Institutes of Health under award numbers U41HG004059 and
-U24CA180996.
-
-This project has received funding from the European Research Council
-(ERC) under the European Union's Horizon 2020 research and innovation
-programme (grant agreement number 633974)
+National Institutes of Health under award numbers U24HG004059
+(Bioconductor), U24HG010263 (AnVIL) and U24CA180996 (ITCR).

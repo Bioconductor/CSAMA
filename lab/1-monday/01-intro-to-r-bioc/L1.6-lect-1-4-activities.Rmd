@@ -19,13 +19,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-Original Author: Martin Morgan<br />
-Presenting Authors: [Martin Morgan][], [Lori Shepherd][]</br >
-Date: 22 July, 2019</br >
+Original Authors: Martin Morgan, Sonali Arora, Lori Shepherd<br />
+Presenting Author: [Martin Morgan][]</br >
+Date: 20 June, 2022</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 [Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
-[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
 Lecture 1
 

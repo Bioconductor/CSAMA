@@ -1,0 +1,165 @@
+---
+title: "Lecture 1 -- Introduction to R"
+author: "Martin Morgan <Martin.Morgan@RoswellPark.org>"
+date: "12 June 2017"
+output:
+  BiocStyle::html_document2:
+    toc: true
+    toc_depth: 2
+vignette: >
+  % \VignetteIndexEntry{Lecture 1 -- Introduction to R}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+knitr::opts_chunk$set(
+    eval=as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
+    cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE")))
+```
+
+# History
+
+- Statistical programming language
+- 'Free' software: no cost, open source, broad use
+- Extensible: packages (>11,000 on [CRAN][], >1300 on [Bioconductor][])
+- Key features
+    - Intrinsic _statistical_ concepts
+    - _Vectorized_ computation
+    - 'Old-school' scripts rather than graphical user interface -- great
+      for reproducibility!
+    - (Advanced) _copy-on-change_ semanatics
+
+# Vectors and data frames
+
+```{r}
+1 + 2
+x = c(1, 2, 3)
+1:3             # sequence of integers from 1 to 3
+x + c(4, 5, 6)  # vectorized
+x + 4           # recycling
+```
+
+Vectors
+
+- `numeric()`, `character()`, `logical()`, `integer()`, `complex()`, ...
+- `NA`: 'not available'
+- `factor()`: values from restricted set of 'levels'.
+
+Operations
+
+- numeric: `==`, `<`, `<=`, `>`, `>=`, ...
+- logical: `|` (or), `&` (and), `!` (not)
+- subset: `[`, e.g., `x[c(2, 3)]`
+- assignment: `[<-`, e.g., `x[c(1, 3)] = x[c(1, 3)]`
+- other: `is.na()`
+
+Functions
+
+```{r}
+x = rnorm(100)
+y = x + rnorm(100)
+plot(x, y)
+```
+
+- Many!
+
+`data.frame`
+
+```{r}
+df <- data.frame(Independent = x, Dependent = y)
+head(df)
+df[1:5, 1:2]
+df[1:5, ]
+plot(Dependent ~ Independent, df)  # 'formula' interface
+```
+
+- List of equal-length vectors
+- Vectors can be of different type
+- Two-dimensional subset and assignment
+- Column access: `df[, 1]`, `df[, "Indep"]`, `df[[1]]`,
+  `df[["Indep"]]`, `df$Indep`
+  
+Exercise: plot only values with `Dependent > 0`, `Independent > 0`
+
+1. Select rows
+
+    ```{r}
+    ridx <- (df$Dependent > 0) & (df$Independent > 0)
+    ```
+
+2. Plot subset
+
+    ```{r}
+    plot(Dependent ~ Independent, df[ridx, ])
+    ```
+    
+3. Skin the cat another way
+
+    ```{r}
+    plot(
+        Dependent ~ Independent, df,
+        subset = (Dependent > 0) & (Independent > 0)
+    )
+    ```
+    
+# Analysis: functions, classes, methods
+
+```{r}
+fit <- lm(Dependent ~ Independent, df)  # linear model -- regression
+anova(fit)                              # summary table
+plot(Dependent ~ Independent, df)
+abline(fit)
+```
+
+- `lm()`: plain-old function
+- `fit`: an _object_ of class "lm"
+- `anova()`: a _generic_ with a specific _method_ for class "lm"
+
+```{r}
+class(fit)
+methods(class="lm")
+```
+
+# Help!
+
+```{r, eval=FALSE}
+?"plot"          # plain-old-function or generic
+?"plot.formula"  # method
+```
+
+# Packages
+
+
+```{r}
+library(ggplot2)
+ggplot(df, aes(x = Independent, y = Dependent)) +
+    geom_point() + geom_smooth(method = "lm")
+```
+
+- General purpose: >11,000 packages on [CRAN][]
+- Gain contributor's domain expertise _and_ weird (or other) idiosyncracies
+- _Installation_ (once only per computer) versus _load_ (via
+  `library(ggplot2)`, once per session)
+
+[CRAN]: https://cran.r-project.org
+[Bioconductor]: https://bioconductor.org
+
+
+# End matter
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
+
+## Acknowledgements
+
+Research reported in this tutorial was supported by the National Human
+Genome Research Institute and the National Cancer Institute of the
+National Institutes of Health under award numbers U41HG004059 and
+U24CA180996.
+
+This project has received funding from the European Research Council
+(ERC) under the European Union's Horizon 2020 research and innovation
+programme (grant agreement number 633974)
