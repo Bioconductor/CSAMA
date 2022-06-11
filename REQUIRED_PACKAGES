@@ -21,6 +21,37 @@ scpdata
 ## Julia Philipp (JP)
 
 ## Martin Morgan (MM)
+airway
+AnnotationDbi
+Biobase
+BiocGenerics
+BiocParallel
+Biostrings
+BSgenome
+BSgenome.Hsapiens.UCSC.hg19
+BSgenome.Hsapiens.UCSC.hg38
+dplyr
+GenomeInfoDb
+GenomicAlignments
+GenomicFeatures
+GenomicRanges
+ggplot2
+IRanges
+MatrixGenerics
+matrixStats
+readr
+RNAseqData.HNRNPC.bam.chr14
+Rsamtools
+rtracklayer
+S4Vectors
+scRNAseq
+SingleCellExperiment
+SummarizedExperiment
+tibble
+tidyr
+TxDb.Hsapiens.UCSC.hg19.knownGene
+VariantAnnotation
+XVector
 
 ## Johannes Rainer (JR)
 jorainer/SpectraTutorial
