@@ -56,14 +56,11 @@ knitr::include_graphics("img/SingleCellExperiment.png")
 
 A more thorough overview of `SingleCellExperiment` can be found in [Chapter 4 of OSCA](http://bioconductor.org/books/3.15/OSCA.intro/the-singlecellexperiment-class.html).
 
-# EDA/QC
+# Exploratory Data Analysis / Quality Control
 
+In this section we focus on EDA/QC steps that are typical in a single-cell analysis.
 
-In questo laboratorio ci concentriamo sull'analisi dei dati a singola cellula, in particolare con riferimento alle analisi esplorative, controllo di qualità e riduzione della dimensionalità.
-
-Utilizziamo un dataset che studia l'espressione genica di un gruppo di cellule mononucleari del sangue periferico (peripheral blood mononuclear cell, PBMC), sequenziate con la tecnologia a droplet 10X Genomics.
-
-La matrice del numero di UMI associato ad ogni gene per ogni cellula può essere scaricata dal sito della 10X Genomics, attraverso il seguente codice.
+We start by considering a dataset on Peripheral Blood Mononuclear Cell (PBMC) data from a healthy donor provided by 10X Genomics. We use the [DropletTestFiles Bioconductor package](https://bioconductor.org/packages/DropletTestFiles/) to download the raw (i.e., unfiltered) count matrix that contains the UMI counts of all genes in all droplets.
 
 ```{r}
 library(DropletTestFiles)
@@ -76,25 +73,40 @@ fname <- file.path(out.path, "raw_gene_bc_matrices/GRCh38")
 sce.pbmc <- read10xCounts(fname, col.names=TRUE)
 sce.pbmc
 ```
+The `read10xCounts` function starts from the output of the Cell Ranger software and imports the data into R as an object of class `SingleCellExperiment`.
 
-L'oggetto creato è di classe SingleCellExperiment, che estende la classe SummarizedExperiment per dati a singola cellula. La maggiore differenza tra le due classi è la presenza dello slot `reducedDimNames` che può contenere rappresentazioni dei dati a bassa dimensionalità.
+We can notice that the dimension of the matrix is very big; in fact this matrix includes the UMI that have been detected in all the droplets that have been sequenced, including the empty droplets that may contain only ambient RNA.
 
-Prima di procedere con l'analisi rendiamo più leggibili i nomi dei geni e aggiungiamo informazione sul cromosoma in cui si trovano.
+This is a very sparse matrix, with a large fraction of zeros; `read10xCounts` is aware of this and stores the counts as a sparse matrix, which has a very small memory footprint.
 
 ```{r}
-library(scater)
+class(counts(sce.pbmc))
+```
+
+**Exercise**: Explore the `SingleCellExperiment` object and its slots. In particular, the `assay`, `counts`, `colData`, `rowData` assessors.
+
+Before starting the analysis, it may be a good idea to store the names of the genes in a more human-friendly ID system. We can also include information on the chromosome location of the genes; this will be useful for e.g. identifying mitochondrial genes.
+
+```{r}
+library(scuttle)
 rownames(sce.pbmc) <- uniquifyFeatureNames(
     rowData(sce.pbmc)$ID, rowData(sce.pbmc)$Symbol)
 
 library(EnsDb.Hsapiens.v86)
-rowData(sce.pbmc)$location <- mapIds(EnsDb.Hsapiens.v86, keys=rowData(sce.pbmc)$ID, 
-    column="SEQNAME", keytype="GENEID")
+rowData(sce.pbmc)$location <- mapIds(EnsDb.Hsapiens.v86,
+                                     keys=rowData(sce.pbmc)$ID, 
+                                     column="SEQNAME", keytype="GENEID")
+rowData(sce.pbmc)
 ```
+**Exercise**: compute the proportion of zero for each droplet (column) and draw the distribution across the dataset.
 
-# Identificazione delle droplet vuote
+## Empty droplets
 
-Il primo passo è l'identificazione delle droplet che contengono cellule, rispetto a quelle vuote.
-Questa operazione non è del tutto scontata, dal momento che le droplet vuote contengono RNA dell'ambiente e possono "sembrare" cellule. 
+The first step is the identification of droplets that do not contain any live cell.
+
+The reason why these droplets contain some RNA is that there may be some ambient RNA due to some cell leaking or they may contain dead or dying cells.
+
+The `barcodeRanks` function can be used to rank the barcodes by number of UMIs and to estimate the knee and inflection point of the distribution.
 
 ```{r}
 bcrank <- barcodeRanks(counts(sce.pbmc))
@@ -111,12 +123,13 @@ legend("bottomleft", legend=c("Inflection", "Knee"),
         col=c("darkgreen", "dodgerblue"), lty=2, cex=1.2)
 ```
 
-La distribuzione dei conteggi mostra una transizione molto netta tra conteggi alti e bassi. 
-Potremmo semplicemente rimuovere le droplet con conteggi bassi, ma questo escluderebbe quelle cellule che contengono per loro natura poco RNA.
+There is a sharp distinction between droplets with very high counts, very likely to contain a live cell, and droplets with very low counts, very likely to be empty. 
 
-Possiamo invece utilizzare un test d'ipotesi per testare, per ogni cellula, se il suo profilo di RNA è significativamente diverso dal RNA dell'ambiente (si veda Lun et al, 2019 per dettagli).
+However, it is not straightforward to classify the droplets in the middle of the distribution.
 
-Si identificano le cellule utlizzando un FDR molto basso, dello 0.1%, garantendo che in media lo 0.1% delle cellule siano false positive. I p-value sono calcolati con un metodo Monte Carlo.
+We can apply a statistical test of hypothesis to decide, for each droplet, if its RNA profile is significantly different from the profile of ambient RNA, estimated from the very low counts [@lun2019emptydrops].
+
+We use a very low threshold on the False Discovery Rate to have very few false positive cells.
 
 ```{r}
 set.seed(100)
@@ -124,28 +137,43 @@ e.out <- emptyDrops(counts(sce.pbmc))
 summary(e.out$FDR <= 0.001)
 ```
 
-La funzione prima stima l'RNA di ambiente con le droplet che hanno valori di UMI totali minore di 100. In seguto, per ogni droplet, testa se il vettore di conteggi dei geni possa essere generato come campionamento dall'RNA di ambiente.
+The large majority of droplets are not tested, since by default all droplets with fewer than 100 UMIs are considered empty.
 
 ```{r}
 table(colSums(counts(sce.pbmc))>100, e.out$FDR<=0.001, useNA = "ifany")
-sce.pbmc <- sce.pbmc[,which(e.out$FDR <= 0.001)]
 ```
 
-# Controllo della qualità
-
-Il fatto che le droplet non siano vuote non vuol dire che siano da mantenere nell'analisi. Potrebbe essere che siano danneggiate o che stiano per morire.
-
-Ci sono svariati metodi che possono essere usati per il controllo della qualità, ma in questo laboratorio usiamo un semplice metodo che sfrutta la presenza di geni mitocondriali.
-
-E' infatti noto che i mitocondri sono coinvolti nei processi di risposta allo stress e nella morte cellulare. Alta espressione dei geni mitocondriali potrebbe essere un'indicazione di cellule danneggiate o troppo stressate dal processo di dissociazione.
+We can now proceed by removing the empty droplets and keep only the ones identified to be cells.
 
 ```{r}
-stats <- perCellQCMetrics(sce.pbmc, 
-                          subsets=list(Mito=which(rowData(sce.pbmc)$location=="MT")))
+sce.pbmc <- sce.pbmc[,which(e.out$FDR <= 0.001)]
+sce.pbmc
+```
+
+## Quality control
+
+The fact that the droplets are not empty does not automatically mean that they should be kept in the analysis. They may contain damaged or dying cells.
+
+Our aim here is to identify and potentially remove those cells that have lower quality. There are several methods to identify such cells; here we use the simple but effective strategy of removing cells with high percentages of mitochondrial reads.
+
+This is justified by the fact that mitochondiral genes are involved in biological processes in response to stress and apoptosis. Hence, high mitochondrial gene expression may be an indication of damaged or stressed cells.
+
+The `perCellQCMetrics` function can be used to compute a set of metrics useful to evaluate the quality of the samples. The `isOutlier` function uses a data driven threshold to define cells of lower quality compared to the rest of the dataset.
+
+```{r}
+stats <- perCellQCMetrics(sce.pbmc,
+            subsets=list(Mito=which(rowData(sce.pbmc)$location=="MT")))
 high.mito <- isOutlier(stats$subsets_Mito_percent, type="higher")
 table(high.mito)
+```
+
+Finally, it is convenient to include this information in the `colData` of the object, e.g. to use it in plotting functions.
+
+```{r}
 colData(sce.pbmc) <- cbind(colData(sce.pbmc), stats)
 sce.pbmc$discard <- high.mito
+
+library(scater)
 plotColData(sce.pbmc, y="subsets_Mito_percent",
         colour_by="discard")
 plotColData(sce.pbmc, y="detected",
@@ -154,27 +182,45 @@ plotColData(sce.pbmc, x="sum", y="subsets_Mito_percent",
     colour_by="discard") + scale_x_log10()
 ```
 
+We can remove the low quality cells from the dataset.
+
 ```{r}
 sce.pbmc <- sce.pbmc[,!high.mito]
 sce.pbmc
 ```
+## Normalization
 
-# Esplorazione dei dati
+Here, we use the scran method to normalize the data for differences in sequencing depth. This approach is based on the deconvolution of size factors estimated from pools of cells [@l2016pooling].
 
-L'esplorazione dei dati in questo contesto si basa soprattutto sulla rappresentazione dei dati in uno spazio a bassa dimensionalità, con PCA o tecniche alternative.
+Since we have a heterogeneous cell population, we perform a quick clustering to make sure that we pool together cells that are not too different from each other.
 
-Per fare ciò, tipicamente si parte dai dati normalizzati, in scala logaritmica, e si usano solo i geni più variabili per definire le componenti principali.
+```{r}
+library(scran)
+cl <- quickCluster(sce.pbmc)
+table(cl)
+sce.pbmc <- computeSumFactors(sce.pbmc, clusters = cl)
+summary(sizeFactors(sce.pbmc))
+```
 
-## Normalizzazione
-
-Vedremo nelle prossime lezioni come normalizzare i dati con strategie specifiche per dati a singola cellula, ma per il momento ci accontentiamo del metodo più semplice.
+The function returns a `SingleCellExperiment` object with the estimated size factors stored in the `colData`. To actually normalize the data, we can use the `logNormCounts` function that will use the size factors stored in the object to normalize the data and save the log-normalized counts as a second assay in the object.
 
 ```{r}
 sce.pbmc <- logNormCounts(sce.pbmc)
 sce.pbmc
 ```
 
-## Identificazione di geni più variabili
+**Exercise**: Explore the `logcounts` assessor and the `assayNames`, `assays` and `assay` methods to extract the original counts and the log-normalized counts from the object. 
+
+We can check that the estimated library sizes are not too far from the _library size factors_, estimated from the total number of counts.
+
+```{r}
+plot(librarySizeFactors(sce.pbmc), sizeFactors(sce.pbmc), xlab="Library size factor",
+    ylab="Deconvolution size factor", log='xy', pch=16,
+    col=as.integer(factor(cl)))
+abline(a=0, b=1, col="red")
+```
+
+## Highly variable genes (HVGs)
 
 ```{r}
 library(scran)
