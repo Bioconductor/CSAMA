@@ -1,0 +1,72 @@
+---
+title: "Single-cell RNA-seq workflow"
+subtitle: "CSAMA 2022 Version"
+author:
+    - name: Davide Risso
+      affiliation: 
+        - Department of Statistical Sciences, University of Padova, Padova, Italy
+date: "21 June 2022"
+output: BiocStyle::html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = FALSE, error = FALSE, message = FALSE,
+                      warning = FALSE, echo = TRUE, results = "markup",
+                      fig.align = "center", collapse = TRUE)
+```
+
+# Introduction
+
+## Experimental data
+
+## The SingleCellExperiment class
+
+# Pre-processing and filtering
+
+## Empty droplets
+
+## Doublet detection
+
+# Dimensionality reduction
+
+## PCA
+
+## Integration
+
+MNN
+
+## Count-based models
+
+GLM-PCA and NewWave
+
+# Cell type assignment
+
+## Clustering
+
+k-means, mini-batch k-means, Louvain, walktrap
+
+Identification of marker genes
+
+## Reference-based annotation
+
+SingleR
+
+# Psuedotime inference
+
+## Differentially expressed genes
+
+# Bonus section: Multi-sample analysis
+
+## Pseudo-bulk analysis
+
+
+# Session information
+
+It is good practice to always include a list of the software versions that were used to perform a given analysis, for reproducibility and trouble-shooting purposes. One way of achieving this is via the `sessionInfo()` function.
+
+```{r}
+sessionInfo()
+```
+
+# References
+
