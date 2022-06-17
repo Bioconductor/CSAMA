@@ -1,4 +1,4 @@
-# CSAMA: Statistical Data Analysis for Genome Scale Biology
+# CSAMA: Statistics and Computing in Genome Data Science
 
 This repository contains material for the annual 'CSAMA' course.
 <!--
