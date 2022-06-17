@@ -269,7 +269,7 @@ interface to annotation packages.
     ```{r}
     hsa_pathways <-
         keggList("pathway", "hsa") |> 
-        tibble(pathway = names(.), description = .)
+        enframe(name = "pathway", value = "description")
     hsa_pathways
     ```
    
@@ -278,7 +278,8 @@ interface to annotation packages.
     ```{r}
     hsa_path_eg  <-
         keggLink("pathway", "hsa") |> 
-        tibble(pathway = ., egid = sub("hsa:", "", names(.)))
+        enframe(name = "egid", value = "pathway") |>
+        mutate(egid = sub("hsa:", "", egid))
     hsa_path_eg
     hsa_path_eg |>
         group_by(pathway) |>
