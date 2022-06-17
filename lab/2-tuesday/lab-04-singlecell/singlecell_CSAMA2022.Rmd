@@ -149,6 +149,34 @@ We can now proceed by removing the empty droplets and keep only the ones identif
 sce.pbmc <- sce.pbmc[,which(e.out$FDR <= 0.001)]
 sce.pbmc
 ```
+## Data exploration
+
+We will see in more details in the next section how to perform accurate dimensionality reduction. Here, we quickly perform a principal component analysis (PCA) and tSNE embedding to explore the data and highlight possible quality issues for some cells.
+
+These embeddings can be quickly computed using the `runPCA` and `runTSNE` functions in `scater`. It is useful to log transform the data before PCA to more accurately reflect the signal.
+
+The `logNormCounts` function divides by the total number of UMIs in addition to log transforming the counts to account for the difference in sequencing depths. This is not the best normalization approach, but for our current purpose of quickly visualizing the data, it is good enough.
+
+We will need to recompute these embeddings after filtering and proper normalization to obtain a more accurate representation of our data.
+
+```{r}
+library(scater)
+sce.pbmc <- logNormCounts(sce.pbmc)
+sce.pbmc <- runPCA(sce.pbmc)
+sce.pbmc <- runTSNE(sce.pbmc, dimred="PCA")
+sce.pbmc
+```
+
+Note that it is generally a good strategy to start from PCA to compute the tSNE embedding; this is achieved using the `dimred` argument.
+
+**Exercise**: Explore the `logcounts` accessor and the `assayNames`, `assays` and `assay` methods to extract the original counts and the log-normalized counts from the object; explore the `reducedDimNames` and `reducedDim` methods to explore the PCA and t-SNE embedding.
+
+We can visualize the first two PCs and the tSNE embedding using the following `scater` functions.
+
+```{r}
+plotPCA(sce.pbmc)
+plotTSNE(sce.pbmc)
+```
 
 ## Quality control
 
@@ -173,7 +201,6 @@ Finally, it is convenient to include this information in the `colData` of the ob
 colData(sce.pbmc) <- cbind(colData(sce.pbmc), stats)
 sce.pbmc$discard <- high.mito
 
-library(scater)
 plotColData(sce.pbmc, y="subsets_Mito_percent",
         colour_by="discard")
 plotColData(sce.pbmc, y="detected",
@@ -182,12 +209,22 @@ plotColData(sce.pbmc, x="sum", y="subsets_Mito_percent",
     colour_by="discard") + scale_x_log10()
 ```
 
-We can remove the low quality cells from the dataset.
+We can also color-code the cells by the QC metrics and/or by the indicator that we defined in the PCA and tSNE plots.
+
+```{r}
+plotTSNE(sce.pbmc, colour_by="subsets_Mito_percent")
+plotTSNE(sce.pbmc, colour_by="discard")
+```
+
+We can see that there are a few cells with high mitochondrial reads scattered around two clusters. In addition, there seems to be a cluster made of only high-mitochondrial cells. It is unclear whether this is a technical artifact due to sample processing or a genuine PBMC cell population that expresses more mitochondrial genes. 
+
+In this tutorial, we go ahead and remove these cells, but in a real analysis, careful thought must be given to whether these metrics are capturing technical noise or biological signal.
 
 ```{r}
 sce.pbmc <- sce.pbmc[,!high.mito]
 sce.pbmc
 ```
+
 ## Normalization
 
 Here, we use the scran method to normalize the data for differences in sequencing depth. This approach is based on the deconvolution of size factors estimated from pools of cells [@l2016pooling].
@@ -209,7 +246,7 @@ sce.pbmc <- logNormCounts(sce.pbmc)
 sce.pbmc
 ```
 
-**Exercise**: Explore the `logcounts` assessor and the `assayNames`, `assays` and `assay` methods to extract the original counts and the log-normalized counts from the object. 
+**Exercise**: Extract the size factors with the `colData` and `sizeFactors` accessors.
 
 We can check that the estimated library sizes are not too far from the _library size factors_, estimated from the total number of counts.
 
@@ -222,87 +259,94 @@ abline(a=0, b=1, col="red")
 
 ## Highly variable genes (HVGs)
 
+We now have a `SingleCellExperiment` object with only the high-quality cells. We may also want to filter the genes to focus on those that are more likely to carry information rather than noise.
+
+In fact, many of the genes that we stored in the object have no UMI in any cell. We can easily verify that by looking at the number of zero counts in each cell.
+
 ```{r}
-library(scran)
-set.seed(1001)
-dec.pbmc <- modelGeneVarByPoisson(sce.pbmc)
-head(dec.pbmc)
+summary(colMeans(counts(sce.pbmc)==0))
 ```
 
-Per ogni gene, la funzione `modelGeneVarByPoisson`, calcola la media e la varianza dei dati, adatta un modello di Poisson che rappresenta la variabilità tecnica, mentre la variabilità residua è considerata biologica. Infine, si utilizza un test per l'ipotesi nulla che la componente di variabilità biologica sia nulla.
+On average, 87% of the genes have 0 UMIs in a given cell.
 
-Possiamo selezionare i geni per cui questo test è significativo o in alternativa possiamo selezionare un numero prefissato di geni (per es. 1000 o il 10%) la cui varianza biologica è massima. Scegliamo quest'ultima strategia.
+Some genes will be expressed in a large fraction of cells, while others will almost always be 0.
 
 ```{r}
-top.pbmc <- getTopHVGs(dec.pbmc, prop=0.1)
-head(top.pbmc)
+summary(rowMeans(counts(sce.pbmc)==0))
+```
 
+Hence, we can start off by removing those genes that are 0 across the board.
+
+```{r}
+allzero <- rowMeans(counts(sce.pbmc)==0)==1
+table(allzero)
+sce.pbmc <- sce.pbmc[which(!allzero),]
+sce.pbmc
+```
+Note that we have removed more than 40% of the genes.
+
+This loose filter is often not sufficient, and we usually prefer to focus on a set of highly variable genes for the subsequent analysis steps.
+
+The rationale is that if the genes are carrying biologically relevant information, e.g., in distinguishing among cell types, they will not have a constant expression, but rather will vary between cells.
+
+
+The simplest approach to quantifying per-gene variation is to compute the variance of the log-normalized expression values for each gene across all cells. We need to model the mean-variance relationship since the log is not a variance stabilizing transformation.
+
+
+```{r}
+set.seed(1001)
+dec.pbmc <- modelGeneVar(sce.pbmc)
+head(dec.pbmc)
+```
+At any given abundance, we assume that the variation in expression for most genes is driven by uninteresting processes like sampling noise. Under this assumption, the fitted value of the trend at any given gene’s abundance represents an estimate of its uninteresting variation, which we call the technical component. We then define the biological component for each gene as the difference between its total variance and the technical component. This biological component represents the "interesting" variation.
+
+```{r}
 plot(dec.pbmc$mean, dec.pbmc$total, pch=16, cex=0.5,
     xlab="Mean of log-expression", ylab="Variance of log-expression")
 curfit <- metadata(dec.pbmc)
 curve(curfit$trend(x), col='dodgerblue', add=TRUE, lwd=2)
 ```
 
-## PCA
-
-Possiamo utilizzare i geni più variabili per calcolare le componenti principali da utilizzare per la visualizzazione dei dati.
-
-Come sempre, il numero di componenti da mantenere nell'analisi è difficile da stimare. In questo contesto, possiamo usare i geni ad alta variabilità tecnica e bassa variabilità biologica per stimare le componenti che catturano solo rumore e niente biologia.
-
-L'assunzione principale è che la variabilità biologica sia maggiore di quella tecnica, ovvero che le prime componenti principali rappresentano la variabilità biologica. Questa strategia è implementata in `denoisePCA`.
+The `modelGeneVar` function tests the null hypothesis that the biological component of the variance is 0 for each gene: small p-values indicate a gene with evidence of biological variation.
+We can select the genes using a threshold on the adjusted p-values or simply ranking them by biological variation and selecting the top one or two thousand.
 
 ```{r}
-set.seed(10000)
-sce.pbmc <- denoisePCA(sce.pbmc, subset.row=top.pbmc, technical=dec.pbmc)
-sce.pbmc
-ncol(reducedDim(sce.pbmc, "PCA"))
+top.pbmc <- getTopHVGs(dec.pbmc, n=1000)
+head(top.pbmc)
 ```
 
-Proviamo a visualizzare i dati nello spazio delle prime due componenti principali.
+## Doublet identification
 
-```{r}
-plotPCA(sce.pbmc)
-```
+As we have already mentioned, a single droplet may erroneously capture more than one cell; these are called _doublets_. There are some statistical methods that can be used 
 
-Nei dati a singola cellula, le prime due componenti principali spesso mettono in luce le  differenze tra i maggiori tipi cellulari presenti, ma spesso non sono in grado di distinguere tra tipi cellulari simili tra loro.
+To try and detect the doublets, we can use statistical algorithms, many of which are implemented in the `scDblFinder` package. We will focus on one technique that uses simulations to identify droplets that are likely to contain more than one cell.
 
-Per questo sono spesso utilizzate tecniche non lineari, come il t-SNE, che vedremo a lezione.
-
-```{r}
-set.seed(100000)
-sce.pbmc <- runTSNE(sce.pbmc, dimred="PCA")
-sce.pbmc
-```
-
-
-```{r}
-plotTSNE(sce.pbmc)
-```
-
-
-# Identificazione dei doublet
-
-Come detto, potrebbe succedere che in una droplet vengano catturate due cellule anziché una.
-Ci sono dei metodi statistici per identificare queste cellule doppie, in gergo "doublet".
-
-Vediamo solo una strategia, basata sulla simulazione di doublet a partire da due cellule diverse.
+Note that while we use a droplet terminology here, doublets can be observed in data from non-droplet protocols as well, e.g., in Fluidigm C1 Smart-seq2 datasets.
 
 ```{r}
 library(scDblFinder)
 dbl.dens <- computeDoubletDensity(sce.pbmc, subset.row=top.pbmc, 
     d=ncol(reducedDim(sce.pbmc)))
-summary(dbl.dens)
 sce.pbmc$DoubletScore <- dbl.dens
+summary(dbl.dens)
+```
+
+The function `computeDoubletDensity` identifies potential doublet cells based on the local density of simulated doublet expression profiles. 
+
+Briefly, the strategy can be described in this way:
+
+1. We simulate many artificial doublets by summing two random cells.
+2. We compute the density of the simulated cells in the neighborhood of each real cell.
+3. We compute the density of real cells in the neighborhood of each cell.
+4. We compute the ratio between the two densities to obtain a cell-specific "doublet score".
+
+These scores can be visualized in a tSNE plot.
+
+```{r}
 plotTSNE(sce.pbmc, colour_by="DoubletScore")
 ```
-La strategia può essere descritta in questi step:
 
-1. Si simulato migliaia di doublets summando due cellule prese a caso
-2. Si calcola la densità di doublet simulate in un intorno di ogni cellula
-3. Si calcola la densità di cellule originali in un intorno di ogni cellula
-4. Si calcola il rapporto tra le due densità per ottenere uno score
-
-Possiamo definire una soglia per identificare i doublet.
+We can define a threshold to identify putative doublets.
 
 ```{r}
 dbl.calls <- doubletThresholding(data.frame(score=dbl.dens),
@@ -310,7 +354,9 @@ dbl.calls <- doubletThresholding(data.frame(score=dbl.dens),
 summary(dbl.calls)
 ```
 
-Eliminiamo i doublets per procedere con l'analisi.
+And finally eliminate them from the dataset before continuing the analysis. 
+
+Note that, similarly to what we have said for the removal of low-quality cells, one should be careful in removing putative doublets. Indeed, it may be difficult to distinguish between rare transient cell populations and doublet cells.
 
 ```{r}
 sce.pbmc <- sce.pbmc[, dbl.calls == "singlet"]
@@ -319,428 +365,233 @@ sce.pbmc
 
 # Dimensionality reduction
 
-In questo hands-on ci concentriamo sulla normalizzazione e sulla riduzione della dimensionalità.
+Now that we have removed low-quality cells and doublets, and we have identified highly variable genes, we can proceed with the next step of the analysis, dimentionality reduction.
 
-Utilizziamo un dataset che studia l'espressione genica di un gruppo di cellule mononucleari del sangue periferico (peripheral blood mononuclear cell, PBMC), sequenziate con la tecnologia a droplet 10X Genomics.
+In particular, we will focus on dimensionality reduction techniques useful as a preliminary step for statistical inference (e.g., clustering), such as PCA and count-based methods.
 
-Utilizziamo dei dati già filtrati, in cui sono state eliminate le droplet vuote.
-
-```{r}
-library(TENxPBMCData)
-donor1 <- TENxPBMCData("frozen_pbmc_donor_a")
-donor2 <- TENxPBMCData("frozen_pbmc_donor_b")
-set.seed(123123)
-idx1 <- sample(seq_len(NCOL(donor1)), 1000)
-idx2 <- sample(seq_len(NCOL(donor2)), 1000)
-sce.pbmc <- cbind(donor1[,idx1], donor2[,idx2])
-counts(sce.pbmc) <- as.matrix(counts(sce.pbmc))
-sce.pbmc
-colData(sce.pbmc)
-```
-
-Prima di procedere con l'analisi rendiamo più leggibili i nomi dei geni e aggiungiamo informazione sul cromosoma in cui si trovano.
-
-```{r}
-library(scater)
-library(EnsDb.Hsapiens.v86)
-rowData(sce.pbmc)$location <- mapIds(EnsDb.Hsapiens.v86, 
-                                     keys=rowData(sce.pbmc)$ENSEMBL_ID, 
-                                     column="SEQNAME", keytype="GENEID")
-```
-
-# Controllo della qualità
-
-Eliminiamo le cellule con percentuale troppo alta di RNA mitocondriale.
-
-```{r}
-stats <- perCellQCMetrics(sce.pbmc, 
-                          subsets=list(Mito=which(rowData(sce.pbmc)$location=="MT")))
-high.mito <- isOutlier(stats$subsets_Mito_percent, type="higher")
-table(high.mito)
-colData(sce.pbmc) <- cbind(colData(sce.pbmc), stats)
-sce.pbmc$discard <- high.mito
-plotColData(sce.pbmc, y="subsets_Mito_percent", x = "Individual",
-        colour_by="discard")
-plotColData(sce.pbmc, y="detected", x = "Individual",
-        colour_by="discard")
-plotColData(sce.pbmc, x="sum", y="subsets_Mito_percent",
-    colour_by="discard") + scale_x_log10()
-```
-
-```{r}
-sce.pbmc <- sce.pbmc[,!high.mito]
-filter <- which(rowSums(counts(sce.pbmc))>0)
-sce.pbmc <- sce.pbmc[filter,]
-sce.pbmc
-```
-
-# Normalizzazione
-
-Utilizziamo il metodo scran per normalizzare i dati.
-
-```{r}
-library(scran)
-cl <- quickCluster(sce.pbmc)
-table(cl)
-sce.pbmc <- computeSumFactors(sce.pbmc, clusters = cl)
-summary(sizeFactors(sce.pbmc))
-
-sce.pbmc <- logNormCounts(sce.pbmc)
-sce.pbmc
-
-plot(librarySizeFactors(sce.pbmc), sizeFactors(sce.pbmc), xlab="Library size factor",
-    ylab="Deconvolution size factor", log='xy', pch=16,
-    col=as.integer(factor(cl)))
-abline(a=0, b=1, col="red")
-```
-
-In alternativa possiamo usare il metodo PsiNorm, implementato nel pacchetto `scone`.
-
-```{r}
-library(scone)
-sce.pbmc <- PsiNorm(sce.pbmc)
-sce.pbmc <- logNormCounts(sce.pbmc, name="psinorm")
-sce.pbmc
-```
-
-# Riduzione della dimensionalità
-
-## Identificazione di geni più variabili
-
-```{r}
-set.seed(1001)
-dec.pbmc <- modelGeneVarByPoisson(sce.pbmc)
-head(dec.pbmc)
-```
-
-Per ogni gene, la funzione `modelGeneVarByPoisson`, calcola la media e la varianza dei dati, adatta un modello di Poisson che rappresenta la variabilità tecnica, mentre la variabilità residua è considerata biologica. Infine, si utilizza un test per l'ipotesi nulla che la componente di variabilità biologica sia nulla.
-
-Possiamo selezionare i geni per cui questo test è significativo o in alternativa possiamo selezionare un numero prefissato di geni (per es. 1000 o il 10%) la cui varianza biologica è massima. Scegliamo quest'ultima strategia.
-
-```{r}
-top.pbmc <- getTopHVGs(dec.pbmc, prop=0.1)
-head(top.pbmc)
-```
+We can always apply visualization techniques, such as tSNE or UMAP, on top of these more formal dimensionality reduction techniques, but it is important that we do not base our inferential steps on them and we use them only for visualization.
 
 ## PCA
 
-Possiamo utilizzare i geni più variabili per calcolare le componenti principali da utilizzare per la visualizzazione dei dati.
-
-Come sempre, il numero di componenti da mantenere nell'analisi è difficile da stimare. In questo contesto, possiamo usare i geni ad alta variabilità tecnica e bassa variabilità biologica per stimare le componenti che catturano solo rumore e niente biologia.
-
-L'assunzione principale è che la variabilità biologica sia maggiore di quella tecnica, ovvero che le prime componenti principali rappresentano la variabilità biologica. Questa strategia è implementata in `denoisePCA`.
+We have already seen the simplest dimensionality reduction technique, PCA, in the previous section. Here, we can recalculate the principal components, starting from the data normalized by scran and using only the selected HVGs. This will lead to a better representation of our biological signal.
 
 ```{r}
-set.seed(10000)
-sce.pbmc <- denoisePCA(sce.pbmc, subset.row=top.pbmc, technical=dec.pbmc)
-sce.pbmc
-ncol(reducedDim(sce.pbmc, "PCA"))
+sce.pbmc <- runPCA(sce.pbmc, subset_row=top.pbmc)
 ```
 
-Proviamo a visualizzare i dati nello spazio delle prime due componenti principali.
+Note that the `subset_row` argument ensures that we use the previously selected HVGs to compute the PCs. Also note that by default `runPCA` will store the PCs in the `PCA` slot, hence overwriting the previous PCs. In this case, this is what we want, as the previous results were based on a quick normalization and prior to removing noisy genes and cells. In other cases, it may be reasonable to keep more than one set of PCs: this can be achieved by specifying a different slot name via the `name` argument.
+
+Finally, note that by default `scater` will compute the top 50 PCs. This is a reasonable choice, but it may be a good idea to explore the variance explained by each component to decide the number of components to retain. An alternative is to use the `denoisePCA` function from `scran` that aims at selecting the number of PCs that exlain biological variability.
 
 ```{r}
-plotPCA(sce.pbmc, colour_by = "Individual")
+plotPCA(sce.pbmc)
 ```
+
+Again, we can compute the tSNE embedding using the PCs. 
+
+```{r}
+sce.pbmc <- runTSNE(sce.pbmc, dimred="PCA")
+plotTSNE(sce.pbmc)
+```
+
+## Count-based models
+
+One problem of PCA is that it assumes continuous, roughly Gaussian data, while single-cell RNA-seq data are counts.
+
+Computing the PCs on the log-normalized counts helps, but it can be shown that it is not always effective and in some cases technical features, such as sequencing depth, can affect the first PCs [@hicks2018missing].
+
+Hence, it may be better to use count-based factor analysis models for dimentionality reduction. One advantage of these methods is that they can be applied directly to count data, without need for normalization and data transformation, which can be challenging.
+
+We will see two alternative approaches:
+
+- GLM-PCA based on a Poisson distribution [@townes2019feature]
+- NewWave based on a Negative Binomial distribution [@agostinis2022newwave]
+
+In both cases, we will start from the HVGs selected previously.
 
 ## GLM-PCA
 
-La GLM-PCA è implementata nel pacchetto `scry`. Di default usa una Poisson.
+GLM-PCA is implemented in the `scry` Bioconductor package; it uses a Poisson model by default, but this can be changed to use negative binomial, multinomial or binomial.
+
+Unlike `runPCA`, the GLM-PCA function does not allow for a selection of genes. Hence, we will first create a filtered `SingleCellExperiment` object that contains only the HVGs.
+
+Similarly to PCA, GLM-PCA needs the number of components (factors) that need to be calculated. Here, we compute 10 latent factors.
+
+We use the `minibatch` argument to use only a random subset of observations to compute the gradient in the optimization algorithm. This speeds up computations and avoids memory problems in big datasets.
 
 ```{r}
 library(scry)
 set.seed(100000)
 filtered <- sce.pbmc[top.pbmc,]
-filtered <- GLMPCA(filtered, L=10)
+filtered <- GLMPCA(filtered, L=10, minibatch="stochastic")
 filtered
 ```
 
+To visualize the first two components of GLM-PCA, we can use the `plotReducedDim` function from `scater`.
 
 ```{r}
-plotReducedDim(filtered, "GLMPCA", colour_by = "Individual")
+plotReducedDim(filtered, "GLMPCA")
 ```
 
-E' evidente che sia la PCA che la GLMPCA soffrono di un effetto di individuo. Possiamo includere un indicatore per questo effetto.
+## NewWave
 
-```{r}
-set.seed(3214)
-X <- matrix(as.numeric(as.factor(filtered$Individual)))
-filtered <- GLMPCA(filtered, L=10, X = X)
-```
+An alternative method is implemented in the `NewWave` package, which implements a negative binomial factor analysis model and uses a  penalized likelihood to estimate the latent factors.
 
-```{r}
-plotReducedDim(filtered, "GLMPCA", colour_by = "Individual")
-```
-
-## ZINB-WaVE 
-
-Il modello ZINB-WaVE sfrutta la binomiale negativa con inflazione di zeri. Visto che questi dati contengono UMI non ci aspettiamo una grande differenza con GLMPCA.
-
-```{r}
-library(NewWave)
-set.seed(222)
-filtered <- newWave(filtered, X = "~Individual")
-filtered
-plotReducedDim(filtered, "newWave", colour_by = "Individual")
-```
-
-Per la visualizzazione è ancora possibile usare il t-SNE, ma utilizzando come spazio ad alta dimensionalità le 10 componenti identificate da GLMPCA o NewWave.
-
-```{r}
-set.seed(2242)
-filtered <- runTSNE(filtered, dimred="newWave")
-plotTSNE(filtered, colour_by = "Individual")
-```
-
-## PCA
-
-## Integration
-
-MNN
-
-## Count-based models
-
-GLM-PCA and NewWave
-
-# Cell type assignment
-
-## Clustering
-
-Come detto nelle video lezioni, ci sono sostanzialmente due possibili strategie per l'identificazione dei tipi cellulari:
-
-1. Clustering
-2. Classificazione con reference
-
-Tipicamente il clustering si effettua in uno spazio a dimensione ridotta, a seguito di PCA o altre tecniche adatte ai dati di conteggio.
-
-Al contrario la classificazione con dati reference si effettua a partire dai dati normalizzati.
-
-Come negli hands-on precedenti, utilizziamo un dataset che studia l'espressione genica di un gruppo di cellule mononucleari del sangue periferico (peripheral blood mononuclear cell, PBMC), sequenziate con la tecnologia a droplet 10X Genomics.
-
-Possiamo quindi quindi utilizzare il codice visto nell'hands-on precedente per effettuare **filtraggio**, **normalizzazione** e **riduzione della dimensionalità**.
-
-```{r}
-library(TENxPBMCData)
-donor1 <- TENxPBMCData("frozen_pbmc_donor_a")
-donor2 <- TENxPBMCData("frozen_pbmc_donor_b")
-set.seed(123123)
-idx1 <- sample(seq_len(NCOL(donor1)), 1000)
-idx2 <- sample(seq_len(NCOL(donor2)), 1000)
-sce.pbmc <- cbind(donor1[,idx1], donor2[,idx2])
-counts(sce.pbmc) <- as.matrix(counts(sce.pbmc))
-sce.pbmc
-```
-
-```{r}
-library(scater)
-library(EnsDb.Hsapiens.v86)
-rowData(sce.pbmc)$location <- mapIds(EnsDb.Hsapiens.v86, 
-                                     keys=rowData(sce.pbmc)$ENSEMBL_ID, 
-                                     column="SEQNAME", keytype="GENEID")
-```
-
-```{r}
-stats <- perCellQCMetrics(sce.pbmc, 
-                          subsets=list(Mito=which(rowData(sce.pbmc)$location=="MT")))
-high.mito <- isOutlier(stats$subsets_Mito_percent, type="higher")
-colData(sce.pbmc) <- cbind(colData(sce.pbmc), stats)
-sce.pbmc$discard <- high.mito
-```
-
-```{r}
-sce.pbmc <- sce.pbmc[,!high.mito]
-filter <- which(rowSums(counts(sce.pbmc))>0)
-sce.pbmc <- sce.pbmc[filter,]
-```
-
-```{r}
-library(scran)
-cl <- quickCluster(sce.pbmc)
-sce.pbmc <- computeSumFactors(sce.pbmc, clusters = cl)
-sce.pbmc <- logNormCounts(sce.pbmc)
-```
-
-```{r}
-set.seed(1001)
-dec.pbmc <- modelGeneVarByPoisson(sce.pbmc)
-top.pbmc <- getTopHVGs(dec.pbmc, prop=0.1)
-```
+Also in this case we can use minibatches, and if multiple CPUs are available parallel computing, to speed up computations. The `n_gene_par`, `n_cell_par`, and `n_gene_disp` arguments allow the user to choose how many observations to use to estimate the gene- and cell-specific parameters. The `children` argument allows one to use multiple cores; here we use four, but you should change it depending on how many cores your computer has (see `parallel::detectCores()`).
 
 ```{r}
 library(NewWave)
 set.seed(100000)
-filtered <- sce.pbmc[top.pbmc,]
-filtered <- newWave(filtered, X = "~Individual", K=10, children=4,
-                     n_gene_disp = 100, n_gene_par = 100, n_cell_par = 100)
+filtered <- newWave(filtered, K=10, children=4,
+                    n_gene_disp = 100, n_gene_par = 100, 
+                    n_cell_par = 100)
 filtered
 ```
 
 ```{r}
-set.seed(8872)
-filtered <- runTSNE(filtered, dimred="newWave")
-plotTSNE(filtered, colour_by = "Individual")
+plotReducedDim(filtered, "newWave")
 ```
 
-# Clustering
+For visualization, it is also possible to compute the tSNE embedding of the 10-dimensional GLM-PCA or newWave representation.
 
-Uno dei metodi più utilizzati per il clustering è il metodo di Louvain, che si basa su una rete di cellule vicine.
+```{r}
+set.seed(2242)
+filtered <- runTSNE(filtered, dimred="GLMPCA")
+plotTSNE(filtered)
+```
+
+# Cell type assignment
+
+There are essentially two alternative approaches for the identification of cell types:
+
+1. Clustering
+2. Annotation with external references
+
+Typically, clustering is done on a low dimensional projection of the data, e.g., through PCA or count-based methods.
+
+On the other hand, reference annotation starts from normalized data.
+
+## Clustering
+
+One of the most popular clustering methods for single-cell RNA-seq is the Louvain algorithm. This method starts from a cell network (graph), created by connecting cells that have shared nearest neighbors.
+
+The first step is the creation of the _shared nearest neighbor graph_. Briefly, we start from the low dimensional representation of the data (e.g., by GLM-PCA) and construct a graph by linking cells that have neighbors in common. This is implemented in the `buildSNNgraph` function of the `scran` package; by default it uses `k=10` neighbors. 
+
+```{r}
+g <- buildSNNGraph(filtered, k=10, use.dimred = 'GLMPCA')
+g
+```
+We can use e.g., the `GGally` package to visualize the graph, but this is often not very useful due to the large number of nodes and edges.
+
+```{r}
+library(GGally)
+ggnet2(g, size=1)
+```
+We can then use the `igraph` package to identify communities (clusters) in the graph, e.g., by using the Louvain algorithm.
 
 ```{r}
 library(igraph)
-g <- buildSNNGraph(filtered, k=10, use.dimred = 'newWave')
 clust <- igraph::cluster_louvain(g)
+ggnet2(g, color=membership(clust), size=1)
+```
+
+Finally, we store the results into the `colData` of our object and visualize the clusters in the t-SNE plot.
+
+```{r}
 filtered$Louvain <- factor(membership(clust))
-table(filtered$Louvain)
 plotTSNE(filtered, colour_by="Louvain")
 ```
 
-Possiamo confrontare questo metodo con il metodo walktrap a partire dalla stessa rete.
+Obviously, there are many other algorithms available for the clustering of single-cell data.
+
+**Exercise**: repeat the clustering with a different graph partition algorithm (e.g. `cluster_walktrap`) starting from the same graph and compare the results.
+
+## Identification of marker genes
+
+Once we have cluster labels, we need to understand what each cluster represents. Typically, we look for marker genes to label the clusters.
+
+It is not important to perform a formal differential expression test for this step. In fact, the p-values are not valid from an inferential point of view because we are using the data twice: to cluster the data and to test the difference in expression.
+
+For this reason, we use simple methods, like a t-test that compares the average expression of one group versus the average of the others, and use the p-values only as a way to rank potentially interesting genes.
 
 ```{r}
-clust <- igraph::cluster_walktrap(g)
-filtered$walktrap <- factor(membership(clust))
-table(filtered$walktrap, filtered$Louvain)
-plotTSNE(filtered, colour_by="walktrap")
-```
-
-Possiamo anche utilizzare l'approccio k-means. In questo caso possiamo confrontare il classico k-means, con il mini-batch k-means.
-
-```{r}
-set.seed(102)
-km <- kmeans(reducedDim(filtered, "newWave"), centers = 10, nstart = 10)
-filtered$kmeans10 <- factor(km$cluster)
-table(filtered$walktrap, filtered$kmeans10)
-plotTSNE(filtered, colour_by="kmeans10")
-```
-
-```{r}
-library(mbkmeans)
-set.seed(1822)
-mbkm <- mbkmeans(filtered, reduceMethod = "newWave", clusters = 10, num_init = 20, batch_size=1000)
-filtered$mbkmeans10 <- factor(mbkm$Clusters)
-table(filtered$mbkmeans10, filtered$kmeans10)
-plotTSNE(filtered, colour_by="mbkmeans10")
-```
-
-Possiamo confrontare i quattro metodi con l'indice di silhouette e con l'indice di Rand.
-
-```{r}
-library(cluster)
-library(mclust)
-adjustedRandIndex(filtered$walktrap, filtered$Louvain)
-adjustedRandIndex(filtered$walktrap, filtered$kmeans10)
-adjustedRandIndex(filtered$walktrap, filtered$mbkmeans10)
-adjustedRandIndex(filtered$kmeans10, filtered$mbkmeans10)
-```
-
-```{r}
-d <- dist(reducedDim(filtered, "newWave"))
-plot(silhouette(km$cluster, d), main="k-means (k=10)")
-plot(silhouette(mbkm$Clusters, d), main="mini-batch k-means (k=10)")
-plot(silhouette(as.numeric(filtered$Louvain), d), main="Louvain")
-plot(silhouette(as.numeric(filtered$walktrap), d), main="Walktrap")
-```
-
-## Identificazione di geni marcatori
-
-Possiamo usare un semplice t-test per confrontare l'espressione media di un gene in un cluster contro quella media in tutti gli altri cluster.
-
-```{r}
-rownames(filtered) <- rowData(filtered)$Symbol_TENx
 markers <- findMarkers(filtered, filtered$Louvain)
 head(markers[[1]])
 ```
 
-I p-value non sono validi, ma si possono usare per ordinare i geni e per esempio osservare i primi 10 per gruppo.
+We can for instance extract the top 10 genes from each comparison to use as cluster-specific markers.
 
 ```{r}
 mm <- unique(unlist(lapply(markers, function(x) rownames(x)[1:10])))
 plotGroupedHeatmap(filtered, features=mm, group="Louvain", center=TRUE)
 ```
 
-# Classificazione con reference
+By cross-checking the expression of these genes with databases of known immune cell type markers, we may be able to annotate the clusters in cell types.
 
-In alternativa, si può utilizzare un dataset di riferimento, su cui allenare un classificatore che si adatta poi ai dati in oggetto. In questo modo si possono otttenere, oltre a gruppi di cellule, delle etichette con l'identità biologica dei tipi cellulari.
+## Annotation with external reference
 
-Come detto il metodo è implementato nel pacchetto `SingleR`. Questo pacchetto può essere utilizzato con qualsiasi dataset annotato come reference, sia bulk sia single-cell.
+Obviously, manually annotating clusters using gene markers is laborious and requires specific expertise. For this reason, algorithms that automatically annotate cells using external, already annotated reference datasets are becoming popular.
 
-Il pacchetto `celldex` contiene dataset generali per l'annotazione delle cellule (uomo e topo).
+Most methods do not rely on a clustering algorighm, but annotate individual cells, by looking at some form of correlation between each cell in the query dataset and all the annotated samples in the reference.
+
+This is the approach implemented in the `SingleR` Bioconductor package, which uses a simple yet effective algorithm, based on Spearman correlation. 
+
+The `celldex` Bioconductor package includes several annotated reference datasets (for mouse and human) that can be used with `SingleR`. Specifically, it includes a few immune-specific reference datasets. We choose one of them, namely the Monaco datataset, which consists of 114 bulk RNA-seq samples of sorted immune cell populations. 
 
 ```{r}
 library(SingleR)
 library(celldex)
 ref <- MonacoImmuneData()
 ref
-colData(ref)
-table(ref$label.fine)
 ```
 
-Possiamo procedere con la classificazione. Prima usiamo la classificazione meno fine per illustrazione.
+In the `colData` of this object, we have the labels of the sorted populations, at two levels of resolution. 
 
 ```{r}
-pred <- SingleR(test = filtered, ref = ref, 
+colData(ref)
+```
+
+It is straightforward to annotate our cells, by simply selecting our dataset, the reference dataset and the column that corresponds to the annotation that we want to use.
+
+```{r}
+pred <- SingleR(test = sce.pbmc, ref = ref, 
     labels = ref$label.main, assay.type.test="logcounts")
 head(pred)
+```
+The method returns a continuous score, which represents how similar each cell is to the annotated cell populations in the reference. Moreover, it returns the final prediction in the form of a cell-type label.
+
+We can explore the scores, to visualize the uncertainty in the annotation.
+
+```{r}
 plotScoreHeatmap(pred)
 ```
 
-Il metodo restituisce uno score continuo, ma anche un'etichetta che è la previsione "migliore" secondo il modello.
-
-Ora possiamo procedere con una classificazione più fine.
-
-```{r}
-pred_fine <- SingleR(test = filtered, ref = ref, 
-    labels = ref$label.fine, assay.type.test="logcounts")
-head(pred_fine)
-```
-
-Possiamo inserire entrambe le etichette nell'oggetto
+We can include the predictions in the `SingleCellExperiment` object and visualize the results.
 
 ```{r}
 filtered$singler <- factor(pred$pruned.labels)
-filtered$singler_fine <- factor(pred_fine$pruned.labels)
+plotTSNE(filtered, colour_by = "singler")
 ```
 
-```{r}
-pal <- c(palette.colors(8, "Accent"), palette.colors(8, "Dark 2"),
-         palette.colors(8, "Paired"))
+**Exercise**: repeat the classification with the finer cell type classification (`label.fine`).
 
-plotTSNE(filtered, colour_by = "singler") + scale_color_manual(values=pal)
-plotTSNE(filtered, colour_by = "singler_fine") + scale_color_manual(values=pal)
-```
-
+We can compare the Louvain clusters with the predicted cell types.
 
 ```{r}
 library(pheatmap)
 pheatmap(log10(table(filtered$singler, filtered$Louvain)+1), scale = "none")
-pheatmap(log10(table(filtered$singler, filtered$walktrap)+1), scale = "none")
-pheatmap(log10(table(filtered$singler_fine, filtered$Louvain)+1), scale = "none")
 ```
 
-```{r}
-pred <- SingleR(test = filtered, ref = ref, 
-    labels = ref$label.main, assay.type.test="logcounts",
-    clusters = filtered$walktrap)
-pred
-plotScoreHeatmap(pred)
-```
+# Additional analyses
 
-# Conclusioni
+There are many additional analyses that are useful for single-cell RNA-seq data. Two that are particualrly important are:
 
-Come illustra questo esempio non è semplice assegnare un'etichetta alle cellule in generale. Esiste un tradeoff tra accuratezza e risoluzione, e spesso si ricorre a metodi semi-supervisionati in cui il clustering o l'annotazione automatica vengono integrate con considerazioni basate su geni marcatori.
+- Pseudotime inference
+- Multi-sample differential expression
 
-## Reference-based annotation
+While we do not have time to explore these analyses in detail here, these are covered in [Chapter 10 of the Advanced OSCA book](http://bioconductor.org/books/3.15/OSCA.advanced/trajectory-analysis.html) and in the [Multi-sample OSCA book](http://bioconductor.org/books/3.15/OSCA.multisample/), respectively.
 
-SingleR
-
-# Bonus section: Psuedotime inference
-
-## Differentially expressed genes
-
-# Bonus section: Multi-sample analysis
-
-## Pseudo-bulk analysis
-
+I encourage you to explore these resources by yourselves.
 
 # Session information
 
