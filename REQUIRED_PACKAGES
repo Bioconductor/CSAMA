@@ -123,6 +123,22 @@ msdata
 RforMassSpectrometry/MsBackendHmdb
 
 ## Davide Risso (DR)
+DropletTestFiles
+DropletUtils
+scuttle
+EnsDb.Hsapiens.v86
+scater
+scran
+scDblFinder
+scry
+NewWave
+GGally
+igraph
+network
+sna
+intergraph
+SingleR
+celldex
 
 ## Charlotte Soneson (CS)
 apeglm
