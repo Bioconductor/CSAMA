@@ -79,6 +79,7 @@ tibble
 ## Martin Morgan (MM)
 airway
 AnnotationDbi
+AnnotationHub
 Biobase
 BiocGenerics
 BiocParallel
@@ -87,11 +88,13 @@ BSgenome
 BSgenome.Hsapiens.UCSC.hg19
 BSgenome.Hsapiens.UCSC.hg38
 dplyr
+EnsDb.Hsapiens.v86
 GenomeInfoDb
 GenomicAlignments
 GenomicFeatures
 GenomicRanges
 ggplot2
+Gviz
 IRanges
 MatrixGenerics
 matrixStats
@@ -105,7 +108,9 @@ SingleCellExperiment
 SummarizedExperiment
 tibble
 tidyr
+tidyverse
 TxDb.Hsapiens.UCSC.hg19.knownGene
+TxDb.Hsapiens.UCSC.hg38.knownGene
 VariantAnnotation
 XVector
 
