@@ -64,6 +64,15 @@ scpdata
 ## Robert Gentleman (RG)
 
 ## Wolfgang Huber (WH)
+airway
+DESeq2
+dplyr
+fdrtool
+ggbeeswarm
+ggplot2
+IHW
+tibble
+
 
 ## Julia Philipp (JP)
 
@@ -114,6 +123,22 @@ msdata
 RforMassSpectrometry/MsBackendHmdb
 
 ## Davide Risso (DR)
+DropletTestFiles
+DropletUtils
+scuttle
+EnsDb.Hsapiens.v86
+scater
+scran
+scDblFinder
+scry
+NewWave
+GGally
+igraph
+network
+sna
+intergraph
+SingleR
+celldex
 
 ## Charlotte Soneson (CS)
 apeglm
