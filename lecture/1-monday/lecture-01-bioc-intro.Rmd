@@ -1,7 +1,7 @@
 ---
 title: "Lecture 1 -- Introduction to Bioconductor"
 author: "Martin Morgan <Martin.Morgan@RoswellPark.org>"
-date: "9 July 2018"
+date: "20 June 2022"
 output:
   BiocStyle::html_document:
     toc: true
@@ -13,6 +13,7 @@ vignette: >
 
 ```{r style, echo = FALSE, results = 'asis'}
 knitr::opts_chunk$set(
+    collapse = TRUE,
     eval=as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
     cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE")))
 ```
@@ -30,9 +31,10 @@ suppressPackageStartupMessages({
 Started 2002 as a platform for understanding analysis of microarray
 data
 
-More than 1,500 packages. Domains of expertise:
+More than 2,100 packages. Domains of expertise:
 
-- Sequencing (RNASeq, ChIPSeq, single-cell, called variants, ...)
+- Sequencing (Single-cell, RNASeq, ChIPSeq, single-cell, called
+  variants, ...)
 - Microarrays (methylation, expression, copy number, ...)
 - flow cytometry
 - proteomics
@@ -201,10 +203,10 @@ browseVignettes(package="SummarizedExperiment")
 
 Web site, https://bioconductor.org
 
-1562 'software' packages, https://bioconductor.org/packages
+2140 'software' packages, https://bioconductor.org/packages
 
-- Sequence analysis (RNASeq, ChIPSeq, called variants, copy number, 
-  single cell)
+- Sequence analysis (Single-cell, RNASeq, ChIPSeq, called variants,
+  copy number, ...)
 - Microarrays (methylation, copy number, classical expression, ...)
 - Annotation (more about annotations later this morning...)
 - Flow cytometry
@@ -220,6 +222,12 @@ Discovery and use, e.g., [DESeq2][]
 
 Support site, https://support.bioconductor.org
 
+## Single-cell analysis
+
+Check out [Orchestrating Single-Cell Analysis with Bioconductor][OSCA]!
+
+[OSCA]: https://bioconductor.org/books/release/OSCA/
+
 [Biostrings]: https://bioconductor.org/packages/Biostrings
 [GenomicRanges]: https://bioconductor.org/packages/GenomicRanges
 [rtracklayer]: https://bioconductor.org/packages/rtracklayer
@@ -232,13 +240,13 @@ Support site, https://support.bioconductor.org
 
 # End matter
 
-## Session Info
+## Session Info {.unlisted .unnumbered}
 
 ```{r}
 sessionInfo()
 ```
 
-## Acknowledgements
+## Acknowledgements {.unlisted .unnumbered}
 
 Research reported in this tutorial was supported by the National Human
 Genome Research Institute and the National Cancer Institute of the
