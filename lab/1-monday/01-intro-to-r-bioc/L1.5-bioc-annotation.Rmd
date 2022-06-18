@@ -1,10 +1,10 @@
 ---
-title: "Lab 1.6: Annotation Resources"
+title: "Lab 1.5: Annotation Resources"
 output:
   BiocStyle::html_document:
     toc: true
 vignette: >
-  % \VignetteIndexEntry{Lab 1.6: Annotation Resources}
+  % \VignetteIndexEntry{Lab 1.5: Annotation Resources}
   % \VignetteEngine{knitr::rmarkdown}
 ---
 
