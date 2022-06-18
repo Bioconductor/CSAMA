@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.R
+*.html
+*.Rproj
+*_cache/
+*_files/
+ZMakefile
+
