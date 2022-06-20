@@ -15,6 +15,7 @@ Based on [Biomedical Data Science](https://genomicsclass.github.io/book/) by Iri
 -   Distances in high dimensions
 -   Principal Components Analysis and Singular Value Decomposition
 -   Multidimensional Scaling (Principal Coordinates Analysis)
+-   GenomicSuperSignatures Bioconductor package
 
 Built slides at https://rpubs.com/lwaldron/916521
 
@@ -124,7 +125,7 @@ t(matrix(1:3, ncol = 1)) %*% matrix(1:3, ncol = 1)
     -   [Matrix](https://CRAN.R-project.org/package=Matrix) CRAN package (sparse matrices)
     -   [rhdf5](https://bioconductor.org/packages/rhdf5/) and [DelayedArray](https://bioconductor.org/packages/DelayedArray/) Bioconductor package (on-disk arrays)
 
-## 3 sample example
+## 2-sample example
 
 ```{r}
 kidney1 <- e[, 1]
@@ -134,7 +135,7 @@ sqrt(sum((kidney1 - kidney2) ^ 2))
 sqrt(sum((kidney1 - colon1) ^ 2))
 ```
 
-## 3 sample example using dist()
+## 3-sample example using dist()
 
 ```{r}
 dim(e)
@@ -147,17 +148,15 @@ class(d)
 Excerpt from ?dist:
 
 ```{r, eval=FALSE}
-dist(
-    x,
+dist(x,
     method = "euclidean",
     diag = FALSE,
     upper = FALSE,
-    p = 2
-)
+    p = 2)
 ```
 
 -   **method:** the distance measure to be used.
-    -   This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski". Any unambiguous substring can be given.
+    -   This must be one of "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski".
 -   `dist` class output from `dist()` is used for many clustering algorithms and heatmap functions
 
 *Caution*: `dist(e)` creates a `r nrow(e)` x `r nrow(e)` matrix that will probably crash your R session.
@@ -333,7 +332,7 @@ e.pc1genes <-
 dim(e.pc1genes)
 ```
 
-```{r, echo = FALSE, eval = FALSE}
+```{r, echo = FALSE}
 pheatmap::pheatmap(
     e.pc1genes,
     scale = "none",
