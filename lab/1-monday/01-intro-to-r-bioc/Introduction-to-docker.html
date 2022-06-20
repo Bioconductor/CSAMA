@@ -735,8 +735,9 @@ function toggle_visibility(id1) {
 </ul></li>
 <li><a href="#singularity" id="toc-singularity"><span class="toc-section-number">6.6</span> Singularity</a>
 <ul>
-<li><a href="#run" id="toc-run"><span class="toc-section-number">6.6.1</span> Run</a></li>
-<li><a href="#mount" id="toc-mount"><span class="toc-section-number">6.6.2</span> Mount</a></li>
+<li><a href="#pull" id="toc-pull"><span class="toc-section-number">6.6.1</span> Pull</a></li>
+<li><a href="#run" id="toc-run"><span class="toc-section-number">6.6.2</span> Run</a></li>
+<li><a href="#mount" id="toc-mount"><span class="toc-section-number">6.6.3</span> Mount</a></li>
 </ul></li>
 <li><a href="#resources-and-links" id="toc-resources-and-links"><span class="toc-section-number">6.7</span> Resources and links</a></li>
 </ul></li>
@@ -894,13 +895,23 @@ in a new folder (call it anything), but in a file called Dockerfile.</p>
 <div id="singularity" class="section level2" number="6.6">
 <h2><span class="header-section-number">6.6</span> Singularity</h2>
 <p>Singularity was created to run complex applications on HPC clusters in a simple, portable, and reproducible way.</p>
-<p>Advantages:</p>
+<p>The latest <code>bioconductor/bioconductor_docker</code> images are easy to use on Singularity as well. Singularity is a container runtime just like Docker,</p>
+<p><a href="https://singularity.lbl.gov/" class="uri">https://singularity.lbl.gov/</a></p>
 <p>Doing the same thing as above using Singularity:</p>
-<div id="run" class="section level3" number="6.6.1">
-<h3><span class="header-section-number">6.6.1</span> Run</h3>
+<pre><code>module load singularity</code></pre>
+<div id="pull" class="section level3" number="6.6.1">
+<h3><span class="header-section-number">6.6.1</span> Pull</h3>
+<pre><code>singularity pull bioconductor-release-3-15.sif docker://bioconductor/bioconductor_docker:RELEASE_3_15</code></pre>
 </div>
-<div id="mount" class="section level3" number="6.6.2">
-<h3><span class="header-section-number">6.6.2</span> Mount</h3>
+<div id="run" class="section level3" number="6.6.2">
+<h3><span class="header-section-number">6.6.2</span> Run</h3>
+<p><a href="https://docs.sylabs.io/guides/3.1/user-guide/cli/singularity_run.html" class="uri">https://docs.sylabs.io/guides/3.1/user-guide/cli/singularity_run.html</a></p>
+<pre><code>singularity run --env PASSWORD=bioc docker://bioconductor/bioconductor_docker:RELEASE_3_15</code></pre>
+</div>
+<div id="mount" class="section level3" number="6.6.3">
+<h3><span class="header-section-number">6.6.3</span> Mount</h3>
+<p>Mount directories on singularity</p>
+<pre><code>singularity exec --bind /path/to/existing/lib:/usr/local/lib/R/host-site-library bioconductor-release-3-15.sif</code></pre>
 </div>
 </div>
 <div id="resources-and-links" class="section level2" number="6.7">

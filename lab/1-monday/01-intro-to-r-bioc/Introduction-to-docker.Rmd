@@ -203,13 +203,37 @@ docker pull nitesh1989/bioconductor_msmb:RELEASE_3_15
 
 Singularity was created to run complex applications on HPC clusters in a simple, portable, and reproducible way.
 
-Advantages: 
+The latest `bioconductor/bioconductor_docker` images are easy to use on Singularity as well. Singularity is a container runtime just like Docker,
+
+https://singularity.lbl.gov/
 
 Doing the same thing as above using Singularity:
 
+```
+module load singularity
+```
+
+### Pull
+
+```
+singularity pull bioconductor-release-3-15.sif docker://bioconductor/bioconductor_docker:RELEASE_3_15
+```
+
 ### Run
 
+https://docs.sylabs.io/guides/3.1/user-guide/cli/singularity_run.html
+
+```
+singularity run --env PASSWORD=bioc docker://bioconductor/bioconductor_docker:RELEASE_3_15
+```
+
 ### Mount 
+
+Mount directories on singularity
+
+```
+singularity exec --bind /path/to/existing/lib:/usr/local/lib/R/host-site-library bioconductor-release-3-15.sif
+```
 
 ## Resources and links
 
