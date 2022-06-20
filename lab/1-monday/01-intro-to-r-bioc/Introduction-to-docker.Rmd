@@ -19,16 +19,52 @@ knitr::opts_chunk$set(
 )
 ```
 
+# The problem
+
+You may have come up with some of the following issues:
+
+1. you want to use software that doesn’t exist for the operating system (Mac, Windows, Linux) you’d prefer.
+
+2. you struggle with installing a software tool because you have to install a number of other dependencies first. 
+   Those dependencies, in turn, require other things, and so on (i.e. combinatoric explosion).
+
+3. the software you’re setting up involves many dependencies and only a subset of all possible versions of those
+ dependencies actually works as desired.
+
+4. you’re not actually sure what version of the software you’re using because the install process was so circuitous.
+
+5. you and a colleague are using the same software but get different results because you have installed different versions
+  and/or are using different operating systems.
+
+6. Package installations take FOREVER! 
+
+
 # What is Docker?
 
-<!-- A Unix operating system is broken into two primary components, the **kernel space**, and the **user space**. -->
+Docker enables you to separate your applications from your infrastructure. Containers and 
+virtual machines have similar resource isolation and allocation benefits, but function differently
+because containers virtualize the operating system instead of hardware. Containers are more portable
+and efficient.
 
-<!-- The **Kernel** talks to the hardware, and provides core system features.  -->
+Deliver multiple applications hassle free and have them run the same way on all your environments 
+including design, testing, staging and production – desktop or cloud-native.
 
-<!-- The **user space** is the environment that most people are most familiar with. It is where applications, libraries and system services run. -->
+NOTE: Another way to think about the same concept
+
+Think of an operating system as two primary components, the **kernel space**, and the **user space**. 
+The **Kernel** talks to the hardware, and provides core system features.  The **user space** is the 
+environment where applications, libraries and system services run. Traditionally you  use an operating 
+system that has a fixed combination of kernel and user space.  Containers change the user space into a 
+swappable component. 
 
 
+# Install Docker
 
+Install docker if you don't already have it on your machine: 
+
+https://docs.docker.com/get-docker/
+
+*NOTE*: This takes a while, so ask me questions tomorrow if you are unable to get any of this going.
 
 # Why use Docker for Bioconductor?
 
@@ -36,7 +72,7 @@ knitr::opts_chunk$set(
 
 # How to use Docker for Bioconductor?
 
-# What are the current Bioconductor images available?
+# What are the current Bioconductor containers available?
 
 **Stable release** of Bioconductor - R 4.2.0 , Bioc 3.15.0
 
@@ -46,11 +82,11 @@ knitr::opts_chunk$set(
 
 `bioconductor/bioconductor_docker:devel`
 
-# Using Bioconductor docker images
+# Using Bioconductor docker containers
 
 ## Basics 
 
-Run the docker image
+Run the docker container
 
 ```
 docker run \
