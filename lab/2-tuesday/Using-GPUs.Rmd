@@ -1,0 +1,78 @@
+---
+title: "Evening Session: Using GPUs for R/Bioc"
+author: Nitesh Turaga, Martin Morgan
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(
+    eval = as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
+    cache = as.logical(Sys.getenv("KNITR_CACHE", "TRUE"))
+)
+```
+
+# What is a GPU?
+
+- The graphics processing unit, or GPU, has become one of the most
+  important types of computing technology to dramatically accelerate
+  workloads in high performance computing (HPC), deep learning and
+  more.
+
+- Designed for parallel processing
+
+- GPUs were originally designed to accelerate the rendering of 3D graphics
+
+- While CPUs have continued to deliver performance increases through
+  architectural innovations, faster clock speeds, and the addition of
+  cores, GPUs are specifically designed to accelerate computer
+  graphics workloads.
+  
+-  GPUs are more programmable than ever before, affording them the
+   flexibility to accelerate a broad range of applications that go
+   well beyond traditional graphics rendering.
+   
+## GPU for Machine learning
+
+- Some of the most exciting applications for GPU technology involve AI
+and machine learning.
+
+- GPUs incorporate an extraordinary amount of computational
+capability, they can deliver incredible acceleration in workloads that
+take advantage of the highly parallel nature of GPUs, such as image
+recognition. 
+
+- Many of today’s deep learning technologies rely on GPUs working in
+conjunction with CPUs.
+
+## GPGPU - General Purpose GPU
+
+Applications in Bioinformatics - https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units#Bioinformatics 
+
+
+## Packages in Bioconductor using deep learning
+
+`ttgsea` - Tokenizing Text of Gene Set Enrichment Analysis
+`DeepPINCS` - Protein Interactions and Networks with Compounds based on Sequences using Deep Learning
+`VAExprs` - Generating Samples of Gene Expression Data with Variational Autoencoders
+`GenProSeq`	-  Generating Protein Sequences with Deep Generative Models
+
+## GPUMagic - Jiefei Wang and Martin Morgan
+
+The gpuMagic package is designed for ultilizing the computing power of
+modern GPU. The package has the ability to compile R code and
+implement the code on a GPU kernel. Therefore, it is easy for the user
+to design their own algorithm in pure R language and run the code in
+GPU. The package uses openCL as its parallel language so
+parallelization using the CPU is also supported.
+
+https://bioconductor.org/packages/devel/bioc/vignettes/gpuMagic/inst/doc/Quick_start_guide.html
+
+## 
