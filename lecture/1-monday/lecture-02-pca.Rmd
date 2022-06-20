@@ -16,6 +16,8 @@ Based on [Biomedical Data Science](https://genomicsclass.github.io/book/) by Iri
 -   Principal Components Analysis and Singular Value Decomposition
 -   Multidimensional Scaling (Principal Coordinates Analysis)
 
+Built slides at https://rpubs.com/lwaldron/916521
+
 ## Metrics and distances
 
 A **metric** satisfies the following five properties:
