@@ -79,9 +79,9 @@ plot(Dependent ~ Independent, df)  # 'formula' interface
 - List of equal-length vectors
 - Vectors can be of different type
 - Two-dimensional subset and assignment
-- Column access: `df[, 1]`, `df[, "Indep"]`, `df[[1]]`,
-  `df[["Indep"]]`, `df$Indep`
-  
+- Column access: `df[, 1]`, `df[, "Independent"]`, `df[[1]]`,
+  `df[["Independent"]]`, `df$Independent`
+
 Exercise: plot only values with `Dependent > 0`, `Independent > 0`
 
 1. Select rows
@@ -95,7 +95,7 @@ Exercise: plot only values with `Dependent > 0`, `Independent > 0`
     ```{r}
     plot(Dependent ~ Independent, df[ridx, ])
     ```
-    
+
 3. Skin the cat another way
 
     ```{r}
@@ -104,7 +104,7 @@ Exercise: plot only values with `Dependent > 0`, `Independent > 0`
         subset = (Dependent > 0) & (Independent > 0)
     )
     ```
-    
+
 ## Analysis: functions, classes, methods
 
 ```{r}
@@ -130,12 +130,16 @@ methods(class="lm")
 ?"plot.formula"  # method
 ```
 
+- Check out
+
 ## Packages
 
 ```{r}
 library(ggplot2)
-ggplot(df, aes(x = Independent, y = Dependent)) +
-    geom_point() + geom_smooth(method = "lm")
+ggplot(df) +
+    aes(x = Independent, y = Dependent) +
+    geom_point() +
+    geom_smooth(method = "lm")
 ```
 
 - General purpose: >18,000 packages on [CRAN][]
@@ -188,7 +192,7 @@ Resources
 - 'Vector' interface: `length()`, `[`, ...
 - Specialized operations, e.g,. `reverseComplement()`
 
-```{r}
+```{r, message = FALSE}
 library(Biostrings)
 
 dna <- DNAStringSet(c("AAACTG", "CCCTTCAAC", "TACGAA"))
@@ -290,10 +294,8 @@ Could manipulate independently...
 
 ```{r, fig.asp=1}
 cidx <- colData$dex == "trt"
-plot(
-    rowMeans(1 + counts[, cidx]) ~ rowMeans(1 + counts[, !cidx]),
-    log="xy"
-)
+log1p_counts <- log1p(counts)
+plot(rowMeans(log1p_counts[,cidx]) ~ rowMeans(log1p_counts[,!cidx]))
 ```
 
 - very fragile, e.g., what if `colData` rows had been re-ordered?
@@ -303,12 +305,12 @@ Solution: coordinate in a single object -- [SummarizedExperiment][]
 ```{r, fig.asp=1}
 library(SummarizedExperiment)
 
-se <- SummarizedExperiment(counts, rowRanges = rowRanges, colData = colData)
-cidx <- se$dex == "trt"
-plot(
-    rowMeans(1 + assay(se)[, cidx]) ~ rowMeans(1 + assay(se)[, !cidx]),
-    log="xy"
+se <- SummarizedExperiment(
+    assays = list(counts = counts),
+    rowRanges = rowRanges, colData = colData
 )
+assay(se, "log1p_counts") <- log1p(assay(se, "counts"))
+## manipulate rows and columns in a coordinated fashion...
 ```
 
 - Much more robust to 'bookkeeping' errors
