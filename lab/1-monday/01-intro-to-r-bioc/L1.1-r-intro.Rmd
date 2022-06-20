@@ -54,7 +54,7 @@ Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 ## Vector, class, object
 
 - Efficient _vectorized_ calculations on 'atomic' vectors `logical`,
-  `integer`, `numeric`, `complex`, `character`, `byte`
+  `integer`, `numeric`, `complex`, `character`, `raw`
   
     ```{r}
     character_vector <- c("January", "February", "March", "April", "May")
