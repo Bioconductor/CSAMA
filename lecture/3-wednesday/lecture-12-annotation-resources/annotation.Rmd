@@ -86,10 +86,10 @@ knitr::include_graphics("images/RR-sketch-04.png")
 ## Typical annotation use cases {.build}
 
 <div>
-- map positions on the genome to transcripts (genes).
+- get HUGO gene symbols for gene identifiers (e.g. Entrezgene, Ensembl...).
 </div>
 <div>
-- add HUGO gene symbols to RNA-Seq results.
+- map positions on the genome to transcripts (genes).
 </div>
 <div>
 - map genes to biological pathways.
@@ -166,12 +166,12 @@ org.Hs.eg.db
 <div>
 The main function is `select`:
 
-AnnotationDbi::select(*annopkg*, *keys*, *columns*, *keytype*)
+AnnotationDbi::select(*anno*, *keys*, *columns*, *keytype*)
 </div>
 <div>
 Where
 
-- *annopkg* is the annotation package (or object)
+- *anno* is the annotation package (or object)
 - *keys* are the IDs that we **have**
 - *columns* are the values we **want**
 - *keytype* is the type of key used
@@ -179,11 +179,13 @@ Where
 
 ## Simple Example {.build}
 
+<div>
+- *Task*: annotate gene identifiers to HUGO symbols.
+</div>
+<div>
 - The *airway* package provides a `RangedSummarizedExperiment` with results from
   an RNA-Seq experiment.
-<div>
 - Genes are identified by their Ensembl IDs.
-- *Task*: annotate these to HUGO symbols.
 </div>
 
 ```{r, warning=FALSE}
@@ -232,7 +234,8 @@ mapIds(org.Hs.eg.db, brca, "OMIM", "SYMBOL", multiVals = "first")
 
 ```
 
-- OK, but now we don't get all results...
+- OK, but where's the rest?
+
 
 ## Choices for `multiVals` {.build}
 
@@ -260,11 +263,11 @@ mapIds(org.Hs.eg.db, brca, "OMIM", "SYMBOL", multiVals = "CharacterList")
 - *AnnotationDbi* is a very powerful framework, but:
 </div>
 <div>
-- Not guaranteed that all annotation packages/objects support the
-  *AnnotationDbi* framework.
+- For some annotations or queries different approaches might be more suitable.
 </div>
 <div>
-- For some annotations or queries different approaches might be more suitable.
+- Not guaranteed that all annotation packages/objects support the
+  *AnnotationDbi* framework.
 </div>
 
 
@@ -275,6 +278,9 @@ mapIds(org.Hs.eg.db, brca, "OMIM", "SYMBOL", multiVals = "CharacterList")
 </div>
 <div>
 - Annotation for positions along protein sequences (protein domains...).
+</div>
+<div>
+- Mostly used for gene quantification in RNA-seq data.
 </div>
 
 
@@ -374,7 +380,7 @@ query(ah, c("TwoBitFile", "GRCh38"))
 
 ## Extracting transcript sequences {.build}
 
-- Get sequences for previously extracted transcripts.
+- *Task:* Get sequences for previously extracted transcripts.
 
 ```{r}
 gn <- ah[["AH49723"]]
@@ -436,9 +442,9 @@ mart <- useMart("ENSEMBL_MART_ENSEMBL","hsapiens_gene_ensembl")
 
 where
 
-- *attributes* are the things we **want**
-- *filters* are the *types of* IDs we **have**
-- *values* are the IDs we **have**
+- *attributes* are the things we **want** (*columns*)
+- *filters* are the *types of* IDs we **have** (*keytypes*)
+- *values* are the IDs we **have** (*keys*)
 - *mart* is the `mart` object we set up
 
 
@@ -512,6 +518,6 @@ getBM(c("ensembl_gene_id", "hgnc_symbol", "chromosome_name"),
 
 ## 
 
-<div style="position:absolute; top:45%; left:25%;">
+<div style="position:absolute; top:48%; left:33%;">
 **Thank you for your attention**
 </div>
