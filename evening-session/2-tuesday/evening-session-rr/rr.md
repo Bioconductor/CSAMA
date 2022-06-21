@@ -75,8 +75,8 @@ approach*](https://www.pnas.org/content/112/6/1645).
 - Open vs reproducible
 - Why working reproducibly?
 - Is working reproducible difficult? Does it take more time?
-- What tools do you use to work reproducibly?
-- Cost benefit of reproducible research
+- What tools do you use to work reproducibly/openly?
+- Cost benefit of reproducible research.
 - Should every piece of work be reproducible?
 
 <hr>
