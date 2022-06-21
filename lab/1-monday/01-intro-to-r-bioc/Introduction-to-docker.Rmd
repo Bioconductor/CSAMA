@@ -98,13 +98,15 @@ Bioconductor distributes docker conatiners via Dockerhub
 
 ## Basics 
 
-### Pull the container (download it)
+Easy steps to use the bioconductor docker containers: 
+
+## Pull the container (download it)
 
 ```
 docker pull bioconductor/bioconductor_docker:RELEASE_3_15
 ```
 
-### Run the docker container
+## Run the docker container
 
 ```{sh, eval=FALSE}
 docker run \
@@ -191,7 +193,7 @@ in a new folder (call it anything), but in a file called Dockerfile.
 docker build -t nitesh1989/bioconductor_msmb:RELEASE_3_15
 ```
 
-### Example docker image
+## Example docker image
 
 You can use this example docker image in the exact same manner described above
 
@@ -199,7 +201,7 @@ You can use this example docker image in the exact same manner described above
 docker pull nitesh1989/bioconductor_msmb:RELEASE_3_15
 ```
 
-## Singularity
+# Singularity
 
 Singularity was created to run complex applications on HPC clusters in a simple, portable, and reproducible way.
 
@@ -213,21 +215,21 @@ Doing the same thing as above using Singularity:
 module load singularity
 ```
 
-### Pull
+## Pull
 
 ```
 singularity pull bioconductor-release-3-15.sif docker://bioconductor/bioconductor_docker:RELEASE_3_15
 ```
 
-### Run
+## Run
 
 https://docs.sylabs.io/guides/3.1/user-guide/cli/singularity_run.html
 
 ```
-singularity run --env PASSWORD=bioc docker://bioconductor/bioconductor_docker:RELEASE_3_15
+singularity run --env PASSWORD=bioc bioconductor-release-3-15.sif
 ```
 
-### Mount 
+## Mount 
 
 Mount directories on singularity
 
@@ -235,7 +237,7 @@ Mount directories on singularity
 singularity exec --bind /path/to/existing/lib:/usr/local/lib/R/host-site-library bioconductor-release-3-15.sif
 ```
 
-## Resources and links
+# Resources and links
 
 https://bioconductor.org/help/docker/ 
 
