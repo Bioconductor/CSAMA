@@ -174,7 +174,10 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
 ## Tools for RR
 
 - R markdown
-- Git/GitHub
+- Git/GitHub - https://happygitwithr.com/
 - Docker
+- [workflowr](https://workflowr.io/)
+- Makefile, Snakemake
+- protocols.io
 - renv
 - ...
