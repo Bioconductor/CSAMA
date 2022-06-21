@@ -32,7 +32,7 @@ Example and figure borrowed from [Stephen Eglen](https://sje30.github.io/talks/2
 
 [Buckheit and Donoho 1995, after Claerbout]
 
-### The R words 
+### The R words
 
 From a [*But what to we mean by reproducibility?*](https://lgatto.github.io/rr-what-should-be-our-goals/) blog post.
 
@@ -58,8 +58,7 @@ From a [*But what to we mean by reproducibility?*](https://lgatto.github.io/rr-w
   run a different experiment with the aim to confirm results from
   scratch.
 
-Another view (from a talk by [Kirstie
-Whitaker](https://figshare.com/articles/Publishing_a_reproducible_paper/4720996/1)):
+Another view (from a talk by [Kirstie Whitaker](https://figshare.com/articles/Publishing_a_reproducible_paper/4720996/1)):
 
 |                    | Same Data | Different Data |
 |--------------------|-----------|----------------|
