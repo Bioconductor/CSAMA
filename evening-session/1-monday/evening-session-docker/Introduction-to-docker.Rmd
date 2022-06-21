@@ -38,7 +38,6 @@ You may have come up with some of the following issues:
 
 6. Package installations take FOREVER! 
 
-
 # What is Docker?
 
 Docker enables you to separate your applications from your infrastructure. Containers and 
@@ -92,13 +91,7 @@ Bioconductor distributes docker conatiners via Dockerhub
 
 ![](our_figures/dockerhub-bioc-tags.png)
 
-
-
 # Using Bioconductor docker containers
-
-## Basics 
-
-Easy steps to use the bioconductor docker containers: 
 
 ## Pull the container (download it)
 
@@ -163,7 +156,7 @@ docker-compose up
 
 ## Installing packages on Bioconductor containers
 
-Binary packages are availble!! Faster installs (7x-8x speed ups).
+Binary packages are available!! Faster installs (7x-8x speed ups).
 
 ```{r, eval=FALSE}
 BiocManager::install(c('rhdf5', 'Rhtslib', 'SingleCellExperiment'))
@@ -179,7 +172,7 @@ Docker Syntax
 
 For the purposes of this workshop, 
 
-```{yaml, eval=FALSE}
+```
 FROM bioconductor/bioconductor_docker:RELEASE_3_15
 
 RUN curl -O https://www.huber.embl.de/msmb/install_packages.R \
@@ -190,7 +183,7 @@ To build this new image, i'd need to make a `Dockerfile`. Simply paste the above
 in a new folder (call it anything), but in a file called Dockerfile.
 
 ```
-docker build -t nitesh1989/bioconductor_msmb:RELEASE_3_15
+docker build -t nitesh1989/bioconductor_msmb:RELEASE_3_15 .
 ```
 
 ## Example docker image
@@ -206,8 +199,6 @@ docker pull nitesh1989/bioconductor_msmb:RELEASE_3_15
 Singularity was created to run complex applications on HPC clusters in a simple, portable, and reproducible way.
 
 The latest `bioconductor/bioconductor_docker` images are easy to use on Singularity as well. Singularity is a container runtime just like Docker,
-
-https://singularity.lbl.gov/
 
 Doing the same thing as above using Singularity:
 
@@ -242,4 +233,6 @@ singularity exec --bind /path/to/existing/lib:/usr/local/lib/R/host-site-library
 https://bioconductor.org/help/docker/ 
 
 https://hub.docker.com/r/bioconductor/bioconductor_docker
+
+https://singularity.lbl.gov/
 

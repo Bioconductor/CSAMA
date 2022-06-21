@@ -11,7 +11,7 @@
 
 <meta name="author" content="Nitesh Turaga" />
 
-<meta name="date" content="2022-06-20" />
+<meta name="date" content="2022-06-21" />
 
 <title>Evening Session: Using R and Bioconductor with Docker</title>
 
@@ -707,7 +707,7 @@ function toggle_visibility(id1) {
 
 <h1 class="title toc-ignore">Evening Session: Using <em>R</em> and <em>Bioconductor</em> with <em>Docker</em></h1>
 <p class="author-name">Nitesh Turaga</p>
-<h4 class="date">20 June 2022</h4>
+<h4 class="date">21 June 2022</h4>
 
 </div>
 
@@ -721,26 +721,21 @@ function toggle_visibility(id1) {
 <li><a href="#what-are-the-current-bioconductor-containers-available" id="toc-what-are-the-current-bioconductor-containers-available"><span class="toc-section-number">5</span> What are the current Bioconductor containers available?</a></li>
 <li><a href="#using-bioconductor-docker-containers" id="toc-using-bioconductor-docker-containers"><span class="toc-section-number">6</span> Using Bioconductor docker containers</a>
 <ul>
-<li><a href="#basics" id="toc-basics"><span class="toc-section-number">6.1</span> Basics</a>
+<li><a href="#pull-the-container-download-it" id="toc-pull-the-container-download-it"><span class="toc-section-number">6.1</span> Pull the container (download it)</a></li>
+<li><a href="#run-the-docker-container" id="toc-run-the-docker-container"><span class="toc-section-number">6.2</span> Run the docker container</a></li>
+<li><a href="#mount-volumes" id="toc-mount-volumes"><span class="toc-section-number">6.3</span> Mount volumes</a></li>
+<li><a href="#run-the-docker-image-with-docker-compose" id="toc-run-the-docker-image-with-docker-compose"><span class="toc-section-number">6.4</span> Run the docker image with docker-compose</a></li>
+<li><a href="#installing-packages-on-bioconductor-containers" id="toc-installing-packages-on-bioconductor-containers"><span class="toc-section-number">6.5</span> Installing packages on Bioconductor containers</a></li>
+<li><a href="#extend-docker-images" id="toc-extend-docker-images"><span class="toc-section-number">6.6</span> Extend docker images</a></li>
+<li><a href="#example-docker-image" id="toc-example-docker-image"><span class="toc-section-number">6.7</span> Example docker image</a></li>
+</ul></li>
+<li><a href="#singularity" id="toc-singularity"><span class="toc-section-number">7</span> Singularity</a>
 <ul>
-<li><a href="#pull-the-container-download-it" id="toc-pull-the-container-download-it"><span class="toc-section-number">6.1.1</span> Pull the container (download it)</a></li>
-<li><a href="#run-the-docker-container" id="toc-run-the-docker-container"><span class="toc-section-number">6.1.2</span> Run the docker container</a></li>
+<li><a href="#pull" id="toc-pull"><span class="toc-section-number">7.1</span> Pull</a></li>
+<li><a href="#run" id="toc-run"><span class="toc-section-number">7.2</span> Run</a></li>
+<li><a href="#mount" id="toc-mount"><span class="toc-section-number">7.3</span> Mount</a></li>
 </ul></li>
-<li><a href="#mount-volumes" id="toc-mount-volumes"><span class="toc-section-number">6.2</span> Mount volumes</a></li>
-<li><a href="#run-the-docker-image-with-docker-compose" id="toc-run-the-docker-image-with-docker-compose"><span class="toc-section-number">6.3</span> Run the docker image with docker-compose</a></li>
-<li><a href="#installing-packages-on-bioconductor-containers" id="toc-installing-packages-on-bioconductor-containers"><span class="toc-section-number">6.4</span> Installing packages on Bioconductor containers</a></li>
-<li><a href="#extend-docker-images" id="toc-extend-docker-images"><span class="toc-section-number">6.5</span> Extend docker images</a>
-<ul>
-<li><a href="#example-docker-image" id="toc-example-docker-image"><span class="toc-section-number">6.5.1</span> Example docker image</a></li>
-</ul></li>
-<li><a href="#singularity" id="toc-singularity"><span class="toc-section-number">6.6</span> Singularity</a>
-<ul>
-<li><a href="#pull" id="toc-pull"><span class="toc-section-number">6.6.1</span> Pull</a></li>
-<li><a href="#run" id="toc-run"><span class="toc-section-number">6.6.2</span> Run</a></li>
-<li><a href="#mount" id="toc-mount"><span class="toc-section-number">6.6.3</span> Mount</a></li>
-</ul></li>
-<li><a href="#resources-and-links" id="toc-resources-and-links"><span class="toc-section-number">6.7</span> Resources and links</a></li>
-</ul></li>
+<li><a href="#resources-and-links" id="toc-resources-and-links"><span class="toc-section-number">8</span> Resources and links</a></li>
 </ul>
 </div>
 
@@ -818,14 +813,12 @@ swappable component.</p>
 </div>
 <div id="using-bioconductor-docker-containers" class="section level1" number="6">
 <h1><span class="header-section-number">6</span> Using Bioconductor docker containers</h1>
-<div id="basics" class="section level2" number="6.1">
-<h2><span class="header-section-number">6.1</span> Basics</h2>
-<div id="pull-the-container-download-it" class="section level3" number="6.1.1">
-<h3><span class="header-section-number">6.1.1</span> Pull the container (download it)</h3>
+<div id="pull-the-container-download-it" class="section level2" number="6.1">
+<h2><span class="header-section-number">6.1</span> Pull the container (download it)</h2>
 <pre><code>docker pull bioconductor/bioconductor_docker:RELEASE_3_15</code></pre>
 </div>
-<div id="run-the-docker-container" class="section level3" number="6.1.2">
-<h3><span class="header-section-number">6.1.2</span> Run the docker container</h3>
+<div id="run-the-docker-container" class="section level2" number="6.2">
+<h2><span class="header-section-number">6.2</span> Run the docker container</h2>
 <pre class="sh"><code>docker run \
      --rm \               # remove after use
      -e PASSWORD=bioc \   # set a password for RStudio
@@ -833,9 +826,8 @@ swappable component.</p>
      bioconductor/bioconductor_docker:RELEASE_3_15  # name of container</code></pre>
 <p>RStudio is now hosted at <a href="https://localhost:8787" class="uri">https://localhost:8787</a>.</p>
 </div>
-</div>
-<div id="mount-volumes" class="section level2" number="6.2">
-<h2><span class="header-section-number">6.2</span> Mount volumes</h2>
+<div id="mount-volumes" class="section level2" number="6.3">
+<h2><span class="header-section-number">6.3</span> Mount volumes</h2>
 <p>You can mount a local directory on to your docker container</p>
 <pre class="sh"><code>  docker run \
       --rm \                                   # remove after use
@@ -844,8 +836,8 @@ swappable component.</p>
       -p 8787:8787 \                           # set a port
       bioconductor/bioconductor_docker:RELEASE_3_15</code></pre>
 </div>
-<div id="run-the-docker-image-with-docker-compose" class="section level2" number="6.3">
-<h2><span class="header-section-number">6.3</span> Run the docker image with docker-compose</h2>
+<div id="run-the-docker-image-with-docker-compose" class="section level2" number="6.4">
+<h2><span class="header-section-number">6.4</span> Run the docker image with docker-compose</h2>
 <p>Simplify the running of the docker image by using <code>docker-compose</code>.
 You use a YAML file to configure your application’s services.</p>
 <p>Easily build in the above commands in configuration file.</p>
@@ -866,59 +858,59 @@ services:
 file.</p>
 <pre class="sh"><code>docker-compose up</code></pre>
 </div>
-<div id="installing-packages-on-bioconductor-containers" class="section level2" number="6.4">
-<h2><span class="header-section-number">6.4</span> Installing packages on Bioconductor containers</h2>
-<p>Binary packages are availble!! Faster installs (7x-8x speed ups).</p>
+<div id="installing-packages-on-bioconductor-containers" class="section level2" number="6.5">
+<h2><span class="header-section-number">6.5</span> Installing packages on Bioconductor containers</h2>
+<p>Binary packages are available!! Faster installs (7x-8x speed ups).</p>
 <pre class="r"><code>BiocManager::install(c(&#39;rhdf5&#39;, &#39;Rhtslib&#39;, &#39;SingleCellExperiment&#39;))</code></pre>
 </div>
-<div id="extend-docker-images" class="section level2" number="6.5">
-<h2><span class="header-section-number">6.5</span> Extend docker images</h2>
+<div id="extend-docker-images" class="section level2" number="6.6">
+<h2><span class="header-section-number">6.6</span> Extend docker images</h2>
 <p>Docker Syntax</p>
 <ul>
 <li><p><code>FROM</code>: Inherit from an container, in this case the <code>bioconductor/bioconductor_docker:RELEASE_3_15</code> container.</p></li>
 <li><p><code>RUN</code>: Run a couple of shell commands, <code>curl</code> and then <code>R -f</code> which runs an R file - <a href="https://www.huber.embl.de/msmb/install_packages.R" class="uri">https://www.huber.embl.de/msmb/install_packages.R</a></p></li>
 </ul>
 <p>For the purposes of this workshop,</p>
-<pre class="yaml"><code>FROM bioconductor/bioconductor_docker:RELEASE_3_15
+<pre><code>FROM bioconductor/bioconductor_docker:RELEASE_3_15
 
 RUN curl -O https://www.huber.embl.de/msmb/install_packages.R \
     &amp;&amp; R -f install_packages.R</code></pre>
 <p>To build this new image, i’d need to make a <code>Dockerfile</code>. Simply paste the above
 in a new folder (call it anything), but in a file called Dockerfile.</p>
-<pre><code>docker build -t nitesh1989/bioconductor_msmb:RELEASE_3_15</code></pre>
-<div id="example-docker-image" class="section level3" number="6.5.1">
-<h3><span class="header-section-number">6.5.1</span> Example docker image</h3>
+<pre><code>docker build -t nitesh1989/bioconductor_msmb:RELEASE_3_15 .</code></pre>
+</div>
+<div id="example-docker-image" class="section level2" number="6.7">
+<h2><span class="header-section-number">6.7</span> Example docker image</h2>
 <p>You can use this example docker image in the exact same manner described above</p>
 <pre><code>docker pull nitesh1989/bioconductor_msmb:RELEASE_3_15</code></pre>
 </div>
 </div>
-<div id="singularity" class="section level2" number="6.6">
-<h2><span class="header-section-number">6.6</span> Singularity</h2>
+<div id="singularity" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> Singularity</h1>
 <p>Singularity was created to run complex applications on HPC clusters in a simple, portable, and reproducible way.</p>
 <p>The latest <code>bioconductor/bioconductor_docker</code> images are easy to use on Singularity as well. Singularity is a container runtime just like Docker,</p>
-<p><a href="https://singularity.lbl.gov/" class="uri">https://singularity.lbl.gov/</a></p>
 <p>Doing the same thing as above using Singularity:</p>
 <pre><code>module load singularity</code></pre>
-<div id="pull" class="section level3" number="6.6.1">
-<h3><span class="header-section-number">6.6.1</span> Pull</h3>
+<div id="pull" class="section level2" number="7.1">
+<h2><span class="header-section-number">7.1</span> Pull</h2>
 <pre><code>singularity pull bioconductor-release-3-15.sif docker://bioconductor/bioconductor_docker:RELEASE_3_15</code></pre>
 </div>
-<div id="run" class="section level3" number="6.6.2">
-<h3><span class="header-section-number">6.6.2</span> Run</h3>
+<div id="run" class="section level2" number="7.2">
+<h2><span class="header-section-number">7.2</span> Run</h2>
 <p><a href="https://docs.sylabs.io/guides/3.1/user-guide/cli/singularity_run.html" class="uri">https://docs.sylabs.io/guides/3.1/user-guide/cli/singularity_run.html</a></p>
-<pre><code>singularity run --env PASSWORD=bioc docker://bioconductor/bioconductor_docker:RELEASE_3_15</code></pre>
+<pre><code>singularity run --env PASSWORD=bioc bioconductor-release-3-15.sif</code></pre>
 </div>
-<div id="mount" class="section level3" number="6.6.3">
-<h3><span class="header-section-number">6.6.3</span> Mount</h3>
+<div id="mount" class="section level2" number="7.3">
+<h2><span class="header-section-number">7.3</span> Mount</h2>
 <p>Mount directories on singularity</p>
 <pre><code>singularity exec --bind /path/to/existing/lib:/usr/local/lib/R/host-site-library bioconductor-release-3-15.sif</code></pre>
 </div>
 </div>
-<div id="resources-and-links" class="section level2" number="6.7">
-<h2><span class="header-section-number">6.7</span> Resources and links</h2>
+<div id="resources-and-links" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> Resources and links</h1>
 <p><a href="https://bioconductor.org/help/docker/" class="uri">https://bioconductor.org/help/docker/</a></p>
 <p><a href="https://hub.docker.com/r/bioconductor/bioconductor_docker" class="uri">https://hub.docker.com/r/bioconductor/bioconductor_docker</a></p>
-</div>
+<p><a href="https://singularity.lbl.gov/" class="uri">https://singularity.lbl.gov/</a></p>
 </div>
 
 
