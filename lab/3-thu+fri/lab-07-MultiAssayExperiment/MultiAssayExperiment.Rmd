@@ -1030,8 +1030,268 @@ available in the package:
 help(package = "SingleCellMultiModal", help_type = "html")
 ```
 
+# K-M plots, cross-omic correlation, PCA, and other analyses
+
+
+```{r,include=TRUE,results="hide",message=FALSE,warning=FALSE}
+library(MultiAssayExperiment)
+library(survival)
+library(survminer)
+library(pheatmap)
+```
+
+These provide exercises and solutions using the `miniACC` dataset.
+
+## How many `miniACC` samples have data for each combination of assays?
+
+**Solution**
+
+The built-in `upsetSamples` creates an "upset" Venn diagram to answer this
+question:
+
+```{r}
+data("miniACC")
+upsetSamples(miniACC)
+```
+
+In this dataset only 43 samples have all 5 assays, 32 are missing reverse-phase
+protein (RPPAArray), 12 have only mutations and gistict, 2 are missing
+Mutations, 1 is missing gistict, etc.
+
+## Kaplan-meier plot stratified by pathology_N_stage
+
+Create a Kaplan-meier plot, using pathology_N_stage as a stratifying variable.
+
+**Solution**
+
+The colData provides clinical data for things like a Kaplan-Meier plot for
+overall survival stratified by nodal stage.
+
+```{r}
+Surv(miniACC$days_to_death, miniACC$vital_status)
+```
+
+And remove any patients missing overall survival information:
+
+```{r}
+miniACCsurv <-
+    miniACC[, complete.cases(miniACC$days_to_death, miniACC$vital_status), ]
+miniACCsurv
+```
+
+```{r}
+fit <- survfit(
+    Surv(days_to_death, vital_status) ~ pathology_N_stage,
+    data = colData(miniACCsurv)
+)
+ggsurvplot(fit, data = colData(miniACCsurv), risk.table = TRUE)
+```
+
+## Multivariate Cox regression including RNA-seq, copy number, and pathology
+
+Choose the *EZH2* gene for demonstration. This subsetting will drop assays with
+no row named EZH2:
+
+```{r}
+wideacc = wideFormat(miniACC["EZH2", , ],
+    colDataCols=c("vital_status", "days_to_death", "pathology_N_stage"))
+wideacc$y = Surv(wideacc$days_to_death, wideacc$vital_status)
+head(wideacc)
+```
+
+Perform a multivariate Cox regression with *EZH2* copy number (gistict),
+log2-transformed *EZH2* expression (RNASeq2GeneNorm), and nodal status
+(pathology_N_stage) as predictors:
+
+```{r}
+coxph(
+    Surv(days_to_death, vital_status) ~
+        gistict_EZH2 + log2(RNASeq2GeneNorm_EZH2) + pathology_N_stage,
+    data=wideacc
+)
+```
+
+We see that *EZH2* expression is significantly associated with overal survival
+(p < 0.001), but *EZH2* copy number and nodal status are not. This analysis
+could easily be extended to the whole genome for discovery of prognostic
+features by repeated univariate regressions over columns, penalized
+multivariate regression, etc.
+
+For further detail, see the main `MultiAssayExperiment` vignette.
+
+## Correlation between RNA-seq and copy number
+
+**Part 1**
+
+For all genes where there is both recurrent copy number (gistict assay) and
+RNA-seq, calculate the correlation between log2(RNAseq + 1) and copy number.
+Create a histogram of these correlations. Compare this with the histogram of
+correlations between all *unmatched* gene - copy number pairs.
+
+**Solution**
+
+First, narrow down `miniACC` to only the assays needed:
+
+```{r}
+subacc <- miniACC[, , c("RNASeq2GeneNorm", "gistict")]
+```
+
+Align the rows and columns, keeping only samples with both assays available:
+
+```{r}
+subacc <- intersectColumns(subacc)
+subacc <- intersectRows(subacc)
+```
+
+Create a list of numeric matrices:
+
+```{r}
+subacc.list <- assays(subacc)
+```
+
+Log-transform the RNA-seq assay:
+
+```{r}
+subacc.list[[1]] <- log2(subacc.list[[1]] + 1)
+```
+
+Transpose both, so genes are in columns:
+
+```{r}
+subacc.list <- lapply(subacc.list, t)
+```
+
+Calculate the correlation between columns in the first matrix and columns in
+the second matrix:
+
+```{r}
+corres <- cor(subacc.list[[1]], subacc.list[[2]])
+```
+
+And finally, create the histograms:
+
+```{r}
+hist(diag(corres))
+hist(corres[upper.tri(corres)])
+```
+
+**Part 2**
+
+For the gene with highest correlation to copy number, make a box plot of log2
+expression against copy number.
+
+**Solution**
+
+First, identify the gene with highest correlation between expression and copy
+number:
+
+```{r}
+which.max(diag(corres))
+```
+
+You could now make the plot by taking the EIF4E columns from each element of
+the list subacc.list *list* that was extracted from the subacc
+*MultiAssayExperiment*, but let's do it by subsetting and extracting from the
+*MultiAssayExperiment*:
+
+```{r}
+df <- wideFormat(subacc["EIF4E", , ])
+head(df)
+```
+
+```{r}
+boxplot(RNASeq2GeneNorm_EIF4E ~ gistict_EIF4E,
+        data=df, varwidth=TRUE,
+        xlab="GISTIC Relative Copy Number Call",
+        ylab="RNA-seq counts")
+```
+
+## Identifying correlated principal components
+
+Perform Principal Components Analysis of each of the five assays, using samples
+available on each assay, log-transforming RNA-seq data first.  Using the first
+10 components, calculate Pearson correlation between all scores and plot these
+correlations as a heatmap to identify correlated components across assays.
+
+**Solution**
+
+Here's a function to simplify doing the PCAs:
+
+```{r}
+getLoadings <-
+    function(x, ncomp=10, dolog=FALSE, center=TRUE, scale.=TRUE) {
+        if (dolog)
+            x <- log2(x + 1)
+        pc <- prcomp(x, center=center, scale.=scale.)
+        t(pc$rotation[, 1:10])
+    }
+```
+
+Although it would be possible to do the following with a loop, the different
+data types do require different options for PCA (e.g. mutations are a 0/1
+matrix with 1 meaning there is a somatic mutation, and gistict varies between
+-2 for homozygous loss and 2 for a genome doubling, so neither make sense to
+scale and center). So it is just as well to do the following one by one,
+concatenating each PCA results to the MultiAssayExperiment:
+
+```{r}
+miniACC2 <- intersectColumns(miniACC)
+miniACC2 <- c(miniACC2,
+    rnaseqPCA = getLoadings(assays(miniACC2)[[1]], dolog=TRUE),
+    gistictPCA = getLoadings(
+        assays(miniACC2)[[2]], center=FALSE, scale.=FALSE
+    ),
+    proteinPCA = getLoadings(assays(miniACC2)[[3]]),
+    mutationsPCA = getLoadings(
+        assays(miniACC2)[[4]], center=FALSE, scale.=FALSE
+    ),
+    miRNAPCA = getLoadings(assays(miniACC2)[[5]]),
+    mapFrom = 1:5
+)
+```
+
+Now subset to keep *only* the PCA results:
+
+```{r}
+miniACC2 <- miniACC2[, , grep("PCA$", names(miniACC2))]
+experiments(miniACC2)
+```
+
+Note, it would be equally easy (and maybe better) to do PCA on all samples
+available for each assay, then do intersectColumns at this point instead.
+
+Now, steps for calculating the correlations and plotting a heatmap:
+
+* Use *wideFormat* to paste these together, which has the nice property of
+adding assay names to the column names.
+* The first column always contains the sample identifier, so remove it.
+* Coerce to a matrix
+* Calculate the correlations, and take the absolute value (since signs of
+principal components are arbitrary)
+* Set the diagonals to NA (each variable has a correlation of 1 to itself).
+
+```{r}
+df <- wideFormat(miniACC2)[, -1]
+mycors <- cor(as.matrix(df))
+mycors <- abs(mycors)
+diag(mycors) <- NA
+```
+
+To simplify the heatmap, show only components that have at least one
+correlation greater than 0.5.
+
+```{r}
+has.high.cor <- apply(mycors, 2, max, na.rm=TRUE) > 0.5
+mycors <- mycors[has.high.cor, has.high.cor]
+pheatmap(mycors)
+```
+
+The highest correlation present is between PC2 of the RNA-seq assay, and PC1 of
+the protein assay.
+
+
 
 [Broad GDAC Firehose]: https://gdac.broadinstitute.org
 [The Cancer Genome Atlas]: https://www.cancer.gov/about-nci/organization/ccg/research/structural-genomics/tcga
 
-## References
+# References
