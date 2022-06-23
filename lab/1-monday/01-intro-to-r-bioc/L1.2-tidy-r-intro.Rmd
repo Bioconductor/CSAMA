@@ -190,7 +190,7 @@ sex, data = .)`:
 
 ```{r, eval = FALSE}
 pdata |>
-    t.test(age ~ sex, data = .)
+    t.test(age ~ sex, data = _)
 ```
 
 **Exercise** Perform a t-test to ask whether there is evidence of
