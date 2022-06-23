@@ -1,0 +1,27 @@
+BEGIN IONS
+TITLE=Query spectrum
+polarity=1
+59.60 6
+102.0723 8.14
+110.0813 12
+138.07 100
+195.091 67.8
+END IONS
+BEGIN IONS
+TITLE=Refernce spectrum
+polarity=1
+CHARGE=
+original_spectrum_id=2235121
+compound_id=HMDB0001847
+collision_energy=45
+predicted=FALSE
+splash=splash10-000j-0900000000-5535749c1e04ccc38fa8
+spectrum_id=16035
+msms_mz_range_min=69.0447
+msms_mz_range_max=195.0878
+69.0447 5.83
+83.0603 5.07
+110.0713 10.14
+138.0663 100
+195.0878 84.8
+END IONS
