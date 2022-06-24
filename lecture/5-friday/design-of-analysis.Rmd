@@ -1,6 +1,5 @@
 ---
-title: "Good scientific practice"
-subtitle: "Design of High Throughput Experiments and their Analysis"
+title: 'Good scientific practice: <a href="https://www.huber.embl.de/msmb/Chap-Design.html">Design of High Throughput Experiments and their Analysis</a>'
 author: Susan Holmes, Wolfgang Huber
 date: 2022-06-24
 output: 
@@ -709,6 +708,8 @@ Validation in independent data / independent lines of argument
 
 If it is too good to be true, it usually is....
 
+[Synonymous mutations in representative yeast genes are mostly strongly non-neutral](https://pubpeer.com/publications/E6CD4F8EE374B7D2D398A542684C78)
+
 # How many replicates do I need?
 
 We saw how we can use preliminary data and simulations to calculate how many replicates are needed to achieve, say, a 80% true positive rate, if we know the effect size. 
@@ -824,19 +825,17 @@ It is not easy to nail down (mathematically define)  quality, and the word is us
 
 Longitudinal data have time as a covariate. 
 
-The first question is whether we are looking at a handful of time points -- say, the response of a cell line measured 48h, 72h and 84h after exposure to a drug; or a long and densely sampled time series such as patch clamp data in electrophysiology or a movie from life cell microscopy.
+- handful of time points (e.g. response of a cell line measured 48h, 72h and 84h after exposure to a drug) vs a long and densely sampled time series (e.g. patch clamp data in electrophysiology or movie from life cell microscopy).
 
-In the first case, time is usually best thought of as just another experimental factor, in the same way as we consider the concentration or the choice of drug. One analysis strategy could be to first identify the "best", or biologically most indicative, time point, and then focus on that. Or we can ask whether there is any effect at all, regardless of the time. We then just need to make sure that we account for the dependencies between the measurements over time, and effective sample
-sizes. When designing the experiment, we'll also try to sample more densely at those times when we expect most to happen.
+- in 1st case, think of time as just another experimental factor, like concentration or choice of drug. One analysis strategy could be to first identify the "best", or biologically most indicative, time point, and then focus on that. Or whether there is any effect at all, regardless of the time. 
 
-In the second case, time series, we'll often want to fit dynamical models to the data. We have many choices:
-
--   (Hidden) Markov models
--   Change point detection
--   Ordinary differential equations or reaction-diffusion models
--   Piece-wise deterministic stochastic processes
--   Autoregressive models
--   Non-parametric smoothing followed by clustering or classification
+- in 2nd case, time series, we'll often want to fit dynamical models to the data. We have many choices:
+  -   (Hidden) Markov models
+  -   Change point detection
+  -   Ordinary differential equations or reaction-diffusion models
+  -   Piece-wise deterministic stochastic processes
+  -   Autoregressive models
+  -   Non-parametric smoothing followed by clustering or classification
     into prototypic shapes
 
 # Don't Pretend You Are Dumb
