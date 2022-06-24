@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2022-06-18" />
+<meta name="date" content="2022-06-24" />
 
 <title>Lab 1.4: Data Representations</title>
 
@@ -705,7 +705,7 @@ function toggle_visibility(id1) {
 
 
 <h1 class="title toc-ignore">Lab 1.4: Data Representations</h1>
-<h4 class="date">18 June 2022</h4>
+<h4 class="date">24 June 2022</h4>
 
 </div>
 
@@ -874,7 +874,11 @@ data(phiX174Phage)</code></pre>
 <p>Explain what the following code does, and how it works</p>
 <pre class="r"><code>m &lt;- consensusMatrix(phiX174Phage)[1:4,]
 polymorphic &lt;- which(colSums(m != 0) &gt; 1)
-mapply(substr, polymorphic, polymorphic, MoreArgs=list(x=phiX174Phage))</code></pre>
+mapply(
+    substr,
+    start = polymorphic, stop = polymorphic,
+    MoreArgs=list(x=phiX174Phage)
+)</code></pre>
 <pre><code>##         [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9]
 ## Genbank &quot;G&quot;  &quot;G&quot;  &quot;A&quot;  &quot;A&quot;  &quot;C&quot;  &quot;C&quot;  &quot;A&quot;  &quot;G&quot;  &quot;C&quot; 
 ## RF70s   &quot;A&quot;  &quot;A&quot;  &quot;A&quot;  &quot;G&quot;  &quot;C&quot;  &quot;T&quot;  &quot;A&quot;  &quot;G&quot;  &quot;C&quot; 

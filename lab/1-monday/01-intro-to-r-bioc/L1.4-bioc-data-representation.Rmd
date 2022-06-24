@@ -134,7 +134,11 @@ methods(class=class(phiX174Phage))      # 'DNAStringSet' methods
     ```{r consensusMatrix}
     m <- consensusMatrix(phiX174Phage)[1:4,]
     polymorphic <- which(colSums(m != 0) > 1)
-    mapply(substr, polymorphic, polymorphic, MoreArgs=list(x=phiX174Phage))
+    mapply(
+        substr,
+        start = polymorphic, stop = polymorphic,
+        MoreArgs=list(x=phiX174Phage)
+    )
     ```
 
 # Working with genomic ranges

@@ -33,7 +33,7 @@ Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
 - Basic data input using [readr][].
 - Working with tibbles using common [dplyr][] 'verbs'.
-- Using `gather()` to 'tidy' data.
+- Using `pivot_longer()` to 'tidy' data.
 - Introduction to writing our own tidy functions.
 - Visualization using base R and [ggplot2][].
 
@@ -267,7 +267,7 @@ the help page `?left_join`. Use `left_join()` to combine the
 phenotypic and expression data.
 
 ```{r}
-data <- left_join(pdata, eg)
+data <- left_join(pdata, eg, by = "Run")
 data
 ```
 
@@ -280,16 +280,16 @@ interpreted as a measurement, with 'Gene' and 'Run' as indicator
 variables describing which experimental entity the count is associated
 with. 
 
-Use `gather()` to transform the wide format data into long-format
-'tidy' data. `gather()` is a tricky function to work with, so study
-the help page carefully.
+Use `pivot_longer()` to transform the wide format data into
+long-format 'tidy' data. `pivot_longer()` is a tricky function to work
+with, so study the help page carefully.
 
 ```{r, message=FALSE}
 library(tidyr)
 ```
 
 ```{r}
-tbl <- gather(data, "Gene", "Count", -(1:3))
+tbl <- pivot_longer(data, -(1:3), names_to = "Gene", values_to = "Count")
 tbl
 ```
 
@@ -313,7 +313,7 @@ tbl |>
 Now tidy all the data.
 
 ```{r}
-counts_tbl <- gather(counts, "Gene", "Count", -Run)
+counts_tbl <- pivot_longer(counts, -Run, names_to = "Gene", values_to = "Count")
 ```
 
 and join to the `pdata`

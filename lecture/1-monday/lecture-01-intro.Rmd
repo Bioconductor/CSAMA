@@ -26,10 +26,10 @@ knitr::opts_chunk$set(
 - 'Free' software: no cost, open source, broad use
 - Extensible: packages (>18,000 on [CRAN][], >2,100 on [Bioconductor][])
 - Key features
-    - Intrinsic _statistical_ concepts
+    - Intrinsic _statistical_ concepts, e.g., missing values, factors
     - _Vectorized_ computation
-    - 'Old-school' scripts rather than graphical user interface -- great
-      for reproducibility!
+    - 'Old-school' scripts emaphasized more than graphical user
+      interfaces -- great for reproducibility!
     - (Advanced) _copy-on-change_ semanatics
 
 ## Vectors and data frames
@@ -130,8 +130,6 @@ methods(class="lm")
 ?"plot.formula"  # method
 ```
 
-- Check out
-
 ## Packages
 
 ```{r}
@@ -170,7 +168,7 @@ More than 2,100 packages. Domains of expertise:
 Important themes
 
 - Reproducible research
-- Interoperability between packages & work kflows
+- Interoperability between packages & work flows
 - Usability
 
 Resources
@@ -302,7 +300,7 @@ plot(rowMeans(log1p_counts[,cidx]) ~ rowMeans(log1p_counts[,!cidx]))
 
 Solution: coordinate in a single object -- [SummarizedExperiment][]
 
-```{r, fig.asp=1}
+```{r, fig.asp=1, message = FALSE}
 library(SummarizedExperiment)
 
 se <- SummarizedExperiment(
