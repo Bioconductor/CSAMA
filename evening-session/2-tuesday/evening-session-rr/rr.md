@@ -176,8 +176,8 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
 - R markdown
 - Git/GitHub - https://happygitwithr.com/
 - Docker
-- [workflowr](https://workflowr.io/)
-- Makefile, Snakemake
-- protocols.io
-- renv
+- [workflowr](https://workflowr.io/) ([Example](https://oshlacklab.com/paed-cf-cite-seq/index.html) from a recent [preprint](https://www.biorxiv.org/content/10.1101/2022.06.17.496207v1))
+- Makefile, [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+- [protocols.io](https://www.protocols.io/)
+- [renv](https://rstudio.github.io/renv/articles/renv.html)
 - ...
