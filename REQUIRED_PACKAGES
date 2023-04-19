@@ -1,172 +1,21 @@
 ## Vincent J. Carey (VJC)
 
-BiocSklearn
-ontoProc
-MLInterfaces
-shiny
-e1071
-class
-fpc
-Rcpp 
-Biobase
-annotate
-cluster
-gdata
-pls
-sfsmisc
-rpart
-genefilter
-fpc
-ggvis
-gbm
-RColorBrewer
-hwriter
-threejs
-mlbench
-stats4
-class
-e1071
-ipred
-randomForest
-gpls
-pamr
-nnet
-ALL
-hgu95av2.db
-som
-hu6800.db
-lattice
-caret
-golubEsets
-ada
-keggorthology
-kernlab
-mboost
-party
-klaR
-testthat
-boot
-
 ## Laurent Gatto (LG)
-mzR
-rhdf5
-msdata
-rpx
-Spectra
-QFeatures
-PSMatch
-pheatmap
-RforMassSpectrometry/SpectraVis
-MsCoreUtils
-scp
-scpdata
 
 ## Robert Gentleman (RG)
 
 ## Wolfgang Huber (WH)
-airway
-DESeq2
-dplyr
-fdrtool
-ggbeeswarm
-ggplot2
-IHW
-tibble
-
 
 ## Julia Philipp (JP)
 
-## Martin Morgan (MM)
-airway
-AnnotationDbi
-AnnotationHub
-Biobase
-BiocGenerics
-BiocParallel
-Biostrings
-BSgenome
-BSgenome.Hsapiens.UCSC.hg19
-BSgenome.Hsapiens.UCSC.hg38
-dplyr
-EnsDb.Hsapiens.v86
-GenomeInfoDb
-GenomicAlignments
-GenomicFeatures
-GenomicRanges
-ggplot2
-Gviz
-IRanges
-MatrixGenerics
-matrixStats
-readr
-RNAseqData.HNRNPC.bam.chr14
-Rsamtools
-rtracklayer
-S4Vectors
-scRNAseq
-SingleCellExperiment
-SummarizedExperiment
-tibble
-tidyr
-tidyverse
-TxDb.Hsapiens.UCSC.hg19.knownGene
-TxDb.Hsapiens.UCSC.hg38.knownGene
-VariantAnnotation
-XVector
-
 ## Johannes Rainer (JR)
-jorainer/SpectraTutorials
-jorainer/MetaboAnnotationTutorials
-mzR
-RMariaDB
-pheatmap
-MsBackendMgf
-MsBackendMassbank
-CompoundDb
-xcms
-msdata
-RforMassSpectrometry/MsBackendHmdb
 
 ## Davide Risso (DR)
-DropletTestFiles
-DropletUtils
-scuttle
-EnsDb.Hsapiens.v86
-scater
-scran
-scDblFinder
-scry
-NewWave
-GGally
-igraph
-network
-sna
-intergraph
-SingleR
-celldex
 
 ## Charlotte Soneson (CS)
-apeglm
-pheatmap
-iSEE
-iSEEu
-edgeR
-mikelove/airway2
-tximeta
-DESeq2
-org.Hs.eg.db
-AnnotationDbi
-SummarizedExperiment
-ExploreModelMatrix
-vsn
-rjson
-shiny
-BiocStyle
-knitr
-htmltools
-csoneson/ConfoundingExplorer
-tximport
 
-## Nitesh Turaga (NT)
+## Katharina Imkeller (KI)
 
-## Levi Waldon (LW)
+## Lori Kern (LK)
+
+## Mike Love (ML)
