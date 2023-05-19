@@ -13,6 +13,36 @@
 ## Davide Risso (DR)
 
 ## Charlotte Soneson (CS)
+mikelove/airway2
+tximeta
+DESeq2
+org.Hs.eg.db
+SummarizedExperiment
+vsn
+ExploreModelMatrix
+apeglm
+iSEE
+pheatmap
+iSEEu
+edgeR
+BiocStyle
+knitr
+rjson
+AnnotationDbi
+shiny
+muscat
+scran
+scuttle
+scater
+igraph
+csoneson/ConfoundingExplorer
+TENxPBMCData
+SingleCellExperiment
+htmltools
+rmarkdown
+dplyr
+ggplot2
+tximport
 
 ## Katharina Imkeller (KI)
 
