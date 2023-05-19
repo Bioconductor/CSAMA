@@ -1,6 +1,25 @@
 ## Vincent J. Carey (VJC)
 
 ## Laurent Gatto (LG)
+Spectra
+mzR
+QFeatures
+MsCoreUtils
+scp
+scpdata
+SingleCellExperiment
+MsDataHub
+rpx
+tidyverse
+factoextra
+msdata
+rhdf5
+ProtGenerics
+PSMatch
+pheatmap
+limma
+ProtGenerics
+RforMassSpectrometry/SpectraVis
 
 ## Robert Gentleman (RG)
 
