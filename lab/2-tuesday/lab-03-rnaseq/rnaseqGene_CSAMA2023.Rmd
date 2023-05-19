@@ -1,6 +1,6 @@
 ---
 title: "RNA-seq workflow: gene-level exploratory analysis and differential expression"
-subtitle: CSAMA 2022 version 
+subtitle: CSAMA 2023 version 
 author:
 - name: Michael I. Love
   affiliation: 
@@ -18,7 +18,7 @@ author:
   affiliation: Institute for Biomedicine, Eurac Research, Bolzano, Italy
 - name: Wolfgang Huber
   affiliation: *EMBL
-date: 21 June 2022
+date: 13 June 2023
 output: BiocStyle::html_document
 bibliography: bibliography.bib
 vignette: >
