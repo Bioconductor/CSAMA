@@ -1,6 +1,6 @@
 ---
 title: "Introduction to Bioconductor Classes"
-author: "Lori Shepherd Kern<Lori.Shepherd@roswellpark.org>"
+author: "Lori Shepherd Kern  <Lori.Shepherd@roswellpark.org>"
 date: 12-16 June | CSAMA 2023
 output:
   ioslides_presentation:
@@ -45,7 +45,80 @@ suppressPackageStartupMessages({
 ```
 ## Introduction
 
-Placeholder?
+https://contributions.bioconductor.org/important-bioconductor-package-development-features.html#reusebioc
+
+<font color=#87b13f>
+Common Bioconductor Classes
+</font>
+
+<font size="4">
+
+<table style="width:"100%">
+<tbody style="font-size: 14px";>
+<tr>
+	<th style="width:60%">Data Type</th>
+	<th style="width:20%">Package Name</th>
+	<th style="width:20%">Function</th></tr>
+<tr>
+	<td>Rectangular feature x sample data (RNAseq count matrix, microarray,	…)</td>
+	<td>SummarizedExperiment</td>
+	<td>SummarizedExperiment()</td>
+</tr>
+<tr>
+	<td>Genomic coordinates (1-based, closed interval)</td>
+	<td>GenomicRanges</td>
+	<td>GRanges() or GRangesList()</td>
+</tr>
+<tr>
+	<td>Ragged genomic coordinates</td>
+	<td>RaggedExperiment</td>
+	<td>RaggedExperiment()</td>
+</tr>
+<tr>
+	<td>DNA / RNA / AA sequences</td>
+	<td>Biostrings</td>
+	<td>*StringSet()</td>
+</tr>
+<tr>
+	<td>Gene sets</td>
+	<td>BiocSet<br>GSEABase</td>
+	<td>BiocSet()<br>GeneSet() or GeneSetCollection()</td>
+</tr>
+<tr>
+	<td>Multi-omics data</td>
+	<td>MultiAssayExperiment</td>
+	<td>MultiAssayExperiment()</td>
+</tr>
+<tr>
+	<td>Single cell data</td>
+	<td>SingleCellExperiment</td>
+	<td>SingleCellExperiment()</td>
+</tr>
+<tr>
+	<td>Mass spec data</td>
+	<td>Spectra</td>
+	<td>Spectra()</td>
+</tr>
+<tr>
+	<td>File formats</td>
+	<td>BiocIO</td>
+	<td>BiocFile-class</td>
+</tr>
+
+</tbody>
+</table>
+</font>
+
+
+## Three Commonly Used or Extended Classes
+
+- Biostrings::*StringSets
+
+- GenomicRanges::GenomicRanges
+
+- SummarizedExperiment::SummarizedExperiment
+
+
 
 ## Genomic Sequences
 
@@ -118,8 +191,8 @@ head(BiocManager::available("BSgenome"))
 
 ```
 
-Cannot find what you are looking for? Check on `BSGenomeForge` for creating a
-BSgenome package.
+Can't find what you are looking for? Check out the new [BSgenomeForge][] for
+creating a BSgenome package.
 
 ## BSgenome 
 
@@ -472,3 +545,4 @@ knitr::include_graphics("lecture-01-figures/bioC.png")
 [plyranges]: https://bioconductor.org/packages/plyranges
 [TxDb]: https://bioconductor.org/packages/release/BiocViews.html#___TxDb
 [SummarizedExperiment]: https://bioconductor.org/packages/SummarizedExperiment
+[BSgenomeForge]: https://bioconductor.org/packages/BSgenomeForge
