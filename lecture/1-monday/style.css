@@ -1,0 +1,77 @@
+table {
+  border-collapse: collapse;
+  width: 65%;
+}
+th, td {
+  padding: 0.25rem;
+  text-align: left;
+  border: 1px solid #ccc;
+}
+tbody tr:nth-child(odd) {
+  background: #eee;
+}
+
+pre {
+  font-size: 18px;
+  line-height: 21px;
+}
+code {
+  color: rgb(80, 80, 80);
+  background-color: rgb(230, 230, 230);
+  font-size: 90%;  
+}
+iframe {
+  height: 615px;
+  width: 100%;
+  margin-top: -45px;
+}
+.title-slide hgroup h1 {
+  color: #1a81c2;
+  font-size: 54px;
+}
+.title-slide hgroup p {
+    font-size: 32px;
+    color: rgb(0,0,0);
+}
+h2 {
+  color: #87b13f;
+  letter-spacing: -2.5px;
+}
+h3 {
+  color: #1a81c2;
+}
+slides > slide {
+    color: rgb(0,0,0);
+}
+label {
+  font-size: 150%;
+}
+slides > slide {
+    width: 1024px;
+    height: 768px;
+    margin-left: -512px;
+    margin-top: -384px;
+}
+pre.prettyprint+img, p+img {
+  margin: -10px 0px 20px 0px;
+}
+pre.prettyprint+pre {
+  margin-top:-20px;
+}
+.orange {
+  color: #ff8000;
+}
+.blue {
+  color: #1a81c2;
+}
+.noiterpolation {
+  image-rendering:optimizeSpeed;             /* Legal fallback                 */
+  image-rendering:-moz-crisp-edges;          /* Firefox                        */
+  image-rendering:-o-crisp-edges;            /* Opera                          */
+  image-rendering:-webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+  image-rendering:optimize-contrast;         /* CSS3 Proposed                  */
+  -ms-interpolation-mode:nearest-neighbor;   /* IE8+                           */
+}
+.scaledmath {
+   font-size: 90%;
+}
