@@ -28,6 +28,14 @@ RforMassSpectrometry/SpectraVis
 ## Julia Philipp (JP)
 
 ## Johannes Rainer (JR)
+RforMassSpectrometry/Spectra
+MsExperiment
+MetaboCoreUtils
+MetaboAnnotation
+png
+sneumann/xcms
+jorainer/SpectraTutorials
+jorainer/MetaboAnnotationTutorials
 
 ## Davide Risso (DR)
 
