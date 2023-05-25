@@ -89,6 +89,7 @@ BSgenome.Hsapiens.UCSC.hg19
 BSgenome.Hsapiens.UCSC.hg38
 devtools
 dplyr
+ensembldb
 EnsDb.Hsapiens.v86
 ExperimentHub
 GenomicAlignments

@@ -1,7 +1,7 @@
 ---
 title: "Introduction to Bioconductor Classes"
 author: "Lori Shepherd Kern<Lori.Shepherd@roswellpark.org>"
-date: 12 June | CSAMA 2023
+date: 12-16 June | CSAMA 2023
 output:
   ioslides_presentation:
     fig_retina: null
@@ -45,7 +45,7 @@ suppressPackageStartupMessages({
 ```
 ## Introduction
 
-
+Placeholder?
 
 ## Genomic Sequences
 
@@ -320,12 +320,14 @@ se
 ```
 
 
-## SummarizedExperiments
+## Summarized Experiments
+
 <font size="3">
 SummarizedExperiment objects are popular objects for representing expression
 data and other rectangular data (feature x sample data). Incoming packages are
 now strongly recommended to use this class representation instead of
 ExpressionSet.
+</font>
 
 ```{r, out.width = "70%", echo = FALSE}
 
