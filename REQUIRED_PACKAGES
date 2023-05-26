@@ -94,6 +94,7 @@ EnsDb.Hsapiens.v86
 ExperimentHub
 GenomicAlignments
 GenomicRanges
+GenomicFeatures
 ggplot2
 Gviz
 Homo.sapiens
