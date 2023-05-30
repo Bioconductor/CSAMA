@@ -1,0 +1,378 @@
+---
+title: "Lecture 1 -- _R_ and _Bioconductor_"
+author: "Martin Morgan <Martin.Morgan@RoswellPark.org>"
+date: "20 June 2022"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
+vignette: >
+  % \VignetteIndexEntry{Lecture 1 -- Introduction to R and Bioconductor}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    eval=as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
+    cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE")))
+```
+
+# _R_
+
+## History
+
+- Statistical programming language
+- 'Free' software: no cost, open source, broad use
+- Extensible: packages (>18,000 on [CRAN][], >2,100 on [Bioconductor][])
+- Key features
+    - Intrinsic _statistical_ concepts, e.g., missing values, factors
+    - _Vectorized_ computation
+    - 'Old-school' scripts emaphasized more than graphical user
+      interfaces -- great for reproducibility!
+    - (Advanced) _copy-on-change_ semanatics
+
+## Vectors and data frames
+
+```{r}
+1 + 2
+x = c(1, 2, 3)
+1:3             # sequence of integers from 1 to 3
+x + c(4, 5, 6)  # vectorized
+x + 4           # recycling
+```
+
+Vectors
+
+- `numeric()`, `character()`, `logical()`, `integer()`, `complex()`, ...
+- `NA`: 'not available'
+- `factor()`: values from restricted set of 'levels'.
+
+Operations
+
+- numeric: `==`, `<`, `<=`, `>`, `>=`, ...
+- logical: `|` (or), `&` (and), `!` (not)
+- subset: `[`, e.g., `x[c(2, 3)]`
+- assignment: `[<-`, e.g., `x[c(1, 3)] = x[c(1, 3)]`
+- other: `is.na()`
+
+Functions
+
+```{r}
+x = rnorm(100)
+y = x + rnorm(100)
+plot(x, y)
+```
+
+- Many!
+
+`data.frame`
+
+```{r}
+df <- data.frame(Independent = x, Dependent = y)
+head(df)
+df[1:5, 1:2]
+df[1:5, ]
+plot(Dependent ~ Independent, df)  # 'formula' interface
+```
+
+- List of equal-length vectors
+- Vectors can be of different type
+- Two-dimensional subset and assignment
+- Column access: `df[, 1]`, `df[, "Independent"]`, `df[[1]]`,
+  `df[["Independent"]]`, `df$Independent`
+
+Exercise: plot only values with `Dependent > 0`, `Independent > 0`
+
+1. Select rows
+
+    ```{r}
+    ridx <- (df$Dependent > 0) & (df$Independent > 0)
+    ```
+
+2. Plot subset
+
+    ```{r}
+    plot(Dependent ~ Independent, df[ridx, ])
+    ```
+
+3. Skin the cat another way
+
+    ```{r}
+    plot(
+        Dependent ~ Independent, df,
+        subset = (Dependent > 0) & (Independent > 0)
+    )
+    ```
+
+## Analysis: functions, classes, methods
+
+```{r}
+fit <- lm(Dependent ~ Independent, df)  # linear model -- regression
+anova(fit)                              # summary table
+plot(Dependent ~ Independent, df)
+abline(fit)
+```
+
+- `lm()`: plain-old function
+- `fit`: an _object_ of class "lm"
+- `anova()`: a _generic_ with a specific _method_ for class "lm"
+
+```{r}
+class(fit)
+methods(class="lm")
+```
+
+## Help!
+
+```{r, eval=FALSE}
+?"plot"          # plain-old-function or generic
+?"plot.formula"  # method
+```
+
+## Packages
+
+```{r}
+library(ggplot2)
+ggplot(df) +
+    aes(x = Independent, y = Dependent) +
+    geom_point() +
+    geom_smooth(method = "lm")
+```
+
+- General purpose: >18,000 packages on [CRAN][]
+- Gain contributor's domain expertise _and_ weird (or other) idiosyncracies
+- _Installation_ (once only per computer) versus _load_ (via
+  `library(ggplot2)`, once per session)
+
+[CRAN]: https://cran.r-project.org
+[Bioconductor]: https://bioconductor.org
+
+
+# _Bioconductor_
+
+## History
+
+Started 2002 as a platform for understanding analysis of microarray
+data
+
+More than 2,100 packages. Domains of expertise:
+
+- Sequencing (Single-cell, RNASeq, ChIPSeq, single-cell, called
+  variants, ...)
+- Microarrays (methylation, expression, copy number, ...)
+- flow cytometry
+- proteomics
+- ...
+
+Important themes
+
+- Reproducible research
+- Interoperability between packages & work flows
+- Usability
+
+Resources
+
+- https://bioconductor.org
+- https://bioconductor.org/packages -- software, annotation,
+  experiment, workflow
+- https://support.bioconductor.org -- questions and problems
+
+## High-throughput genomic analysis
+
+![](lecture-01-figures/SequencingEcosystem.png)
+
+## DNA sequences
+
+[Biostrings][] themes
+
+- _Valid_ data, e.g., alphabet
+- 'Vector' interface: `length()`, `[`, ...
+- Specialized operations, e.g,. `reverseComplement()`
+
+```{r, message = FALSE}
+library(Biostrings)
+
+dna <- DNAStringSet(c("AAACTG", "CCCTTCAAC", "TACGAA"))
+dna
+
+length(dna)
+dna[c(1, 3, 1)]
+
+width(dna)
+reverseComplement(dna)
+```
+
+Help!
+
+```{r, eval=FALSE}
+methods(class="DNAStringSet")
+?"DNAStringSet"
+browseVignettes(package="Biostrings")
+```
+
+## Genomic ranges
+
+![](lecture-01-figures/GRanges.png)
+
+[GenomicRanges][]
+
+- Data (e.g., aligned reads, called peaks, copy number)
+- Annotations (e.g., genes, exons, transcripts)
+- Close relation to BED files (see `rtracklayer::import.bed()` and
+  [HelloRanges][])
+- Also vector interface -- `length()`, `[`, etc.
+
+```{r}
+library(GenomicRanges)
+
+gr <- GRanges(c("chr1:100-120", "chr1:115-130", "chr2:200-220"))
+gr
+```
+
+Intra-range operations
+
+- e.g., `shift()`, `narrow()`, `flank()`
+
+Inter-range operations
+
+- e.g., `reduce()`, `coverage()`, `gaps()`, `disjoin()`
+
+Between-range operations
+
+- e.g., `countOverlaps()`, `findOverlaps()`, `summarizeOverlaps()`
+
+```{r}
+shift(gr, 1)
+
+reduce(gr)
+
+anno <- GRanges(c("chr1:110-150", "chr2:150-210"))
+countOverlaps(anno, gr)
+```
+
+Help!
+
+```{r, eval=FALSE}
+methods(class="GRanges")
+methods(class="GRangesList")
+?"GRanges"
+?"GRangesList"
+browseVignettes(package="GenomicRanges")
+```
+
+Lists of Genomic Ranges
+
+![](lecture-01-figures/GRangesList.png)
+
+- e.g., exons-within-transcripts, alignments-within-reads
+
+## Summarized experiments
+
+![](lecture-01-figures/SummarizedExperiment.png)
+
+Component parts
+
+- three components -- underlying 'matrix', 'row' annotations (genomic
+  features), 'column' annotations (sample descriptions)
+
+```{r}
+counts <- read.csv("lecture-01-data/airway_counts.csv", row.names=1)
+counts <- as.matrix(counts)
+head(counts, 3)
+
+colData <- read.csv("lecture-01-data/airway_colData.csv", row.names=1)
+colData[, 1:4]
+
+rowRanges <- readRDS("lecture-01-data/airway_rowRanges.rds")
+rowRanges
+```
+
+Could manipulate independently...
+
+```{r, fig.asp=1}
+cidx <- colData$dex == "trt"
+log1p_counts <- log1p(counts)
+plot(rowMeans(log1p_counts[,cidx]) ~ rowMeans(log1p_counts[,!cidx]))
+```
+
+- very fragile, e.g., what if `colData` rows had been re-ordered?
+
+Solution: coordinate in a single object -- [SummarizedExperiment][]
+
+```{r, fig.asp=1, message = FALSE}
+library(SummarizedExperiment)
+
+se <- SummarizedExperiment(
+    assays = list(counts = counts),
+    rowRanges = rowRanges, colData = colData
+)
+assay(se, "log1p_counts") <- log1p(assay(se, "counts"))
+## manipulate rows and columns in a coordinated fashion...
+```
+
+- Much more robust to 'bookkeeping' errors
+- matrix-like interface: `dim()`, two-dimensional `[`, ...
+- accessors: `assay()`, `rowData()` / `rowRanges()`, `colData()`, ...
+
+Help!
+
+```{r, eval=FALSE}
+methods(class="SummarizedExperiment")
+?"SummarizedExperiment"
+browseVignettes(package="SummarizedExperiment")
+```
+
+## Packages for high-throughput genomic analysis
+
+Web site, https://bioconductor.org
+
+Support site, https://support.bioconductor.org
+
+2140 'software' packages, https://bioconductor.org/packages
+
+- Sequence analysis (Single-cell, RNASeq, ChIPSeq, called variants,
+  copy number, ...)
+- Microarrays (methylation, copy number, classical expression, ...)
+- Annotation (more about annotations later this morning...)
+- Flow cytometry
+- Proteomics, image analysis, ...
+
+Discovery and use, e.g., [DESeq2][]
+
+- https://bioconductor.org/packages
+- Landing pages: title, description (abstract), installation instructions,
+  badges
+- Vignettes!
+- [Workflows][], [course material][], [videos][], ...
+
+Single-cell analysis
+
+- Check out [Orchestrating Single-Cell Analysis with Bioconductor][OSCA]!
+
+[OSCA]: https://bioconductor.org/books/release/OSCA/
+
+[Biostrings]: https://bioconductor.org/packages/Biostrings
+[GenomicRanges]: https://bioconductor.org/packages/GenomicRanges
+[rtracklayer]: https://bioconductor.org/packages/rtracklayer
+[HelloRanges]: https://bioconductor.org/packages/HelloRanges
+[SummarizedExperiment]: https://bioconductor.org/packages/SummarizedExperiment
+[DESeq2]: https://bioconductor.org/packages/DESeq2
+[Workflows]: https://bioconductor.org/packages/release/BiocViews.html#___Workflow
+[course material]: https://bioconductor.org/help/course-materials/
+[videos]: https://www.youtube.com/user/bioconductor
+
+# End matter
+
+## Session Info {.unlisted .unnumbered}
+
+```{r}
+sessionInfo()
+```
+
+## Acknowledgements {.unlisted .unnumbered}
+
+Research reported in this tutorial is supported by the National Human
+Genome Research Institute and the National Cancer Institute of the
+National Institutes of Health under award numbers U24HG004059
+(Bioconductor), U24HG010263 (AnVIL) and U24CA180996 (ITCR).

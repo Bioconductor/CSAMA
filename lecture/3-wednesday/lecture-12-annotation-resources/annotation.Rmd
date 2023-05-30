@@ -1,7 +1,7 @@
 ---
 title: "Introduction to Bioconductor Annotation Resources"
-author: "Johannes Rainer <johannes.rainer@eurac.edu> <br> Lori Shepherd  <Lori.Shepherd@roswellpark.org> <br> Martin Morgan <Martin.Morgan@RoswellPark.org> <br> James W. MacDonald"
-date: 19-24 June | CSAMA 2022
+author: "Lori Shepherd Kern <Lori.Shepherd@roswellpark.org> <br>  Johannes Rainer <johannes.rainer@eurac.edu> <br> Martin Morgan <Martin.Morgan@RoswellPark.org> <br> James W. MacDonald"
+date: 12-16 June | CSAMA 2023
 output:
   ioslides_presentation:
     fig_retina: null
@@ -39,6 +39,12 @@ slides > slide {
 </style>
 
 
+```{r style, echo = FALSE, results = 'asis'}
+knitr::opts_chunk$set(
+    eval=as.logical(Sys.getenv("KNITR_EVAL", "TRUE")),
+    cache=as.logical(Sys.getenv("KNITR_CACHE", "TRUE")))
+```
+
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
 packs <- c("hugene20sttranscriptcluster.db",
            "org.Hs.eg.db",
@@ -50,7 +56,9 @@ packs <- c("hugene20sttranscriptcluster.db",
            "AnnotationDbi",
            "Organism.dplyr",
            "biomaRt",
-           "airway")
+           "airway",
+	   "ensembldb",
+	   "GenomicFeatures")
 BiocManager::install(packs, ask = FALSE)
 for (p in packs)
     library(p, character.only = TRUE)
@@ -71,61 +79,50 @@ knitr::include_graphics("images/RR-sketch-03.png")
 knitr::include_graphics("images/RR-sketch-04.png")
 ```
 
-
-## What is annotation data? {.notransition}
-
-
-```{r, out.width = "80%", echo = FALSE}
-knitr::include_graphics("images/RR-sketch-04.png")
-```
-
 - Annotation data: usually external data that is used to *make sense* of
   measured entities.
 
-  
-## Typical annotation use cases {.build}
+## What do we mean by annotation?
 
-<div>
+Map a known ID to other functional or positional information
+
+```{r, out.width = "75%", echo = FALSE}
+
+knitr::include_graphics("images/mapping2.png")
+
+```
+
+- Map one type of ID to another type of ID that is more familiar to
+collaborators or perhaps better used for further analysis or reporting.
+
+## Typical annotation use cases
+
 - get HUGO gene symbols for gene identifiers (e.g. Entrezgene, Ensembl...).
-</div>
-<div>
 - map positions on the genome to transcripts (genes).
-</div>
-<div>
 - map genes to biological pathways.
-</div>
-<div>
 - assign peptide sequences to proteins.
-</div>
-<div>
 - identify metabolites based on fragment spectra.
-</div>
-<div>
-- **Annotation**: map one type of ID to another type of ID.
-</div>
+
+<br>
+<br>
+
+**Annotation**: map one type of ID to another type of ID.
 
 
-## Annotation resources {.build}
+## Annotation resources
 
-<div>
 - NCBI: https://www.ncbi.nlm.nih.gov/ 
-</div>
-<div>
 - Ensembl: http://www.ensembl.org/index.html
-</div>
-<div>
 - Uniprot: https://www.uniprot.org/
-</div>
-<div>
 - Pubchem: https://pubchem.ncbi.nlm.nih.gov/
-</div>
-<div>
 - Reactome: https://reactome.org/
 - ...
-</div>
-<div>
-- Can be downloaded or queried through an API.
-</div>
+
+<br>
+<br>
+
+Can be downloaded or queried through an API.
+
 
 ## Annotation resources in **Bioconductor** {.build}
 
@@ -143,10 +140,16 @@ knitr::include_graphics("images/RR-sketch-04.png")
 <div>
 - Online resources: *biomaRt*, *KEGGREST*.
 </div>
+<div>
+- Direct access to web resources through an API <font color="#1a81c2">(be sure to BiocFileCache!)</font>
+</div>
 
 ## Annotation packages in Bioconductor {.build}
 
+<div>
 - *org.Hs.eg.db*: package with various annotations for homo sapiens.
+</div>
+<div>
 
 ```{r, message = FALSE, warning = FALSE}
 BiocManager::install("org.Hs.eg.db")
@@ -154,6 +157,7 @@ library(org.Hs.eg.db)
 org.Hs.eg.db
 ```
 
+</div>
 
 ## 
 
@@ -188,29 +192,47 @@ Where
 - Genes are identified by their Ensembl IDs.
 </div>
 
+<div>
+
 ```{r, warning=FALSE}
 library(airway)
 data(airway)
 ids <- head(rownames(airway))
 ids
+```
+
+</div>
+
+
+```{r, warning=FALSE}
 select(org.Hs.eg.db, ids, "SYMBOL", "ENSEMBL")
 ```
 
-
 ## What annotations are provided? {.build}
 
+<div>
 - Use `columns` to list annotations available in specific annotation object.
+
+</div>
+<div>
 
 ```{r}
 columns(org.Hs.eg.db)
 ```
 
+</div>
+
+<div>
 - Use `keytypes` to list supported *key types*.
+
+</div>
+<div>
 
 ```{r}
 keytypes(org.Hs.eg.db)
 ```
 
+</div>
 
 ## Another example {.build}
 
@@ -244,28 +266,21 @@ mapIds(org.Hs.eg.db, brca, "OMIM", "SYMBOL", multiVals = "first")
 </div>
 <div>
 - `multiVals = "asNA"`: `NA` is returned for any 1:many mapping.
-</div>
-<div>
 - `multiVals = "list"`: multiple elements are collapsed into a `list`.
-</div>
-<div>
 - `multiVals = "CharacterList"`: results are returned as a `CharacterList`.
 </div>
-
+<div>
 ```{r, warning = FALSE}
 mapIds(org.Hs.eg.db, brca, "OMIM", "SYMBOL", multiVals = "CharacterList")
 ```
-
+</div>
 
 ## But... {.build}
 
-<div>
 - *AnnotationDbi* is a very powerful framework, but:
-</div>
+
 <div>
 - For some annotations or queries different approaches might be more suitable.
-</div>
-<div>
 - Not guaranteed that all annotation packages/objects support the
   *AnnotationDbi* framework.
 </div>
@@ -275,11 +290,7 @@ mapIds(org.Hs.eg.db, brca, "OMIM", "SYMBOL", multiVals = "CharacterList")
 
 <div>
 - Annotation for positions on the genome (exons, transcripts, genes).
-</div>
-<div>
 - Annotation for positions along protein sequences (protein domains...).
-</div>
-<div>
 - Mostly used for gene quantification in RNA-seq data.
 </div>
 
@@ -369,6 +380,13 @@ exs
 
 <div>
 - *BSgenome* packages (e.g. *BSgenome.Hsapiens.UCSC.hg19*).
+
+  + BSgenomeForge to create your own
+  +
+```{r}
+head(BiocManager::available("BSgenome"),3)
+```
+  
 </div>
 <div>
 - *AnnotationHub*:
@@ -382,8 +400,14 @@ query(ah, c("TwoBitFile", "GRCh38"))
 
 - *Task:* Get sequences for previously extracted transcripts.
 
+<div>
 ```{r}
 gn <- ah[["AH49723"]]
+
+```
+</div>
+<div>
+```{r}
 extractTranscriptSeqs(gn, exs)
 ```
 
@@ -404,40 +428,54 @@ getSeq(gn, rng)
 
 ## Online resources: *biomaRt* {.build}
 
+<div>
 - Biomart is an Ensembl service providing a web API to retrieve annotations.
 - Bioconductor's *biomaRt* package allows to query Ensembl Biomart servers.
+</div>
+<div>
 
 ```{r, warning = FALSE}
 library(biomaRt)
 listMarts()
 ```
 
+</div>
+<div>
 - Connect to a Biomart server.
 
 ```{r, warning = FALSE}
 mart <- useMart("ENSEMBL_MART_ENSEMBL")
 ```
 
+</div>
+
 ## *biomaRt* data sets {.build}
 
+<div>
 - And we can then check for the available data sets on a particular
   server.
+</div>
+<div>
 
 ```{r, warning = FALSE}
 listDatasets(mart) |> head()
 ```
 
+
 - We've got annotations for almost all species.
 
+</div>
 
 ## *biomaRt* queries {.build}
 
+<div>
 - Connect to a particular Biomart data set.
 
 ```{r, warning = FALSE}
 mart <- useMart("ENSEMBL_MART_ENSEMBL","hsapiens_gene_ensembl")
 ```
-
+</div>
+<div>
 - Query the resource using `getBM(attributes, filters, values, mart)`.
 
 where
@@ -447,8 +485,9 @@ where
 - *values* are the IDs we **have** (*keys*)
 - *mart* is the `mart` object we set up
 
+</div>
 
-## *biomaRt* attributes and filters {.build}
+## *biomaRt* attributes and filters
 
 - Use `listAttributes` and `listFilters` to get available annotations and
   supported filters.
@@ -501,22 +540,309 @@ getBM(c("ensembl_gene_id", "hgnc_symbol", "chromosome_name"),
 </div>
 </div>
 
-## Last words {.build}
+## Helpful Hints
 
-<div>
+
 - Stick whenever possible with one annotation resource (Ensembl, NCBI, UCSC).
-</div>
-<div>
 - Ensure you're using the same annotation version through your full analysis
   (e.g. aligning reads, gene quantification, annotation of genes).
-</div>
-<div>
 - Prefer *AnnotationHub* over annotation packages: better control of the
   annotation version.
+- For other web based resources, implement caching!
+
+## What is caching?
+<br>
+<br>
+<div class="centered">
+<font color="#1a81c2" size="20">
+BiocFileCache
+</font>
+<br>
+<font color="grey"> Local File Management</font>
+<br>
+<br>
+</div>
+<div class="centered">
+<img src=images/BFC.png width=200> 
+</div> 
+
+## Motivation
+
+- It can be time consuming to download remote resources from the web.
+<div class="centered">
+<img src=images/waiting.jpg width=200> 
+</div> 
+- Better local file organization
+
+
+##  {data-background=images/BFCfunc.png data-background-size="100%"}
+
+## Simple example {.build}
+
+<div>
+```{r, warning = FALSE}
+library(BiocFileCache)
+bfc = BiocFileCache(cache=tempdir())
+bfc
+```
 </div>
 
+<div>
+```{r, warning = FALSE}
+bfcadd(
+bfc,
+rname="GSE52778 Series Matrix",
+fpath="ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE52nnn/GSE52778/matrix/GSE52778_series_matrix.txt.gz")
+```
+</div>
 
-## 
+<div>
+```{r, warning = FALSE}
+bfc
+```
+</div>
+
+## Simple Example (cont) {.build}
+ 
+Add a placehold to use in save/write 
+
+<div>
+```{r, warning = FALSE}
+pathToSave = bfcnew(bfc, rname="MyRDSFile", ext=".rds")
+pathToSave
+```
+</div>
+<div>
+```{r, warning = FALSE}
+bfcinfo(bfc)
+```
+</div>
+
+## Simple Example (cont) {.build}
+
+<div>
+Find files by query
+
+```{r, warning = FALSE}
+bfcquery(bfc, query="RDS")
+```
+
+Retrieve the local path
+
+```{r, warning = FALSE}
+bfcrpath(bfc, rids="BFC2")
+```
+</div>
+<div>
+There is a way to add metadata to the cache. That metadata is also
+query-able. See additional slides and labs for more info on this.
+</div>
+
+## Implementations {.build}
+
+<div>
+- Directly 
+- Package backend to manage package data
+</div>
+<div>
+<br>
+<br>
+<div class="centered">
+Two of those packages are the ExperimentHub and AnnotationHub
+<br>
+"The Hubs"
+<br>
+<img src=images/EH.png width=200> 
+<img src=images/AH.png width=200> 
+</div> 
+
+## AnnotationHub/ExperimentHub "The Hubs"
+
+<div class="centered">
+What is the AnnotationHub and ExperimentHub?
+<br>
+<br>
+Databases
+<br>
+That store metadata about resources,
+<br>
+Including download location
+
+## AnnotationHub() / ExperimentHub()
+
+- create a hub object
+- sqlite database backend
+    + metadata about the resources including download location
+- Files are stored remotely and downloaded as needed/requested
+    + Stored elsewhere (Zenodo, figshare, etc - preapproval recommended)
+    + Bioconductor default Microsoft Azure Data Lake
+- After downloaded, file is cached (with BiocFileCache) for quick access for future runs
+
+## How do you find resources of interest?
+
+<br>
+<br>
+
+- query()
+    + general search (recommended)
+<br>
+<br>
+
+- subset()
+    + exact search
+
+<br>
+<br>
+Both of these act against the metadata of the database
+
+## What is metadata?
+
+<br>
+
+- Provided by contributor at the time of data inclusion in the hub database
+- Metadata columns:
+<font size="3">
+    + Title
+    + Data provider
+    + Data Class
+    + Species
+    + Taxonomy Id
+    + Genome
+    + Description
+    + Source Type
+    + Date Date Added
+    + Preparer Classes (Package name / Recipe)
+    + Tags
+    + Maintainer
+    + Data Path
+    + Source URL
+    + Coordinate 1-based
+</font>
+
+## Example: {.build}
+
+<div>
+```{r, warning = FALSE}
+library(AnnotationHub)
+hub = AnnotationHub()
+```
+</div>
+<div>
+```{r, warning = FALSE}
+hub
+```
+</div>
+
+## Example
+
+```{r, warning = FALSE}
+names(mcols(hub))
+```
+
+## Example {.build}
+
+<div>
+```{r, warning = FALSE}
+length(unique(tolower(hub$species)))
+head(unique(tolower(hub$species)))
+```
+</div>
+<div>
+```{r, warning = FALSE}
+length(unique(hub$rdataclass))
+unique(hub$rdataclass)
+```
+</div>
+
+## Example
+
+```{r, warning = FALSE}
+query(hub, "Canis familiaris")
+```
+
+## Example
+
+```{r, warning = FALSE}
+query(hub, c("Canis familiaris", "GRanges"))
+```
+
+## Example {.build}
+
+<div>
+```{r, warning = FALSE}
+query(hub, c("Canis familiaris", "GRanges", "release-99"))
+```
+</div>
+<div>
+Queries are like google searches, the more specific terms, the more specialized
+results
+
+</div>
+
+## Example 
+
+Single Bracket "[", Will let you investigate the metadata of a resource WITHOUT downloading 
+
+```{r, warning = FALSE}
+hub["AH79003"]
+```
+
+## Example {.build}
+ 
+Double Bracket "[[", will download and cache
+
+<div>
+```{r, message = TRUE}
+dogGR = hub[["AH79003"]]
+```
+</div>
+<div>
+```{r}
+summary(dogGR)
+```
+</div>
+```{r, message = TRUE}
+dogGR = hub[["AH79003"]]
+```
+<div>
+
+## Example
+
+```{r, warning=FALSE}
+library(GenomicFeatures)
+TxDb = makeTxDbFromGRanges(dogGR)
+TxDb
+```
+
+## Example
+
+```{r, warning = FALSE}
+query(hub, c("Canis familiaris", "TxDb"))
+```
+
+## Example
+
+```{r}
+subset(hub, rdataclass=="TxDb" & species =="Canis familiaris")
+```
+
+## Example {.build}
+
+<div>
+But subset is exact match ...
+```{r}
+subset(hub, rdataclass=="TxDb" & species =="Canis familiaris" & title=="canFam6")
+
+```
+</div>
+<div>
+Which is why we suggest query
+```{r}
+query(hub, c("TxDb", "Canis familiaris", "canFam6"))
+```
+</div>
+
+##
 
 <div style="position:absolute; top:48%; left:33%;">
 **Thank you for your attention**

@@ -76,5 +76,47 @@ tximport
 ## Katharina Imkeller (KI)
 
 ## Lori Kern (LK)
+airway
+AnnotationDbi
+AnnotationHub
+BiocCheck
+BiocFileCache
+BiocManager
+BiocParallel
+biocthis
+biomaRt
+Biostrings
+BSgenome
+BSgenome.Hsapiens.UCSC.hg19
+BSgenome.Hsapiens.UCSC.hg38
+devtools
+dplyr
+ensembldb
+EnsDb.Hsapiens.v86
+ExperimentHub
+GenomicAlignments
+GenomicRanges
+GenomicFeatures
+ggplot2
+Gviz
+Homo.sapiens
+HubPub
+hugene20sttranscriptcluster.db
+IRanges
+KEGGREST
+org.Hs.eg.db
+Organism.dplyr
+readr
+rtracklayer
+Rsamtools
+RNAseqData.HNRNPC.bam.chr14
+SummarizedExperiment
+tibble
+tidyr
+tidyverse
+TxDb.Hsapiens.UCSC.hg19.knownGene
+TxDb.Hsapiens.UCSC.hg38.knownGene
+VariantAnnotation
+
 
 ## Mike Love (ML)
