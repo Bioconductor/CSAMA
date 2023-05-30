@@ -1,0 +1,68 @@
+/* slides > slide.backdrop { */
+/*   background: white; */
+/*   border-bottom: 0px; */
+/*   box-shadow: 0 0 0; */
+/* } */
+
+slides > slide {
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+  border-bottom: 3px solid #d04c29;
+  color: #1e2b38;
+  width: 1024px;
+  height: 768px;
+  margin-left: -512px;
+  margin-top: -384px;
+  /* padding: 20px 20px 30px 30px; */
+  /* /\* color: #34495e; *\/ */
+  /* background: #ffffff; */
+  /* /\* color: #838b93; *\/ */
+  /* box-shadow:  0 3px 0 #522D80; */
+}
+
+/* The source code blocks */
+pre {
+    font-size: 18px;
+    line-hight: 19px;
+    /* font-size: 90%; */
+    /* font-family: 'Inconsolata', sans-serif; */
+}
+
+h1 {
+    color: #d04c29;
+}
+
+h2 {
+    color: #d04c29;
+}
+
+h3 {
+    color: #1e2b38;
+}
+
+strong {
+    color: #d04c29;
+}
+
+code {
+    /* color: #6baee2; */
+    /* color: #446CB3; */
+    color: rgb(80, 80, 80);
+    background-color: rgb(230, 230, 230);
+    /* font-size: 90%; */
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+ul {
+    list-style: none;
+}
+
+ul li::before {
+    content: "\2022";
+    color: #cccdcc;
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
+
