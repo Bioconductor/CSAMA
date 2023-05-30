@@ -29,6 +29,7 @@ RforMassSpectrometry/SpectraVis
 
 ## Johannes Rainer (JR)
 RforMassSpectrometry/Spectra
+RforMassSpectrometry/MsCoreUtils
 MsExperiment
 MetaboCoreUtils
 MetaboAnnotation
@@ -36,6 +37,7 @@ png
 sneumann/xcms
 jorainer/SpectraTutorials
 jorainer/MetaboAnnotationTutorials
+jorainer/xcmsTutorials
 
 ## Davide Risso (DR)
 

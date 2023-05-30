@@ -1,7 +1,7 @@
 ---
 title: "Metabolomics Overview"
 author: "Johannes Rainer<br><strong>Eurac Research</strong>, Bolzano, Italy<br>johannes.rainer@eurac.edu - github: jorainer - twitter: jo_rainer"
-date: "CSAMA 2022"
+date: "CSAMA 2023"
 output: 
   ioslides_presentation:
     widescreen: false
@@ -55,7 +55,7 @@ Use presenter mode: append ?presentme=true to the URL
 
 - Introduction to metabolomics
 - Types of metabolomics data
-- Handling and processing metabolomics data 
+- Handling and processing metabolomics data
 - Annotation of metabolomics data
 
 ## Metabolite? Metabolism?
@@ -121,10 +121,83 @@ knitr::include_graphics("images/Glycolysis_12.png")
 
 - Metabolites: intermediates and products of cellular processes.
 
+
 ## Metabolomics? {.build}
 
 - Large-scale study of small molecules (metabolites) in a system (cell, tissue,
   organism, ...).
+
+<div>
+**What** are we measuring? ... depends on context:
+</div>
+<div>
+  - (human) metabolomics: metabolites, lipids, ...
+</div>
+<div>
+  - plant and food metabolomics: polyphenoles, ...
+</div>
+<div>
+  - exposomics: chemicals, pharmaceuticals, ...
+</div>
+<div>
+  - environmental sciences: chemicals, metals, ...
+</div>
+
+<div>
+**How** are we measuring these small compounds?
+</div>
+<div>
+- **Nuclear Magnetic Resonance** (NMR): highly specific, not very sensitive.
+- **Mass Spectrometry** (MS): less specific, highly sensitive, high throughput.
+</div>
+
+
+## (*Human*) Metabolomics {.build}
+
+**Where** can we measure small compounds/metabolites?
+
+<div>
+- Blood (serum):
+  - insights into general physiological state.
+  - venous blood/capillary (arterial) blood.
+</div>
+<div>
+- External influence: food, urine, dust (environment/exposome) ...
+</div>
+<div>
+- Cell culture experiments:
+  - supernatant: what did cells consume/produce?
+
+<div style="position:absolute; left:10%; top:75%;">
+<img src="images/cell-culture-002.png" width = 700/>
+</div>
+</div>
+
+
+## (*Human*) Metabolomics
+
+**Where** can we measure small compounds/metabolites?
+
+<div>
+- Blood (serum):
+  - insights into general physiological state.
+  - venous blood/capillary (arterial) blood.
+</div>
+<div>
+- External influence: food, urine, stool samples, dust ...
+</div>
+<div>
+- Cell culture experiments:
+  - supernatant: what did cells consume/produce?
+  - cell extracts: insights in mitochondrial metabolism.
+
+<div style="position:absolute; left:10%; top:75%;">
+<img src="images/cell-culture-002.png" width = 700/>
+</div>
+</div>
+
+
+## Metabolomics {.build}
 
 <div>
 ### Putting metabolomics into context:
@@ -145,8 +218,8 @@ knitr::include_graphics("images/Glycolysis_12.png")
 ### Properties of the metabolome:
 </div>
 <div>
-- Metabolome is highly dynamic.
-- Metabolome influenced by genetic *and* environmental factors.
+- Metabolome is **highly dynamic**.
+- Metabolome influenced by **genetic** *and* **environmental factors**.
 </div>
 
 ## Influence from genetic factors {.build}
@@ -185,31 +258,7 @@ knitr::include_graphics("images/Glycolysis_12.png")
 </div>
 
 
-## Where can we measure metabolites? {.build}
-
-<div>
-- Blood (serum):
-  - insights into general physiological state.
-  - venous blood/capillary (arterial) blood.
-</div>
-<div>
-- Cell extracts:
-  - insights in mitochondrial metabolism.
-</div>
-<div>
-- Cell supernatant:
-  - what did cells *consume*?
-</div>
-<div>
-- Other: plants, urine, food, soil, water (environmental sciences) ...
-</div>
-
 ## How can we measure metabolites? {.build}
-
-<div>
-- Nuclear Magnetic Resonance (NMR) - not covered here.
-- Mass spectrometry (MS)-based metabolomics.
-</div>
 
 <div>
 - Metabolites small enough to be directly measured by MS.
@@ -249,11 +298,136 @@ knitr::include_graphics("images/Spectrum1_mod.png")
 ```
 </div>
 
-<div style="position:absolute; top:65%;left:7%">
+## Mass Spectrometry (MS)
+
+<div style="position:absolute; top:28%; left:7%; width:400px">
+```{r out.width = "400px", echo = FALSE}
+knitr::include_graphics("images/MS_ionization_mod.png")
+```
+</div>
+<div style="position:absolute; top:13%; left:49%; width:430px">
+```{r out.width = "430px", echo = FALSE}
+knitr::include_graphics("images/TPC.png")
+```
+</div>
+
+## Mass Spectrometry (MS)
+
+<div style="position:absolute; top:28%; left:7%; width:400px">
+```{r out.width = "400px", echo = FALSE}
+knitr::include_graphics("images/MS_ionization_mod.png")
+```
+</div>
+<div style="position:absolute; top:13%; left:49%; width:430px">
+```{r out.width = "430px", echo = FALSE}
+knitr::include_graphics("images/TPC-sel.png")
+```
+</div>
+
+<div style="position:absolute; top:57%; left:10%;">
+**Glucose** (C6H12O6)
+</div>
+
+
+## Mass Spectrometry (MS)
+
+<div style="position:absolute; top:28%; left:7%; width:400px">
+```{r out.width = "400px", echo = FALSE}
+knitr::include_graphics("images/MS_ionization_mod.png")
+```
+</div>
+<div style="position:absolute; top:13%; left:49%; width:430px">
+```{r out.width = "430px", echo = FALSE}
+knitr::include_graphics("images/TPC-sel.png")
+```
+</div>
+
+<div style="position:absolute; top:57%; left:10%;">
+**Glucose** (C6H12O6)
+</div>
+<div style="position:absolute; top:63%; left:10%;">
+**Fructose** (C6H12O6)
+</div>
+</div>
+<div style="position:absolute; top:69%; left:10%;">
+**Mannose** (C6H12O6)
+</div>
+
+
+## Mass Spectrometry (MS)
+
+<div style="position:absolute; top:28%; left:7%; width:400px">
+```{r out.width = "400px", echo = FALSE}
+knitr::include_graphics("images/MS_ionization_mod.png")
+```
+</div>
+<div style="position:absolute; top:13%; left:49%; width:430px">
+```{r out.width = "430px", echo = FALSE}
+knitr::include_graphics("images/TPC-sel.png")
+```
+</div>
+
+<div style="position:absolute; top:57%; left:10%;">
+**Glucose** (C6H12O6)
+</div>
+<div style="position:absolute; top:63%; left:10%;">
+**Fructose** (C6H12O6)
+</div>
+<div style="position:absolute; top:69%; left:10%;">
+**Mannose** (C6H12O6)
+</div>
+
+<div style="position:absolute; top:80%;left:7%">
 > - **Problem:** unable to distinguish between metabolites with the same/similar 
     mass-to-charge ratio (*m/z*).
 > - **Solution:** additional separation of metabolites prior to MS.
 </div>
+
+
+## Mass Spectrometry (MS)
+
+<div style="position:absolute; top:28%; left:7%; width:400px">
+```{r out.width = "400px", echo = FALSE}
+knitr::include_graphics("images/MS_ionization_mod.png")
+```
+</div>
+<div style="position:absolute; top:13%; left:49%; width:430px">
+```{r out.width = "430px", echo = FALSE}
+knitr::include_graphics("images/TPC-sel.png")
+```
+</div>
+
+<div style="position:absolute; top:57%; left:10%;">
+**Glucose** (C6H12O6)
+</div>
+<div style="position:absolute; top:54%; left:35%;">
+```{r out.width = "80px", echo = FALSE}
+knitr::include_graphics("images/hmdb-glucose.png")
+```
+</div>
+<div style="position:absolute; top:63%; left:10%;">
+**Fructose** (C6H12O6)
+</div>
+<div style="position:absolute; top:60%; left:35%;">
+```{r out.width = "80px", echo = FALSE}
+knitr::include_graphics("images/hmdb-fructose.png")
+```
+</div>
+<div style="position:absolute; top:69%; left:10%;">
+**Mannose** (C6H12O6)
+</div>
+<div style="position:absolute; top:66%; left:35%;">
+```{r out.width = "80px", echo = FALSE}
+knitr::include_graphics("images/hmdb-mannose.png")
+```
+</div>
+
+<div style="position:absolute; top:80%;left:7%">
+- **Problem:** unable to distinguish between metabolites with the same/similar 
+    mass-to-charge ratio (*m/z*).
+- **Solution:** additional separation of metabolites prior to MS.
+</div>
+
 
 
 ## Liquid chromatography {.build}
@@ -418,6 +592,24 @@ We gain an additional dimension:
 </div>
 
 
+## | **Liquid Chromatography Mass Spectrometry (LC-MS)** {.notransition}
+
+<div>
+<img src="images/LC-MS-example.gif" width = 700>
+</div>
+
+
+## | **Liquid Chromatography Mass Spectrometry (LC-MS)** {.notransition}
+
+Signal along retention time axis (chromatogram): m/z for [M+Na]+ ion of
+*C6H12O6*.
+
+<div>
+<img src="images/LC-MS-glucose.png" width = 600>
+</div>
+
+
+
 ## Mass Spectrometry Data in *R*{.build}
 
 ```{r, echo = FALSE, message = FALSE}
@@ -455,7 +647,40 @@ std_data <- refineChromPeaks(std_data, MergeNeighboringPeaksParam(expandRt = 3))
 
 <div>
 <div style="position:absolute; left:115px; top:513px;">
-<img src="images/Spectra.png" width=140>
+<img src="images/Spectra-rainbow.png" width=140>
+</div>
+<div style="position:absolute; left:29%; top:580px;">
+`sps <- Spectra(fl, backend = MsBackendMzR())`
+</div>
+</div>
+
+
+## Mass Spectrometry Data in *R*
+
+
+<div>
+- Data stored in *mzML* files.
+</div>
+<div>
+- To load such data into *R*:
+</div>
+
+<div style="position:absolute; left:45px; top:391px;">
+<img src="images/mzR.png" width=140>
+</div>
+
+<div>
+<div style="position:absolute; left:115px; top:270px;">
+<img src="images/MsExperiment.png" width=140>
+</div>
+<div style="position:absolute; left:29%; top:335px;">
+`ms <- readMsExperiment(fl)`
+</div>
+</div>
+
+<div>
+<div style="position:absolute; left:115px; top:513px;">
+<img src="images/Spectra-rainbow.png" width=140>
 </div>
 <div style="position:absolute; left:29%; top:580px;">
 `sps <- Spectra(fl, backend = MsBackendMzR())`
@@ -487,6 +712,7 @@ std_data <- refineChromPeaks(std_data, MergeNeighboringPeaksParam(expandRt = 3))
 
 ## LC-MS data analysis {.notransition}
 
+<div>
 - Untargeted metabolomics (label-free proteomics).
 
 <div style="position:absolute; left:45px; top:307px;">
@@ -494,7 +720,29 @@ std_data <- refineChromPeaks(std_data, MergeNeighboringPeaksParam(expandRt = 3))
 </div>
 
 <div style="position:absolute; left:115px; top:185px;">
-<img src="images/MSnbase.png" width=140>
+<img src="images/MsExperiment.png" width=140>
+</div>
+</div>
+<div>
+<div style="position:absolute; left:254px; top:185px;">
+<img src="images/xcms.png" width=140>
+</div>
+<div style="position:absolute; left:45%; top:250px;">
+- LC-MS preprocessing:
+</div>
+</div>
+
+
+## LC-MS data analysis {.notransition}
+
+- Untargeted metabolomics (label-free proteomics).
+
+<div style="position:absolute; left:45px; top:307px;">
+<img src="images/mzR.png" width=140>
+</div>
+
+<div style="position:absolute; left:115px; top:185px;">
+<img src="images/MsExperiment.png" width=140>
 </div>
 <div style="position:absolute; left:254px; top:185px;">
 <img src="images/xcms.png" width=140>
@@ -517,7 +765,7 @@ std_data <- refineChromPeaks(std_data, MergeNeighboringPeaksParam(expandRt = 3))
 </div>
 
 <div style="position:absolute; left:115px; top:185px;">
-<img src="images/MSnbase.png" width=140>
+<img src="images/MsExperiment.png" width=140>
 </div>
 <div style="position:absolute; left:254px; top:185px;">
 <img src="images/xcms.png" width=140>
@@ -542,7 +790,7 @@ std_data <- refineChromPeaks(std_data, MergeNeighboringPeaksParam(expandRt = 3))
 </div>
 
 <div style="position:absolute; left:115px; top:185px;">
-<img src="images/MSnbase.png" width=140>
+<img src="images/MsExperiment.png" width=140>
 </div>
 <div style="position:absolute; left:254px; top:185px;">
 <img src="images/xcms.png" width=140>
@@ -568,7 +816,7 @@ std_data <- refineChromPeaks(std_data, MergeNeighboringPeaksParam(expandRt = 3))
 </div>
 
 <div style="position:absolute; left:115px; top:185px;">
-<img src="images/MSnbase.png" width=140>
+<img src="images/MsExperiment.png" width=140>
 </div>
 <div style="position:absolute; left:254px; top:185px;">
 <img src="images/xcms.png" width=140>
@@ -705,7 +953,7 @@ mtch <- matchValues(query, target,
 
 <div style="position:absolute; left:5%; top:84%;">
 - `query`: experimental *m/z* values.
-- `target`: reference masses.
+- `target`: reference masses (e.g. from *HMDB*, *ChEBI*, *PubChem*, ...).
 </div>
 
 ## A little additional complication {.build}
@@ -798,7 +1046,7 @@ plotSpectraMirror(sps[1], sps[2], ppm = 70)
 
 <div>
 <div style="position:absolute; left:50px; top:120px;">
-<img src="images/Spectra.png" width=140>
+<img src="images/Spectra-rainbow.png" width=140>
 </div>
 <div style="position:absolute; left:25%; top:178px;">
 ```{r, eval = FALSE}
@@ -833,26 +1081,36 @@ python MS libraries (*matchms*, *MS2DeepScore*) into *Spectra*-based workflows.
 ## Workshops {.build}
 
 <div>
-<div style="position:absolute; left:70px; top:230px;">
-<img src="images/Spectra.png" width=140>
+<div style="position:absolute; left:70px; top:130px;">
+<img src="images/xcms.png" width=140>
 </div>
-<div style="position:absolute; left:25%; top:279px;">
+<div style="position:absolute; left:25%; top:179px;">
+[`xcmsTutorials`](https://github.com/jorainer/xcmsTutorials): 
+exploring and analyzing LC-MS using *Spectra* and *xcms*.
+</div>
+</div>
+
+<div>
+<div style="position:absolute; left:70px; top:300px;">
+<img src="images/Spectra-rainbow.png" width=140>
+</div>
+<div style="position:absolute; left:25%; top:352px;">
 [`SpectraTutorials`](https://github.com/jorainer/SpectraTutorials): 
 introduction to MS data handling and processing using *Spectra*.
 </div>
 </div>
 
 <div>
-<div style="position:absolute; left:70px; top:400px;">
+<div style="position:absolute; left:70px; top:470px;">
 <img src="images/MetaboAnnotation.png" width=140>
 </div>
-<div style="position:absolute; left:25%; top:452px;">
+<div style="position:absolute; left:25%; top:522px;">
 [`MetaboAnnotationTutorials`](https://github.com/jorainer/MetaboAnnotationTutorials): 
 annotation of untargeted metabolomics data.
 </div>
 </div>
 
-<div style="position:absolute; left:70px; top:600px;">
+<div style="position:absolute; left:70px; top:650px;">
 [Info on workshops](https://github.com/Bioconductor/CSAMA)
 <div>
 
