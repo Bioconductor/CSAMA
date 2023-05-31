@@ -1,0 +1,183 @@
+---
+title: "Creating A Bioconductor Package"
+author: "Lori Shepherd Kern  <Lori.Shepherd@roswellpark.org>"
+date: 12-16 June | CSAMA 2023
+output:
+  ioslides_presentation:
+    fig_retina: null
+    css: style.css
+    widescreen: false
+vignette: >
+  %\VignetteIndexEntry{Creating A Bioconductor Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+---
+
+<style scoped>
+ul > li:before {
+    color: #1a81c2;
+    vertical-align: middle;
+    font-family: "Arial Black";
+    font-weight: 900;
+    margin-left: -.85em;
+	}
+
+
+.build > * {
+  -webkit-transition: opacity 0.1s ease-in-out;
+  -webkit-transition-delay: 0.1s;
+  -moz-transition: opacity 0.1s ease-in-out 0.1s;
+  -o-transition: opacity 0.1s ease-in-out 0.1s;
+  transition: opacity 0.1s ease-in-out 0.1s;
+}
+
+	</style>
+
+```{r setup, echo=FALSE, warning=FALSE}
+suppressPackageStartupMessages({
+    library(BiocCheck)
+    library(devtools)
+    library(HubPub)
+    library(biocthis)
+})
+```
+## Creating A Bioconductor Package {.build}
+
+<div>
+<font color=#87b13f>
+Useful Tools/Links
+</font>
+
+- [devtools][] / `devtools::create`
+</div>
+<div>
+- [biocthis][]
+</div>
+<div>
+- [HubPub][]
+</div>
+<div>
+- [BiocCheck][]
+</div>
+<div>
+- https://contributions.bioconductor.org
+</div>
+
+## Important Concepts for Submitting to Bioconductor {.build}
+
+<div>
+- [BiocCheck][]: Bioconductor specific checks
+</div>
+<div>
+- [biocViews](http://contributions.bioconductor.org/important-bioconductor-package-development-features.html#biocviews) terms in DESCRIPTION
+</div>
+<div>
+- open source License
+</div>
+<div>
+- reuse existing [methods and classes](http://contributions.bioconductor.org/important-bioconductor-package-development-features.html#reusebioc)
+</div>
+<div>
+- vignette:
+    + detailed
+    + runnable code
+    + Bioconductor justification and comparison to similar packages
+    + [BiocStyle][] encouraged
+    + `install()` section in beginning in an `eval=FALSE`
+    + `sessionInfo()` at the end
+</div>
+
+## Bioconductor uses git for source control
+
+<div class="centered">
+http://contributions.bioconductor.org/git-version-control.html
+</div>
+
+- All Bioconductor packages need to be submitted with a github repository
+  (bitbucket, etc currently not supported)
+
+- Once in the submission process, you will need to push changes to the
+  Bioconductor location at `git.bioconductor.org` with a valid version bump. 
+
+   + This is also true once in Bioconductor on the daily builder. Changes and
+   updates will not propagate to users without a valid version bump!
+
+- Bioconductor default is `devel` branch. You won't have a RELEASE_X_Y branch
+  until the package is released with the next upcoming Bioconductor release.
+
+## Submission Process and What to expect
+
+<font size=4.5pt>
+
+<div class="centered">
+http://contributions.bioconductor.org/bioconductor-package-submissions.html
+</div>
+
+<br>
+
+- Submit to https://github.com/Bioconductor/Contributions/issues by creating a
+  `New issue`.
+    + Make sure to use your github repo location.
+    + Make sure the version is 0.99.0 for intial submission.
+    + Make sure to have a ssh key uploaded as we will use it for access to our system
+
+- `awaiting moderation` for a quick pass to make sure nothing illegal or
+  dangerous; if all is good than `precheck passed`
+
+- Package is processed
+    + added to `git.bioconductor.org`,
+    + an initial build report is created that includes install, build, check, bioccheck
+    + reviewer assigned
+    + label `review in progress` added
+
+</font>
+
+## Submission Process and What to expect (cont)
+
+<font size=4.5pt>
+
+<div class="centered">
+http://contributions.bioconductor.org/bioconductor-package-submissions.html
+</div>
+
+<br>
+
+- Make sure your package passes without ERROR; fix and push to
+  git.bioconductor.org with a valid version bump until it does
+
+- Reviewers and Submitters should try to respond within 3 weeks for forward
+  progress. There will likely be some back and forth. The reviewer will
+  recommend changes to the package. Submitter should make appropriate changes.
+
+- Once it is in an acceptable state the reviewer will accept the package
+  `accepted`
+
+- Accepted packages are processed about once a week and moved to the daily
+  builder. They will then have a landing page and be available through BiocManager
+
+</font>
+
+## Submitting Related / Dependent Packages
+
+<div class="centered">
+There is a process for submitting related packages. <br>
+https://github.com/Bioconductor/Contributions#submitting-related-packages
+</div>
+
+<br>
+
+- Submit the lower dependency first!
+- Once that package is in `review in progress`; submit the package using `AdditionalPackage:`
+- If you have more than 3 related packages please reach out before submission 
+
+## Open Discussion
+
+What are your questions? concerns?
+
+
+[BiocCheck]: https://bioconductor.org/packages/release/bioc/html/BiocCheck.html
+[biocthis]: https://bioconductor.org/packages/release/bioc/html/biocthis.html
+[devtools]: https://devtools.r-lib.org/
+[HubPub]: https://www.bioconductor.org/packages/release/bioc/html/HubPub.html
+[BiocStyle]: https://www.bioconductor.org/packages/release/bioc/html/BiocStyle.html
