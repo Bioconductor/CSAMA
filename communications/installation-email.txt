@@ -14,7 +14,7 @@ If you are using Windows we recommend Git-For-Windows (https://git-for-windows.g
 
 3. Install a recent version of RStudio. Instructions are available here: https://posit.co/download/rstudio-desktop/
 
-4a. (ONLY FOR WINDOWS USERS) Download and install Rtools, avaiable from: https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html  You should restart R after you have done this, for the changes to take effect.
+4a. (ONLY FOR WINDOWS USERS) Download and install Rtools, avaiable from: https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html (Please use Rtools42 due to a bug in Rstudio with newever versions).  If you have Rstudio open you should close Rstudio and start it again after you have this for the changes to take effect.
 
 4b. (ONLY FOR LINUX USERS)  If you use Linux it is likely you will need to install some additional system libraries. An example installation of the required libraries for Ubuntu 20.04 can be found at https://csama2023.bioconductor.eu/linux_libraries.html You may need to adjust this for your own Linux distribution.  In our experiences, it is best
 to move to the next step and return here if needed.
