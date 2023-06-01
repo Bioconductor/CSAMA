@@ -48,6 +48,18 @@ OSCA.basic
 OSCA.advanced
 OSCA.multisample
 OSCA.workflows
+ade4
+airway           
+Biobase            
+dplyr           
+factoextra          
+GGally  
+ggplot2             
+Hiiragi2013 
+MASS
+pheatmap   
+phyloseq
+SummarizedExperiment
 
 ## Wolfgang Huber (WH)
 
