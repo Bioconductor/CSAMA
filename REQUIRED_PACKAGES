@@ -160,3 +160,29 @@ VariantAnnotation
 
 
 ## Mike Love (ML)
+dplyr
+tidyr
+randomNames
+plyranges
+TxDb.Hsapiens.UCSC.hg19.knownGene
+tibble
+org.Hs.eg.db
+AnnotationHub
+GenomeInfoDb
+nullranges
+ggplot2
+ggridges
+plotgardener
+oct4
+tximeta
+org.Mm.eg.db
+SummarizedExperiment
+AnnotationDbi
+tidySummarizedExperiment
+stringr
+tidybulk
+DESeq2
+ggrepel
+fission
+purrr
+glmnet
