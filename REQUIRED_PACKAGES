@@ -65,6 +65,20 @@ jorainer/MetaboAnnotationTutorials
 jorainer/xcmsTutorials
 
 ## Davide Risso (DR)
+DropletTestFiles
+DropletUtils
+scuttle
+EnsDb.Hsapiens.v86
+scater
+scran
+scDblFinder
+scry
+NewWave
+GGally
+igraph
+SingleR
+celldex
+pheatmap
 
 ## Charlotte Soneson (CS)
 mikelove/airway2
