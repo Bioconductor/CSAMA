@@ -62,6 +62,18 @@ phyloseq
 SummarizedExperiment
 
 ## Wolfgang Huber (WH)
+knitr
+dplyr
+ggplot2
+tidyr
+purrr
+devtools
+reshape2
+stringr
+terrainr
+imagefx
+dill/beyonce
+EBImage
 
 ## Julia Philipp (JP)
 
