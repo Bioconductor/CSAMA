@@ -27,7 +27,7 @@ The script will check if you have the versions of R, Bioconductor and RStudio th
 
 If you encounter any errors, please pay close attention to the messages displayed, they may contain further instructions. 
 
-For questions regarding software installation, please contact Mike Smith (mike.smith [at] embl.de), Julia Philipp (julia.philipp [at] embl.de), and Lori Kern (lori.shepherd [at] roswellpark.org).
+For questions regarding software installation, please contact Mike Smith (mike.smith [at] embl.de) and Julia Philipp (julia.philipp [at] embl.de).
 
 We also have a Slack channel for the course (https://csama-2023.slack.com/) where you can ask support questions and meet fellow course participants.  An invite to this will follow shortly.
 
