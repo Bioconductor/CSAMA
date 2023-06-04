@@ -48,8 +48,33 @@ OSCA.basic
 OSCA.advanced
 OSCA.multisample
 OSCA.workflows
+ade4
+airway           
+Biobase            
+dplyr           
+factoextra          
+GGally  
+ggplot2             
+Hiiragi2013 
+MASS
+pheatmap   
+phyloseq
+SummarizedExperiment
 
 ## Wolfgang Huber (WH)
+knitr
+dplyr
+ggplot2
+tidyr
+purrr
+devtools
+reshape2
+stringr
+terrainr
+imagefx
+dill/beyonce
+EBImage
+IHW
 
 ## Julia Philipp (JP)
 
