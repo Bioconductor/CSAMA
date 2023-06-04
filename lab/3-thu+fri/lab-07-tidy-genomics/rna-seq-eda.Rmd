@@ -1,0 +1,297 @@
+---
+title: RNA-seq EDA
+author: Michael Love
+---
+
+This is a copy of a longer set of tutorials available here:
+
+<https://nullranges.github.io/tidy-ranges-tutorial/>
+
+Objective: learn how to make basic EDA plots (plotting scaled counts)
+of RNA-seq data using tidy-style verbs.
+
+The *tidybulk* Bioconductor package and associated
+[tidy transcriptomics](https://stemangiola.github.io/tidytranscriptomics/post/tidy-transcriptomics-manifesto/) 
+ecosystem (tidySummarizedExperiment, tidySingleCell, tidyseurat, etc.)
+provide a bridge between the *SummarizedExperiment*-style
+representation of matrix data with attached metadata, to the
+tidy-style representation of data (one row per observation).
+For more details on the package, check out the 
+[tidybulk](https://stemangiola.github.io/tidybulk/) 
+website, and the publication: @tidybulk. 
+
+Here we will briefly examine the difference between tidy manipulation
+of these matrix-style objects compared to how these objects would be
+manipulated in other Bioconductor workflows (e.g. DESeq2, edgeR, or
+limma workflows). As you will see, there are multiple ways to generate
+the same or similar exploratory plots and analyses.  we recommend to
+consider which is more appropriate to your purpose. For package code,
+you may prefer to have fewer dependencies, going with core
+Bioconductor objects and packages. For scripting, the "fluent" and
+piped style of *tidybulk* may be preferable, and easier for others to
+read and modify your code at a future date.
+
+Here we just compare code for some basic tasks, scaling counts and
+performing DE with DESeq2. However, note that *tidybulk* has
+many functionalities implemented, including dimension reduction and
+visualization (PCA, MDS, tSNE, UMAP), clustering, gene set testing,
+cell type composition analysis and cell abundance testing, unwanted
+variation modeling, imputation, etc.
+
+Start by loading this RNA-seq dataset from the following paper: 
+@king_klose "The pioneer factor OCT4 requires the chromatin
+remodeller BRG1 to support gene regulatory element function in mouse
+embryonic stem cells" <https://doi.org/10.7554/eLife.22631>. The
+experiment focused on OCT4 as it is a "core pluripotency transcription
+factor" which "occupies sites that would otherwise be inaccessible and
+is required to shape the occupancy of additional pluripotency
+transcription factors".
+
+In this experiment, transcription in mouse embryonic stem cells (ESC)
+was compared with and without OCT4. This was done using a conditional
+mouse ESC line where treatment with a compound leads to loss of OCT4
+expression. The experiment also involved the same approach to another
+transcription factor BRG1, but we focus here on the OCT4 samples.
+
+First we load the metadata about the samples:
+
+```{r}
+library(oct4)
+dir <- system.file("extdata", package="oct4")
+coldata <- read.csv(file.path(dir,"coldata.csv"))
+coldata
+coldata$files <- file.path(dir, "quants", coldata$names, "quant.sf.gz")
+```
+
+Read in the count data with *tximeta*, which automatically imports the
+information about the gene provenance (which transcripts were used to
+quantify the gene and isoform abundance). We then summarize the
+quantification to the gene-level, and add the gene `SYMBOL`.
+
+```{r}
+library(tximeta)
+se <- tximeta(coldata)
+gse <- summarizeToGene(se)
+library(org.Mm.eg.db)
+gse <- addIds(gse, "SYMBOL")
+```
+
+For this workflow, we don't need the inferential replicates (about
+uncertainty regarding the quantification), so we keep just the counts,
+abundances (TPM), and gene lengths. We also manipulate the metadata a
+little bit.
+
+```{r message=FALSE}
+library(SummarizedExperiment)
+library(GenomicFeatures)
+assayNames(gse)
+assays(gse) <- assays(gse)[1:3]
+gse$rep <- rep(1:3, 4)
+colnames(gse) <- paste(gse$line,gse$condition,gse$rep,sep="-")
+assay(gse, "counts") <- round(assay(gse, "counts")) # for DE consistency
+# you can save here for easy loading later
+# save(gse, file="oct4_obj.rda")
+```
+
+The dataset looks like this (remember it has untreated and treated
+samples for both OCT4 and BRG1).
+
+```{r}
+gse
+```
+
+We will be interested in the gene set from the Gene Ontology project,
+which describes maintenance of pluripotency. We can extra this from
+the mouse organism data package with the following three lines of
+code: 
+
+```{r}
+library(AnnotationDbi)
+library(org.Mm.eg.db)
+# pluripotency
+tab <- AnnotationDbi::select(org.Mm.eg.db, "GO:0019827", "SYMBOL", "GO")
+tab <- tab[!duplicated(tab$SYMBOL),]
+pluri <- tab$SYMBOL
+```
+
+Now we start with *tidybulk* code, comparing in turn to base R.
+Loading *tidySummarizedExperiment* allows us to operate on the `gse`
+object using familiar "tidy" verbs, thanks to an abstraction described
+in the [tidySummarizedExperiment](https://stemangiola.github.io/tidySummarizedExperiment/)
+documentation.
+We filter the samples that correspond to the OCT4 experiment, and then
+modify the sample names. Samples are referred to with the special
+`.sample` string, while features are referred to with `.feature`, so
+here we create a new variable to plot the samples `sample_name`.
+
+```{r message=FALSE}
+library(tidySummarizedExperiment)
+library(dplyr)
+library(stringr)
+oct4 <- gse %>%
+  filter(line == "OCT4") %>%
+  mutate(sample_name = .sample %>%
+           str_remove("OCT4-") %>%
+           factor(levels = unique(.)),
+         condition = condition %>% factor(c("untrt","trt")))
+```
+
+Note, the third line in the `mutate` call uses the `unique` function
+to set the levels: the consequence of this is that the `sample_name`
+factor will have levels in the order in which they are present in the
+current character vector and not alphabetical.
+
+```{r}
+oct4
+```
+
+*tidybulk* provides access to many steps in bulk analysis, including
+filtering and count scaling. For details on what is happening behind
+the scene, see the help, e.g. `?keep_abundant` describes that it makes
+use of `edgeR::filterByExpr`.
+
+```{r message=FALSE}
+library(tidybulk)
+oct4 <- oct4 %>%
+  keep_abundant(factor_of_interest = condition) %>%
+  scale_abundance(method="RLE") # DESeq2 scaling
+```
+
+It is straightforward to pipe the data directly into plots:
+
+```{r tidy-boxplot}
+library(ggplot2)
+oct4 %>%
+  ggplot(aes(sample_name, counts_scaled + 1)) +
+  geom_boxplot() +
+  scale_y_log10()
+```
+
+For comparing code, let's pull out the genes that remain:
+
+```{r}
+gene_idx <- oct4 %>% pivot_transcript() %>% pull(.feature)
+head(gene_idx)
+```
+
+The equivalent code in DESeq2. Understanding this code requires
+knowledge that `boxplot` plots columns of a matrix.
+
+```{r deseq-boxplot}
+library(DESeq2)
+gse_sub <- gse[ gene_idx , gse$line == "OCT4" ]
+gse_sub$condition <- factor(gse_sub$condition)
+dds <- gse_sub %>%
+  DESeqDataSet(~condition) %>%
+  estimateSizeFactors()
+boxplot(counts(dds, normalized=TRUE) + 1, log="y")
+```
+
+We can also make more interesting plots. E.g. for the genes involved
+in pluripotency, make a line plot, highlighting OCT4. In addition,
+center the log counts for each gene (subtract the mean of log counts
+across samples).
+
+```{r tidy-lines}
+oct4 %>%
+  filter(SYMBOL %in% pluri) %>%
+  mutate(logcounts = log10(counts_scaled + 1)) %>%
+  mutate(Oct4 = ifelse(SYMBOL == "Pou5f1", "red", "black")) %>%
+  group_by(.feature) %>%
+  mutate(logcounts = logcounts - mean(logcounts)) %>%
+  ungroup() %>%
+  ggplot(aes(sample_name, logcounts, group=.feature, color=Oct4)) +
+  geom_point() +
+  geom_line() +
+  scale_color_identity()
+```
+
+The equivalent code for base R requires defining more intermediate
+variables and control flow code (the `for` loop). While there's
+nothing particularly right or wrong about the two choices, the above
+prioritizes the operations in a way that is human readable. In some
+cases, e.g. performing linear algebra operations on matrices, base R
+code may prove to be more efficient, which is a consideration for what
+to use in package source code.
+
+```{r deseq-lines}
+pluri_idx <- mcols(dds)$SYMBOL %in% pluri
+mat <- log10(counts(dds, normalized=TRUE)[pluri_idx,] + 1)
+mat <- mat - rowMeans(mat)
+hilite <- rownames(dds)[which(mcols(dds)$SYMBOL == "Pou5f1")]
+plot(mat[1,], type="n", ylim=c(-1,1), xlab="samples", ylab="logcounts")
+for (i in 1:nrow(mat)) {
+  col <- ifelse(rownames(mat)[i] == hilite, "red", "black")
+  points(mat[i,], type="b", col=col)
+}
+```
+
+We can test for differential expression with DESeq2:
+
+```{r}
+res <- dds[gene_idx,] %>%
+  DESeq(quiet=TRUE) %>%
+  results()
+```
+
+Or equivalently with *tidybulk*:
+
+```{r}
+oct4 <- oct4 %>%
+  test_differential_abundance(~condition, method="deseq2")
+tidy_res <- oct4 %>%
+  pivot_transcript()
+```
+
+Because we have filtered the two objects identically, we obtain the
+same test results:
+
+```{r}
+all.equal(rownames(res), tidy_res$.feature)
+table(base_sig = res$padj < .1, tidy_sig = tidy_res$padj < .1)
+```
+
+Finally, we build up to a more interesting plot. Suppose we now want
+to split the genes involved in pluripotency by the DE result (the
+significance and LFC), and then add the gene symbol to the side.
+
+We begin by building the dataset:
+
+```{r}
+plot_data <- oct4 %>%
+  filter(SYMBOL %in% pluri) %>%
+  mutate(logcounts = log10(counts_scaled + 1)) %>%
+  mutate(Oct4 = ifelse(SYMBOL == "Pou5f1", "red", "black")) %>%
+  group_by(.feature) %>%
+  mutate(logcounts = logcounts - mean(logcounts)) %>%
+  ungroup() %>%
+  mutate(gene_type = case_when(
+           padj < .1 & log2FoldChange > 0 ~ "up",
+           padj < .1 & log2FoldChange < 0 ~ "down",
+           TRUE ~ "null"))
+```
+
+Now we repeat the code from before, but now faceting by
+`gene_type`. Furthermore, we use `geom_text_repel` to add labels to
+the right side.
+
+```{r tidy-lines-faceted}
+library(ggrepel)
+plot_data %>%
+  filter(gene_type != "null") %>%
+  ggplot(aes(sample_name, logcounts, group=.feature, color=Oct4)) +
+  geom_point() +
+  geom_line() +
+  geom_text_repel(data=plot_data %>%
+                    filter(sample_name == "trt-3", gene_type != "null"),
+                  aes(sample_name, logcounts, label=SYMBOL),
+                  nudge_x=.5, seed=1, max.overlaps=Inf) +
+  scale_color_identity() +
+  facet_wrap(~gene_type) +
+  scale_x_discrete(expand = expansion(add = 2)) +
+  xlab("sample")
+```
+
+```{r}
+sessionInfo()
+```
