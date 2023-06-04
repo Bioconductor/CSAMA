@@ -240,6 +240,8 @@ Since this is human data, we will use the `r Biocpkg("org.Hs.eg.db")` package.
 
 ```{r addsymbol}
 ## Add gene symbols
+## Works because we know the provenance of the identifiers
+metadata(sg)$txomeInfo$source # GENCODE
 sg <- tximeta::addIds(sg, "SYMBOL", gene = TRUE)
 sg
 head(rowData(sg))
@@ -314,6 +316,12 @@ colData(sg)$treatment <- relevel(colData(sg)$treatment, ref = "Untreated")
 colData(sg)$treatment
 ```
 
+Also converting `cell_line` into a factor:
+
+```{r factorcell}
+colData(sg)$cell_line <- factor(colData(sg)$cell_line)
+```
+
 We can use R's formula notation to express any fixed-effects experimental design for *edgeR* or *DESeq2*. 
 Note that these packages use the same formula notation as, for instance, the `lm` function of base R.
 
@@ -354,10 +362,13 @@ nrow(dds)
 table(rowSums(assay(dds, "counts")) == 0)
 ```
 
-Here, we additionally remove genes that have a single read across the samples. 
+Here, we additionally filter to only keep genes with at least 10
+counts for at least 4 samples. This again will help to reduce
+computation, and also makes some of the plots easier to read.
 
 ```{r filtering1}
-keep <- rowSums(counts(dds)) > 1
+keep <- rowSums(counts(dds) >= 10) >= 4
+table(keep)
 dds <- dds[keep, ]
 dim(dds)
 ```
@@ -745,15 +756,17 @@ We can compare the sets of significantly differentially expressed genes to see h
 
 ```{r deseq2vsedger}
 shared <- intersect(rownames(res), rownames(tt.all$table))
-table(DESeq2 = res$padj[match(shared, rownames(res))] < 0.1,
-      edgeR = tt.all$table$FDR[match(shared, rownames(tt.all$table))] < 0.1)
+dmatch <- match(shared, rownames(res))
+ematch <- match(shared, rownames(tt.all$table))
+table(DESeq2 = res$padj[dmatch] < 0.1,
+      edgeR = tt.all$table$FDR[ematch] < 0.1)
 ```
 
 We can also compare the two result lists by the ranks:
 
 ```{r deseq2vsedgerplot}
-plot(rank(res$pvalue[match(shared, rownames(res))]),
-     rank(tt.all$table$PValue[match(shared, rownames(tt.all$table))]),
+plot(rank(res$pvalue[dmatch]),
+     rank(tt.all$table$PValue[ematch]),
      cex = 0.1, xlab = "DESeq2", ylab = "edgeR")
 ```
 
