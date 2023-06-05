@@ -24,11 +24,11 @@ suppressPackageStartupMessages({
 ```
 
 Original Authors: Martin Morgan, Sonali Arora, Lori Shepherd<br />
-Presenting Author: [Martin Morgan][]</br >
-Date: 20 June, 2022</br >
+Presenting Author: [Lori Shepherd][]</br >
+Date: 12-16 June, 2023</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
-[Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
+[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
 **Objective**: An overview of software available in _Bioconductor_.
 
