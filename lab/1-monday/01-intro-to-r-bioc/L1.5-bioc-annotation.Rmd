@@ -32,11 +32,11 @@ suppressPackageStartupMessages({
 ```
 
 Original Authors: Martin Morgan, Sonali Arora, Lori Shepherd<br />
-Presenting Author: [Martin Morgan][]</br >
-Date: 20 June, 2022</br >
+Presenting Author: [Lori Shepherd][]</br >
+Date: 12-16 June, 2023</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
-[Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
+[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
 **Objective**: Learn about _Bioconductor_ resources for gene and
   genome annotation.
@@ -50,6 +50,9 @@ Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 - Access `biomaRt` and other internet-based resources for highly
   flexible annotation.
 - Use `VariantAnnotation` and `VariantFiltering` for annotating SNPs.
+
+**Note**: It may be helpful to wait or look at lecture material for annotations
+  planned for Wednesday.
 
 # Gene annotation
 
@@ -187,6 +190,20 @@ interface to annotation packages.
     ) |>
         as_tibble()
     ```
+
+**Concept Check**:
+
+After completing this previous section you should be able to answer the following:
+
+1. What gene symbol corresponds to Entrez Gene ID 1000?
+2. What is the Ensembl Gene ID for PPARG?
+3. What is the UniProt ID for GAPDH?
+
+```{r, eval=FALSE, echo=FALSE, results='hide'}
+select(org.Hs.eg.db, "1000","SYMBOL")
+select(org.Hs.eg.db, "PPARG", "ENSEMBL", "SYMBOL")
+select(org.Hs.eg.db, "GAPDH", "UNIPROT","SYMBOL")
+```
 
 **Exercise 2**: [biomaRt][].
 
@@ -662,12 +679,53 @@ and the NHLBI [grasp2db][] data base of GWAS results. There are many interesting
 - Programmatically access the genomic coordiantes of clinically
   relevant variants cataloged in dbSNP.
   
-Unfortunately, [AnnotationHub][] makes extensive use of internet
-resources and so we will not pursue it in this course; see the
+[AnnotationHub][] makes extensive use of internet
+resources and so we will not pursue it in this course extensively; see the
 vignettes that come with the pacakge, for instance
-[_AnnotationHub_ HOW-TOs][AH-howto].
+[_AnnotationHub_ HOW-TOs][AH-howto]. Also see Wednesday's annotation lecture and
+additional materials for more information on AnnotationHub and ExperimentHub.
 
 [AH-howto]: http://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html
+
+
+Create a session
+
+```{r hubcreate}
+library(AnnotationHub)
+hub = AnnotationHub()
+hub
+```
+
+Finding what you need in the hubs requires a well formed query or subset call
+against the metadata columns of the searchable database. What types of metadata
+columns are available? 
+
+```{r columns}
+names(mcols(hub))
+```
+
+You can see what values are in each metadata columns
+
+```{r columnsMore}
+head(unique(hub$dataprovider))
+head(unique(hub$rdataclass))
+```
+
+There are two ways to search for data subset and query. Query is recommended as
+subset involves an exact match search while query is less strict.
+
+```{r query}
+query(hub, c("granges","homo sapiens","ensembl"))
+```
+
+You can look at the full metadata for a resource without downloading by using a
+single square bracket. A double bracket will download the resource and cache it
+locally.
+
+```{r singlebracket}
+
+hub["AH110100"]
+```
 
 # Annotating variants
 

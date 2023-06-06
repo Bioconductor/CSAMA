@@ -20,13 +20,13 @@ knitr::opts_chunk$set(
 ```
 
 Original Authors: Martin Morgan, Sonali Arora, Lori Shepherd<br />
-Presenting Author: [Martin Morgan][]</br >
-Date: 20 June, 2022</br >
+Presenting Author: [Lori Shepherd][]</br >
+Date: 12-16 June, 2023</br >
 Back: [Monday labs](lab-1-intro-to-r-bioc.html)
 
-[Martin Morgan]: mailto: Martin.Morgan@RoswellPark.org
+[Lori Shepherd]: mailto: Lori.Shepherd@RoswellPark.org
 
-This lab has four (five!) parts. Each part consists of informative material
+This lab has five parts. Each part consists of informative material
 followed by short or intermediate length exercises and case
 studies. The material introduces or refreshes your knowledge of _R_,
 and walks through some of the central classes and annotation resources
