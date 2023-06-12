@@ -1,0 +1,199 @@
+---
+title: >
+  Design matrices
+subtitle: >
+  CSAMA 2023
+author:
+- name: <a href="https://csoneson.github.io">Charlotte Soneson (charlotte.soneson@fmi.ch)</a>
+date: "2023-06-12"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    code_folding: show
+    code_download: true
+editor_options: 
+  chunk_output_type: console
+  markdown: 
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+# Linear regression
+
+Let's say that we have $n=10$ observations for a predictor (explanatory) variable $x$ and a dependent variable $y$:
+
+```{r}
+set.seed(123)
+(x <- round(rnorm(10, mean = 0, sd = 1), digits = 2))
+(y <- 2 + 3 * x + rnorm(10, mean = 0, sd = 1))
+ggplot(data.frame(x = x, y = y), 
+       aes(x = x, y = y)) + 
+    geom_point(size = 4) + theme_minimal()
+```
+
+Linear regression of $y$ on $x$ would imply using the model $$y_i = \beta_0 + \beta_1\cdot x_i + \varepsilon_i$$ for $i=1, ..., n$, and where $\beta_0$ (intercept) and $\beta_1$ (slope) are parameters that are unknown and will be estimated from the data. In other words, $$y_1 = \beta_0 + \beta_1\cdot x_1 + \varepsilon_1\\y_2 = \beta_0 + \beta_1\cdot x_2 + \varepsilon_2\\...\\y_n = \beta_0 + \beta_1\cdot x_n + \varepsilon_n$$
+
+We can write this in matrix form as follows: $$\begin{pmatrix}y_1\\y_2\\...\\y_n\end{pmatrix} = \begin{pmatrix}1 & x_1\\1 & x_2\\... & ...\\1 & x_n\end{pmatrix}\begin{pmatrix}\beta_0\\\beta_1\end{pmatrix} + \begin{pmatrix}\varepsilon_1\\\varepsilon_2\\...\\\varepsilon_n\end{pmatrix}$$
+
+The first matrix to the right of the equal sign is the _design matrix_. 
+
+In R, we would express this model in formula notation as `y ~ x`. This will by default include an intercept (unless we explicitly tell it not to), and since `x` is a continuous variable, it will include a single coefficient for it (what we have referred to as $\beta_1$ above). The design matrix for a given model can be created using the `model.matrix()` function in R (note that this does not require knowledge about the response variable):
+
+```{r}
+model.matrix(~ x)
+```
+
+We can also fit a linear model in R, which will provide estimates for the coefficients $\beta_0$ and $\beta_1$:
+
+```{r}
+summary(lm(y ~ x))
+```
+
+Note that the coefficients are not displayed as $\beta_0$ and $\beta_1$, but rather as `(Intercept)` and `x` (to be interpreted as 'the coefficient for the `x` column in the design matrix').
+
+For a given value of $x$, the fitted/predicted value of $y$ can now be obtained as $$\hat{y}_i = \hat{\beta}_0 + \hat{\beta}_1\cdot x_i$$ or in matrix form
+$$\begin{pmatrix}\hat{y}_1\\\hat{y}_2\\...\\\hat{y}_n\end{pmatrix} = \begin{pmatrix}1 & x_1\\1 & x_2\\... & ...\\1 & x_n\end{pmatrix}\begin{pmatrix}\hat{\beta}_0\\\hat{\beta}_1\end{pmatrix}$$
+In other words, the fitted values are obtained by matrix multiplication of the design matrix and the estimated coefficients. 
+
+```{r}
+ggplot(data.frame(x = x, y = y), 
+       aes(x = x, y = y)) + 
+    geom_point(size = 4) + theme_minimal() + 
+    geom_smooth(method = "lm", se = FALSE)
+```
+
+The `ExploreModelMatrix` Bioconductor package gives us a way to explore the design, either interactively or programmatically: 
+
+```{r, message=FALSE}
+library(ExploreModelMatrix)
+library(cowplot)
+
+if (interactive()) {
+    ExploreModelMatrix(sampleData = data.frame(y = y, x = x), 
+                       designFormula = ~ x)
+}
+
+vd <- VisualizeDesign(sampleData = data.frame(y = y, x = x), 
+                      designFormula = ~ x)
+cowplot::plot_grid(plotlist = vd$plotlist)
+```
+
+The displayed plot indicates that the fitted value for a given observation is obtained by taking the intercept + the value of $x$ times the coefficient for `x`. 
+
+# Categorical predictors
+
+Let's now assume that we have a categorical predictor `treat`:
+
+```{r}
+set.seed(123)
+(treat <- gl(n = 2, k = 5, labels = c("ctrl", "trt")))
+y <- rnorm(n = 10, mean = rep(c(1, 3), each = 5))
+ggplot(data.frame(treat = treat, y = y), 
+       aes(x = treat, y = y)) + 
+    geom_point(size = 4) + theme_minimal()
+```
+
+Of course we can't multiply a coefficient with a character, so instead we recode the predictor using so called dummy variables. A dummy variable is 1 for all observations that belong to a certain category, and 0 otherwise. Let's make a design matrix for this example: 
+
+```{r}
+model.matrix(~ treat)
+```
+
+Note that we still have the intercept, and the `treattrt` column is 1 for all samples in treat group `trt`, and zero for all samples not in group `trt`. Also note that we don't have a column which is 1 only for group `ctrl` - this would be overparametrizing the model, since that column would be identical to the `(Intercept)` column minus the `treattrt` column. 
+
+Fitting a linear model again allows us to estimate the coefficients: 
+
+```{r}
+summary(lm(y ~ treat))
+```
+
+So how do we interpret this? Recall from above that the fitted/predicted value of $y$ can be obtained by multiplying the design matrix by the estimated coefficients: 
+$$\begin{pmatrix}\hat{y}_1\\\hat{y}_2\\...\\\hat{y}_n\end{pmatrix} = \begin{pmatrix}1 & 0\\1 & 0\\... & ...\\1 & 1\end{pmatrix}\begin{pmatrix}\widehat{(Intercept)}\\\widehat{treattrt}\end{pmatrix}$$
+So similarly to what we did for the linear regression, the fitted values for all samples in group `ctrl` (the first five), will be '1 times the intercept + 0 times the coefficient for `treattrt`', i.e., just the intercept. The fitted value for all samples in group `trt` is '1 times the intercept + 1 times the coefficient for `treattrt`', i.e., intercept + coefficient for `treattrt`. Thus, the coefficient for `treattrt` in this case directly represents the _difference_ between the fitted values for the two groups, and the intercept represents the fitted value for the samples in group `ctrl`. We can again explore the design interactively using `ExploreModelMatrix`:
+
+```{r}
+if (interactive()) {
+    ExploreModelMatrix(sampleData = data.frame(y = y, treat = treat), 
+                       designFormula = ~ treat)
+}
+
+vd <- VisualizeDesign(sampleData = data.frame(y = y, treat = treat), 
+                      designFormula = ~ treat)
+cowplot::plot_grid(plotlist = vd$plotlist)
+```
+
+There are other ways of parametrizing this model - if we want the coefficients to directly give us the fitted values for each group, we can exclude the intercept: 
+
+```{r}
+model.matrix(~ 0 + treat)
+```
+
+```{r}
+summary(lm(y ~ 0 + treat))
+```
+
+```{r}
+if (interactive()) {
+    ExploreModelMatrix(sampleData = data.frame(y = y, treat = treat), 
+                       designFormula = ~ 0 + treat)
+}
+
+vd <- VisualizeDesign(sampleData = data.frame(y = y, treat = treat), 
+                      designFormula = ~ 0 + treat)
+cowplot::plot_grid(plotlist = vd$plotlist)
+```
+
+Both models are equally 'valid' - the main difference appears when we want to interpret the coefficients or perform statistical tests. For example, to perform a test comparing groups `ctrl` and `trt` with the first approach, we would directly test whether the coefficient `treattrt` is different from zero. In the second case, we would have to test whether the difference between the `treattrt` and `treatctrl` coefficients is different from zero (such linear combinations of coefficients are usually referred to as contrasts). 
+
+# What if we have two explanatory variables?
+
+Multiple explanatory variables, assumed to have additive effects on the response, can be acccommodated as well: 
+
+```{r}
+(gt <- rep(c("wt", "mut"), 5))
+model.matrix(~ gt + treat)
+```
+
+Note how the intercept absorbs the reference level of each of the predictors. 
+
+```{r}
+if (interactive()) {
+    ExploreModelMatrix(sampleData = data.frame(y = y, gt = gt, treat = treat), 
+                       designFormula = ~ gt + treat)
+}
+
+vd <- VisualizeDesign(sampleData = data.frame(y = y, gt = gt, treat = treat), 
+                      designFormula = ~ gt + treat)
+cowplot::plot_grid(plotlist = vd$plotlist)
+```
+
+Finally, if we don't want to assume that the effects of the two predictors are additive, we can use an interaction term (effectively allowing the effect of one of the predictors to depend on the value of another):
+
+```{r}
+model.matrix(~ gt * treat)    ## equivalent to ~ gt + treat + gt:treat
+```
+
+```{r}
+if (interactive()) {
+    ExploreModelMatrix(sampleData = data.frame(y = y, gt = gt, treat = treat), 
+                       designFormula = ~ gt * treat)
+}
+
+vd <- VisualizeDesign(sampleData = data.frame(y = y, gt = gt, treat = treat), 
+                      designFormula = ~ gt * treat)
+cowplot::plot_grid(plotlist = vd$plotlist)
+```
+
+# Exercises
+
+* Take a look at the ExploreModelMatrix [vignette](https://bioconductor.org/packages/release/bioc/vignettes/ExploreModelMatrix/inst/doc/ExploreModelMatrix.html) and explore some of the designs in there. The ExploreModelMatrix app also provides example designs, which you can load via the 'Use example design' dropdown menu. Some background information and a description of the app is found in the accompanying [paper](https://f1000research.com/articles/9-512/v2). 
+* [Law et al (2020)](https://f1000research.com/articles/9-1444) provides an excellent guide to creating design matrices in R. 
+
+
+

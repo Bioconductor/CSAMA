@@ -3,7 +3,6 @@
 .RData
 .Ruserdata
 *.R
-*.html
 *.Rproj
 *_cache/
 *_files/
