@@ -28,7 +28,11 @@ Example and figure borrowed from [Stephen Eglen](https://sje30.github.io/talks/2
 
 ### Where is the scholarship?
 
-> An article about computational science in a scientific publication is not the scholarship itself, it is merely advertising of the scholarship. The actual scholarship is the complete software development environment and that complete set of instructions that generated the figures.
+> An article about computational science in a scientific publication
+> is not the scholarship itself, it is merely advertising of the
+> scholarship. The actual scholarship is the complete software
+> development environment and that complete set of instructions that
+> generated the figures.
 
 [Buckheit and Donoho 1995, after Claerbout]
 
@@ -176,8 +180,12 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
 - R markdown
 - Git/GitHub - https://happygitwithr.com/
 - Docker
-- [workflowr](https://workflowr.io/) ([Example](https://oshlacklab.com/paed-cf-cite-seq/index.html) from a recent [preprint](https://www.biorxiv.org/content/10.1101/2022.06.17.496207v1))
-- Makefile, [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+- [workflowr](https://workflowr.io/)
+  ([Example](https://oshlacklab.com/paed-cf-cite-seq/index.html) from
+  a recent
+  [preprint](https://www.biorxiv.org/content/10.1101/2022.06.17.496207v1))
+- Makefile, [Snakemake](https://snakemake.readthedocs.io/en/stable/),
+  [targets] https://docs.ropensci.org/targets/] package
 - [protocols.io](https://www.protocols.io/)
 - [renv](https://rstudio.github.io/renv/articles/renv.html)
 - ...
