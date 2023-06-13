@@ -1,10 +1,14 @@
-# Open and reproducible research - CSAMA 2022
+# Open and reproducible research
 
 Laurent Gatto and Charlotte Soneson
 
 ## Pitch
 
-### Motivation
+![](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.y997ex9YBpOb2hp7wxBaKAHaLY%26pid%3DApi&f=1&ipt=1f220e3849ba9b03fc675b172270af21303fe6cd78037eb8c8e9bc142869e4bd&ipo=images)
+
+## Motivation
+
+### Inverse problems
 
 Inverse problems are hard
 
@@ -28,7 +32,11 @@ Example and figure borrowed from [Stephen Eglen](https://sje30.github.io/talks/2
 
 ### Where is the scholarship?
 
-> An article about computational science in a scientific publication is not the scholarship itself, it is merely advertising of the scholarship. The actual scholarship is the complete software development environment and that complete set of instructions that generated the figures.
+> An article about computational science in a scientific publication
+> is not the scholarship itself, it is merely advertising of the
+> scholarship. The actual scholarship is the complete software
+> development environment and that complete set of instructions that
+> generated the figures.
 
 [Buckheit and Donoho 1995, after Claerbout]
 
@@ -142,9 +150,11 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
    for publication, or to decide to perform further experiments.
 2. **Reproducibility makes it easier to write papers**: Transparency
    in your analysis makes writing papers much easier. In dynamic
-   documents (using [rmarkdown](http://rmarkdown.rstudio.com/), [juypter notebook](https://jupyter.org/) and other similar tools),
-   all results are automatically update when the data are changed. You
-   can be confident your numbers, figures and tables are up-to-date.
+   documents (using [rmarkdown](http://rmarkdown.rstudio.com/),
+   [Quarto](https://quarto.org/), [Juypter
+   notebook](https://jupyter.org/) and other similar tools), all
+   results are automatically update when the data are changed. You can
+   be confident your numbers, figures and tables are up-to-date.
 3. **Reproducibility helps reviewers see it your way**: a reproducible
    document will tick many of the boxes enumerated above. You will
    make me very happy reviewer if I can review a paper that is
@@ -173,11 +183,15 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
 
 ## Tools for RR
 
-- R markdown
+- R markdown, Quarto
 - Git/GitHub - https://happygitwithr.com/
 - Docker
-- [workflowr](https://workflowr.io/) ([Example](https://oshlacklab.com/paed-cf-cite-seq/index.html) from a recent [preprint](https://www.biorxiv.org/content/10.1101/2022.06.17.496207v1))
-- Makefile, [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+- [workflowr](https://workflowr.io/)
+  ([Example](https://oshlacklab.com/paed-cf-cite-seq/index.html) from
+  a recent
+  [preprint](https://www.biorxiv.org/content/10.1101/2022.06.17.496207v1))
+- Makefile, [Snakemake](https://snakemake.readthedocs.io/en/stable/),
+  [targets] https://docs.ropensci.org/targets/] package
 - [protocols.io](https://www.protocols.io/)
 - [renv](https://rstudio.github.io/renv/articles/renv.html)
 - ...

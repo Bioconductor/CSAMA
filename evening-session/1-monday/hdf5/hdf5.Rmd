@@ -1,0 +1,102 @@
+---
+title: "Working with large data"
+author: "Davide Risso, Ludwig Geistlinger, Marcel Ramos"
+date: "2023-06-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Out of memory representations
+
+The count matrix is the central structure around which our analyses are based.
+In most of the previous examples, this has been held fully in memory as a dense `matrix` or as a sparse `dgCMatrix`.
+Howevever, in-memory representations may not be feasible for very large data sets, especially on machines with limited memory.
+For example, the 1.3 million brain cell data set from 10X Genomics 
+([Zheng et al., 2017](https://doi.org/10.1038/ncomms14049))
+would require over 100 GB of RAM to hold as a `matrix` and around 30 GB as a `dgCMatrix`.
+This makes it challenging to explore the data on anything less than a HPC system.
+
+The obvious solution is to use a file-backed matrix representation where the 
+data are held on disk and subsets are retrieved into memory as requested.
+While a number of implementations of file-backed matrices are available 
+(e.g.,
+[bigmemory](https://cran.r-project.org/web/packages/bigmemory/index.html), 
+[matter](https://bioconductor.org/packages/matter)), 
+we will be using the implementation from the 
+[HDF5Array](https://bioconductor.org/packages/HDF5Array) package.
+This uses the popular HDF5 format as the underlying data store, which provides
+a measure of standardization and portability across systems.
+We demonstrate with a subset of 20,000 cells from the 1.3 million brain cell 
+data set, as provided by the
+[TENxBrainData](https://bioconductor.org/packages/TENxBrainData) package.
+
+```{r, message = FALSE, eval=FALSE}
+library(TENxBrainData)
+## don't do this!
+sce.brain <- TENxBrainData()
+sce.brain
+print(object.size(sce.brain), units="auto")
+```
+
+```{r message = FALSE}
+## do this instead if you want to follow
+library(TENxBrainData)
+sce.brain <- TENxBrainData20k()
+```
+
+Examination of the `SingleCellExperiment` object indicates that the count matrix
+is a `HDF5Matrix`.
+From a comparison of the memory usage, it is clear that this matrix object is
+simply a stub that points to the much larger HDF5 file that actually contains
+the data.
+This avoids the need for large RAM availability during analyses.
+
+```{r}
+counts(sce.brain)
+seed(counts(sce.brain))
+```
+
+Manipulation of the count matrix will generally result in the creation of a
+`DelayedArray` object from the 
+[DelayedArray](https://bioconductor.org/packages/DelayedArray) package.
+This remembers the operations to be applied to the counts and stores them in
+the object, to be executed when the modified matrix values are realized for use
+in calculations.
+The use of delayed operations avoids the need to write the modified values to a
+new file at every operation, which would unnecessarily require time-consuming disk I/O.
+
+```{r}
+tenx_subset <- counts(sce.brain)[, 1:1000]
+lib_sizes <- colSums(tenx_subset)
+cpm <- t(t(1e6 * tenx_subset) / lib_sizes)
+cpm
+showtree(cpm)
+seed(cpm)
+```
+
+Many functions described in the previous workflows are capable of accepting 
+`HDF5Matrix` objects.
+This is powered by the availability of common methods for all matrix
+representations (e.g., subsetting, combining, methods from 
+[DelayedMatrixStats](https://bioconductor.org/packages/DelayedMatrixStats) 
+as well as representation-agnostic C++ code 
+using [beachmat](https://bioconductor.org/packages/beachmat).
+For example, we compute QC metrics below with the same `calculateQCMetrics()` 
+function that we used in the other workflows.
+
+```{r}
+DelayedArray:::set_verbose_block_processing(TRUE)
+library(scuttle)
+is.mito <- grepl("^mt-", rowData(sce.brain)$Symbol)
+qcstats <- perCellQCMetrics(sce.brain, subsets = list(Mt = is.mito))
+qcstats
+```
+
+Needless to say, data access from file-backed representations is slower than that from in-memory representations.
+The time spent retrieving data from disk is an unavoidable cost of reducing
+memory usage.
+Whether this is tolerable depends on the application.
+One example usage pattern involves performing the heavy computing quickly with  in-memory representations on HPC systems with plentiful memory, and then distributing file-backed counterparts to individual users for exploration and visualization on their personal machines.
