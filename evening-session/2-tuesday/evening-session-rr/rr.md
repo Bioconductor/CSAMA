@@ -146,9 +146,11 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
    for publication, or to decide to perform further experiments.
 2. **Reproducibility makes it easier to write papers**: Transparency
    in your analysis makes writing papers much easier. In dynamic
-   documents (using [rmarkdown](http://rmarkdown.rstudio.com/), [juypter notebook](https://jupyter.org/) and other similar tools),
-   all results are automatically update when the data are changed. You
-   can be confident your numbers, figures and tables are up-to-date.
+   documents (using [rmarkdown](http://rmarkdown.rstudio.com/),
+   [Quarto](https://quarto.org/), [Juypter
+   notebook](https://jupyter.org/) and other similar tools), all
+   results are automatically update when the data are changed. You can
+   be confident your numbers, figures and tables are up-to-date.
 3. **Reproducibility helps reviewers see it your way**: a reproducible
    document will tick many of the boxes enumerated above. You will
    make me very happy reviewer if I can review a paper that is
@@ -177,7 +179,7 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
 
 ## Tools for RR
 
-- R markdown
+- R markdown, Quarto
 - Git/GitHub - https://happygitwithr.com/
 - Docker
 - [workflowr](https://workflowr.io/)
