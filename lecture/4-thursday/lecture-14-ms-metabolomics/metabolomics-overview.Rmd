@@ -124,8 +124,7 @@ knitr::include_graphics("images/Glycolysis_12.png")
 
 ## Metabolomics? {.build}
 
-- Large-scale study of small molecules (metabolites) in a system (cell, tissue,
-  organism, ...).
+- Large-scale study of small molecules in a system.
 
 <div>
 **What** are we measuring? ... depends on context:
@@ -158,11 +157,11 @@ knitr::include_graphics("images/Glycolysis_12.png")
 
 <div>
 - Blood (serum):
-  - insights into general physiological state.
+  - insights into general physiological state of organism.
   - venous blood/capillary (arterial) blood.
 </div>
 <div>
-- Food, urine, stool samples, dust: external influence.
+- Urine, stool samples, (food, dust): external influence.
 </div>
 <div>
 - Cell culture experiments:
@@ -180,11 +179,11 @@ knitr::include_graphics("images/Glycolysis_12.png")
 
 <div>
 - Blood (serum):
-  - insights into general physiological state.
+  - insights into general physiological state of organism.
   - venous blood/capillary (arterial) blood.
 </div>
 <div>
-- Food, urine, stool samples, dust: external influence.
+- Urine, stool samples, (food, dust): external influence.
 </div>
 <div>
 - Cell culture experiments:
@@ -838,6 +837,22 @@ fts
 </div>
 
 
+## LC-MS data analysis
+
+<div style="position:absolute; top:250px;">
+- Data exploration
+- Data normalization
+- Differential abundance analysis
+- ...
+</div>
+
+<div style="position:absolute; left:15%; top:60%; font-size:50%;">
+```{r, echo = FALSE, message = FALSE}
+fts
+```
+</div>
+
+
 ## But wait - what are we actually measuring?
 
 <div style="position:absolute; left:15%; top:60%; font-size:50%;">
@@ -1030,11 +1045,13 @@ mtch <- matchValues(query, target,
   *reference* spectra.
 - Calculate similarity scores and compare spectra.
 
-```{r, echo = FALSE, message = FALSE, fig.width = 6, fig.height = 4}
-library(MsBackendMgf)
-sps <- Spectra("data/caffeine.mgf", source = MsBackendMgf())
-plotSpectraMirror(sps[1], sps[2], ppm = 70)
-```
+<div style="float:left;">
+<img src="images/massbank-mirror-plot-1.png" width = 400>
+</div>
+<div style="float:left;">
+<img src="images/massbank-mirror-plot-low-1.png" width = 400>
+</div>
+
 
 ## Spectra similarity calculation in *R* {.build}
 
