@@ -1,4 +1,4 @@
-# Open and reproducible research - CSAMA 2022
+# Open and reproducible research
 
 Laurent Gatto and Charlotte Soneson
 
