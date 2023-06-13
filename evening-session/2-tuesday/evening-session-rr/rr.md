@@ -4,7 +4,11 @@ Laurent Gatto and Charlotte Soneson
 
 ## Pitch
 
-### Motivation
+![](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.y997ex9YBpOb2hp7wxBaKAHaLY%26pid%3DApi&f=1&ipt=1f220e3849ba9b03fc675b172270af21303fe6cd78037eb8c8e9bc142869e4bd&ipo=images)
+
+## Motivation
+
+### Inverse problems
 
 Inverse problems are hard
 
