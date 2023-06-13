@@ -3,22 +3,89 @@ title: "HCA, ontologies, shiny"
 author: "Vincent J. Carey, stvjc at channing.harvard.edu"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 vignette: >
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{HCA, ontologies, shiny}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 output:
   BiocStyle::html_document:
     highlight: pygments
     number_sections: yes
     theme: united
     toc: yes
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
+```{=html}
+<!--
 # Road map
 
-- Bioconductor reads a paper
-- ontoProc and rols help with ontologies
-- shiny helps communicate
+-   Edge thickness in graph-based clustering plot
+-   Information science innovation: OLAP vs OLTP; duckdb; parquet;
+    CuratedAtlasQueryR
+-   Bioconductor reads a paper
+-   ontoProc and rols help with ontologies
+-   shiny helps communicate
+-->
+```
+# What was the interpretation of the edge thickness in the final plot of last lecture?
+
+-   use NNGraph algorithm for efficient clustering based on walktrap
+    community detection
+-   cells are assigned to nodes, but graph may include edges between
+    cells in different nodes
+-   the width of the edge between two nodes in the display is
+    proportional to the ratio of the number of observed between-node
+    edges to the expected number of between-node edges under a model of
+    random links between cells
+
+# Online analytical processing support (OLAP)
+
+![duckdb](duckdbHead.jpg)
+
+[Full paper](https://hannes.muehleisen.org/publications/CIDR2020-raasveldt-muehleisen-duckdb.pdf)
+
+## motivation for a new approach
+
+-   metadata about single cells -- highly repetitive, substantial role
+    for run-length encoding or other compression schemes
+
+## example of CuratedAtlasQueryR
+
+-   [CuratedAtlasQueryR](https://github.com/stemangiola/CuratedAtlasQueryR)
+    is from WEHI institute, will appear in Bioc 3.18, and is a
+    comprehensive reprocessing of the HumanCellAtlas with harmonized
+    annotations
+
+```{r getcaq, message=FALSE}
+library(CuratedAtlasQueryR)
+md = get_metadata()
+md
+```
+
+-   How it works
+
+```{r useq}
+single_cell_counts = 
+    md |>
+    dplyr::filter(
+        ethnicity == "African" &
+        stringr::str_like(assay, "%10x%") &
+        tissue == "lung parenchyma" &
+        stringr::str_like(cell_type, "%CD4%")
+    ) |>
+    get_single_cell_experiment()
+```
+
+-   after tidyverse query:
+
+```{r lkd}
+single_cell_counts
+```
+
+-   Apropos shiny: Does the query above suggest some aspects of a
+    desirable GUI? Let's discuss.
 
 # A paper on the atlas of the prostate
 
@@ -30,7 +97,7 @@ output:
 
 ### Surveying projects of the HCA
 
-```{r startup}
+```{r startup,message=FALSE}
 library(hca)
 p = projects()
 library(DT)
@@ -52,8 +119,7 @@ pfile$projectTitle[1]
 
 ### Working with loom
 
-Very superficial filtering (to 60000 cells) and
-development of PCA
+Very superficial filtering (to 60000 cells) and development of PCA
 
 ```{r chk, eval=FALSE}
 library(LoomExperiment)
@@ -77,12 +143,13 @@ litsf2 = runPCA(litsf2)
 ```
 
 Whatchaget:
+
 ```{r lkstuf}
 if (!exists("litsf2")) load("litsf2.rda") # run code above, must have HDF5 in cache
-metadata(litsf2)
+S4Vectors::metadata(litsf2)
 ```
 
-```
+```         
 > str(litsf2) # 22MB on disk (no quantifications)
 Formal class 'DelayedMatrix' [package "DelayedArray"] with 1 slot
   ..@ seed:Formal class 'DelayedAperm' [package "DelayedArray"] with 2 slots
@@ -101,35 +168,33 @@ Formal class 'DelayedMatrix' [package "DelayedArray"] with 1 slot
   .. .. .. .. .. .. ..@ first_val: int 0
 ```
 
-```
+```         
 stvjc@stvjc-XPS-13-9300:~/CSAMA_HCA$ ls -tl /home/stvjc/.cache/R/hca/36e582f7c6e_36e582f7c6e.loom
 -rw-rw-r-- 1 stvjc stvjc 1206062245 Jun 21 22:37 /home/stvjc/.cache/R/hca/36e582f7c6e_36e582f7c6e.loom
 ```
 
-
-### Working with iSEE
-
-- Question: where is the "stop/exit" button?
-- Question: can we embed iSEE (or components) in a vignette?  Or is there an iSEE server?
-
-![context](isee2.jpg)
-
-![fgf2](isee1.jpg)
-
 ## Upshots
 
-- easy to survey HCA with hca package
-- easy to get experiments, metadata, quantifications for projects of interest
-- iSEE really accelerates exploration and elaboration of data and claims
+-   CuratedAtlasQueryR
+    -   duckdb/parquet enables 40x reduction in size of metadata for
+        harmonized HCA in CuratedAtlasQueryR
+    -   dplyr-like querying of resource
+-   easy to survey HCA with hca package
+-   several ways to get experiments, metadata, quantifications for
+    projects of interest
+-   Once you've queried the atlas, iSEE accelerates exploration and
+    elaboration of data and claims
+    -   check out the [voice-activated control
+        capability](https://www.bioconductor.org/packages/devel/bioc/vignettes/iSEE/inst/doc/voice.html)
 
 # Ontologies, EBI OLS, rols (thanks Laurent Gatto!), ontoProc::ctmarks
 
 ## rols: Basic idea
 
-- OLS is ontology lookup service
-- has API
-- rols package help to interrogate the service
-- ontologies are everywhere
+-   OLS is ontology lookup service
+-   has API
+-   rols package help to interrogate the service
+-   ontologies are everywhere
 
 ## Learn about 'smooth muscle' with rols
 
@@ -144,21 +209,16 @@ datatable(dd)
 
 ## ontoProc -- capitalizing on ontologyIndex (thanks Daniel Greene!), Rgraphviz (thanks Kasper Hansen!)
 
-Innovation here: walk through linked ontologies such as PR and present additional facets
-about the concept in focus
 
-Limitation: the OBO representation in use is outdated and out-links are sparse
 
-```
+```         
 library(ontoProc)
-cl = getCellOnto()
-chk = ctmarks(cl)
+cl = getOnto("cellOnto")
+chk = ctmarks(cl) # disappointment relative to an older version ...
 ```
 
-Projects: 
-- use rols to get more interesting information about terms into the app
-- update the ontology resources
-- go beyond OBO ... but not all the way to OWL?  Evaluate the UI/UX needed to broaden ontology usage
-- impacts: data integration, precision of annotation, cognitive efficiency
+# vjcitn.shinyapps.io/ctmarks
 
-# shinywow2 - check out vjcitn.shinyapps.io/tnt4dn8 but be patient and don't do it while i am doing it ...
+# vjcitn.shinyapps.io/gwasCatSearch
+
+if time permits
