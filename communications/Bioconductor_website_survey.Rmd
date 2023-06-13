@@ -1,0 +1,19 @@
+---
+title: "Bioconductor Website Survey"
+output:
+  BiocStyle::html_document
+---
+
+
+We’re redesigning the Bioconductor website and we need YOUR input!
+
+We’ve created a survey to understand the needs of our diverse user base. Whether you’re a wet lab biologist, student, data analyst, developer, system administrator, educator, or any other role, we’d love to hear from you!
+
+This is your chance to shape the future of http://Bioconductor.org! Your experiences, challenges, and ideas will help us to enhance the website’s design and structure.
+
+
+The survey takes about 5-10 minutes and closes on Friday, June 23rd. 
+
+Link: https://t.maze.co/169169456
+
+We value your time and insights. Let’s improve http://Bioconductor.org together!
