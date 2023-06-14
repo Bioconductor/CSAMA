@@ -191,7 +191,13 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
   a recent
   [preprint](https://www.biorxiv.org/content/10.1101/2022.06.17.496207v1))
 - Makefile, [Snakemake](https://snakemake.readthedocs.io/en/stable/),
-  [targets] https://docs.ropensci.org/targets/] package
+  [targets](https://docs.ropensci.org/targets/): Pipeline tools
+  coordinate the pieces of computationally demanding analysis
+  projects. The targets package is a Make-like pipeline tool for
+  statistics and data science in R.
 - [protocols.io](https://www.protocols.io/)
 - [renv](https://rstudio.github.io/renv/articles/renv.html)
+- [rang: Reconstructing reproducible R computational environments](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0286761)
+- [switchr](https://github.com/gmbecker/switchr) for managing and
+  seamlessly switching between sets of installed R packages
 - ...
