@@ -28,13 +28,48 @@ output:
 
 Acquire the csamaDist package via `BiocManager::install("vjcitn/csamaDist")`.
 
+# Quick review of correlation interpretation: Anscombe's quartet
+
+```{r ansc,echo=FALSE,message=FALSE,results="hide"}
+require(stats); require(graphics)
+     summary(anscombe)
+     
+     ##-- now some "magic" to do the 4 regressions in a loop:
+     ff <- y ~ x
+     mods <- setNames(as.list(1:4), paste0("lm", 1:4))
+     for(i in 1:4) {
+       ff[2:3] <- lapply(paste0(c("y","x"), i), as.name)
+       ## or   ff[[2]] <- as.name(paste0("y", i))
+       ##      ff[[3]] <- as.name(paste0("x", i))
+       mods[[i]] <- lmi <- lm(ff, data = anscombe)
+     }
+     
+     ## See how close they are (numerically!)
+     sapply(mods, coef)
+     lapply(mods, function(fm) coef(summary(fm)))
+```
+```{r cont,echo=FALSE,message=FALSE}
+     op <- par(mfrow = c(2, 2), mar = 0.1+c(4,4,1,1), oma =  c(0, 0, 2, 0))
+     for(i in 1:4) {
+       ff[2:3] <- lapply(paste0(c("y","x"), i), as.name)
+       plot(ff, data = anscombe, col = "red", pch = 21, bg = "orange", cex = 1.2,
+            xlim = c(3, 19), ylim = c(3, 13))
+       abline(mods[[i]], col = "blue")
+     }
+     mtext("Anscombe's 4 Regression data sets", outer = TRUE, cex = 1.5)
+     par(op)
+```
+
 # Application: inferring steps in tumor metastasis in a breast cancer patient
 
 We'll examine data distributed with a [2021 Genome Biology paper](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-021-00989-6) from the Gabor Marth lab.
 
 ![Clinical sequence of interventions.](marthPatient.jpg)
 
+Here US denotes ultrasound.
+
 ![Event sequence.](marthEvolve.jpg)
+
 
 ## A view of copy number aberrations for 1Mb tiling
 
@@ -56,7 +91,7 @@ This is an indication of a deletion.
 This code is lightly modified from a script distributed at 
 https://github.com/xiaomengh/tumor-evo-rapid-autopsy.git.
 
-```{r doclus}
+```{r doclus,message=FALSE}
 suppressPackageStartupMessages({
  library(csamaDist)
  library(bioDist)
@@ -86,11 +121,28 @@ plot(fit)
 
 ### Comparing Euclidean and Correlation distances
 
+Here is a very elementary visualization.
 ```{r dodists}
 cd = cor.dist(cnv_log_R) # from bioDist
 ed = dist(cnv_log_R)
-plot(as.numeric(ed), as.numeric(cd), xlab="All pairwise Euclidean distances", ylab="All pairwise correlation distances")
+plot(as.numeric(ed), as.numeric(cd), 
+    xlab="All pairwise Euclidean distances", ylab="All pairwise correlation distances")
 ```
+
+We add interactive "tooltips" to the points to permit identification of
+tissue sample pairs corresponding to each point.
+
+```{r doply,message=FALSE}
+library(combinat)
+library(ggplot2)
+library(plotly)
+cdn = attr(cd, "Labels")
+c2 = combn(cdn,2)  
+cdnn = data.frame(v1=c2[1,], v2=c2[2,], cordist=as.numeric(cd), eucdist=as.numeric(ed))
+pl1 = ggplot(cdnn, aes(x=eucdist, y=cordist, text=paste(v1,v2,sep=":"))) + geom_point()
+ggplotly(pl1)
+```
+
 
 For a given correlation distance value, there can be wide variation in euclidean distance,
 and vice versa.
@@ -98,6 +150,8 @@ and vice versa.
 Open question: What distance metric is most relevant for biological interpretation of CNV?
 
 ### A pair with discrepant correlation and euclidean distance values (over entire genome)
+
+The Ln1:Ly1 pair has a large euclidean distance but a relatively small correlation distance.
 
 We'll have a look at the first 100Mb on chr1.
 ```{r lk1mb}

@@ -1,0 +1,65 @@
+---
+title: "Profiling demonstration for CSAMA 2023"
+author: "Vincent J. Carey, stvjc at channing.harvard.edu"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Profiling demonstration for CSAMA 2023}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+
+# Overview
+
+Understanding the resource usage of a workflow is important
+for managing compute and storage resources.
+
+There are tools in R to profile memory consumption.  CPU,
+disk and storage activities are also important to measure.
+For linux systems, the [collectl programs](https://collectl.sourceforge.net/)
+conveniently measure consumption in user-selectable time slices.
+
+# Demonstration
+
+## Data production and clustering by various algorithms
+
+```{r demo1}
+library(Rcollectl)
+library(BiocParallel)
+cl = cl_start()
+cl_timestamp(cl,"make 5e6x100 data")
+ mat = matrix(rnorm(5e6), ncol=100)
+cl_timestamp(cl,"start 10k dist")
+ dd = dist(mat[seq_len(1e4),])
+cl_timestamp(cl,"start hclust")
+ z = hclust(dd)
+ library(bluster)
+cl_timestamp(cl,"start 10k clusterRows")
+ ee = clusterRows(mat[seq_len(1e4),], KNNGraphParam(BPPARAM=MulticoreParam()))
+cl_timestamp(cl,"start 20k dist")
+ dd = dist(mat[seq_len(2e4),])
+cl_timestamp(cl,"start hclust")
+ z = hclust(dd)
+ library(bluster)
+cl_timestamp(cl,"start 20k clusterRows")
+ ee = clusterRows(mat[seq_len(2e4),], KNNGraphParam(BPPARAM=MulticoreParam()))
+cl_timestamp(cl,"start 20k leiden")
+ ee = clusterRows(mat[seq_len(2e4),], KNNGraphParam(BPPARAM=MulticoreParam(),cluster.fun="leiden"))
+cl_stop(cl)
+```
+
+## Graphical report
+
+```{r rep}
+path <- cl_result_path(cl)
+plot_usage(cl_parse(path)) +
+   cl_timestamp_layer(path) +
+   cl_timestamp_label(path) +
+   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+

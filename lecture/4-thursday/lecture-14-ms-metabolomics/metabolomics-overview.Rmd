@@ -54,8 +54,8 @@ Use presenter mode: append ?presentme=true to the URL
 ## Content
 
 - Introduction to metabolomics
-- Concept of LC-MS data
-- Handling and processing metabolomics data
+- Introduction to (LC-)MS
+- Handling and processing metabolomics data in R
 - Annotation of metabolomics data
 
 ## Metabolite? Metabolism?
@@ -95,13 +95,6 @@ knitr::include_graphics("images/Glycolysis_04.png")
 knitr::include_graphics("images/Glycolysis_06.png")
 ```
 
-## Metabolite? Metabolism?
-
-- [Glycolysis](https://en.wikipedia.org/wiki/Glycolysis)
-
-```{r out.width = "800px", echo = FALSE}
-knitr::include_graphics("images/Glycolysis_10.png")
-```
 
 ## Metabolite? Metabolism?
 
@@ -245,7 +238,7 @@ knitr::include_graphics("images/Glycolysis_12.png")
 </div>
 
 
-## Environmental influence {.build}
+## Environmental influence (example){.build}
 
 - Relationship between metabolite concentrations and dietary habits.
 
@@ -262,7 +255,6 @@ knitr::include_graphics("images/Glycolysis_12.png")
 <div>
 - Metabolites small enough to be directly measured by Mass Spectrometry.
 - Most metabolites uncharged - need to create ions first.
-- Careful sample preparation!
 </div>
 
 <div>
@@ -1026,12 +1018,18 @@ mtch <- matchValues(query, target,
 - We can *fragment* ions to get some information on their structure.
 </div>
 <div>
-- LC-MS -> LC-MS/MS.
-- MS instrument selects ions for fragmentation and records MS2 spectrum.
+<img src="images/MSMS.png" width = 800>
+</div>
+
+
+## Using MS2 spectra
+
+<div>
+- We can *fragment* ions to get some information on their structure.
 </div>
 
 <div>
-<img src="images/fragment-spectra.png" width = 600>
+<img src="images/fragment-spectra.png" width = 800>
 </div>
 
 <div>
