@@ -373,7 +373,7 @@ dds <- dds[keep, ]
 dim(dds)
 ```
 
-Importantly, the group information should *not* be used to define the filtering criterion, since that can interfere with the validity of the p-values downstream.
+Importantly, the group information should *not* be used to define the filtering criterion, since that can interfere with the validity of the multiple testing adjustment (FDR control) downstream.
 
 # Exploratory analysis and visualization
 
