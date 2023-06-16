@@ -374,6 +374,7 @@ topsdbyg9[1:10]
 ## Platelets
 
 ```{r, echo=FALSE}
+save(exprs9, file="exprs9.rda")
 plot(density(exprs9["PPBP",]), main="PPBP")
 
 ```
@@ -408,12 +409,16 @@ smoothScatter(pcs[,6], assays(sc_exp_norm_trans)$logcount["JUN",])
 ## Zero fractions
 - Irizarry find a strong correlation between PC1 and the fraction of genes not detected 
 
-```{r echo=TRUE}
+```{r zerofrac, echo=TRUE}
  counts = assays(sc_exp_norm_trans)$counts
  zeroFrac = apply(counts, 2, function(x) sum(x==0))/nrow(counts)
  lmzf = lm(pc1~clusters-1+zeroFrac)
 ```
 
+##doublets?
+```{r doublets, echo=TRUE}
+lmDoublets = lm(pc1~clusters-1+$subsets_Mito_percent)
+```
 ## Results
 
 <font size="3">

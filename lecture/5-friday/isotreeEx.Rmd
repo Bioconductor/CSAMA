@@ -1,0 +1,54 @@
+---
+title: "PBMC Cluster9"
+author: "RG"
+date: "2023-06-13"
+output: html_document
+---
+
+```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("isotree")
+library("scater")
+load("exprs9.rda")
+```
+
+## The plot of PC4 vs PC1 ...
+
+- suggests that PC4 might be two groups
+- if it consists of two sub-groups then if we compute distances between all pairs of points we should have some sort of multi-modal distribution
+- here we are going to use the isolation forest approach
+
+## Let's use isolation forests to see if we can better understand cluster 9
+
+- first we will drop genes for which we have fewer than 15 samples with that gene observed
+- this could be problematic if our variability
+```{r clean, echo=TRUE}
+rS = apply(exprs9, 1, function(x) sum(x==0))
+exprs9a = exprs9[rS<100,]
+iF = isolation.forest(t(exprs9a))
+preds=predict(iF, t(exprs9a))
+
+
+```
+
+## And ...
+ - we see a bimodal distribution suggesting that there are two types of points in this cluster
+ - just as we had seen in our previous analysis
+```{r plotiF, echo=FALSE}
+plot(density(preds), main="Isolation Forest Predictions",xlab="iF Score")
+```
+
+## Do we have outliers?
+
+- the basic advice is that an outlier has values close to 1
+```{r outliers, echo=TRUE}
+summary(preds)
+```
+- the values are all less than 1/2 - so no outliers seem to be present
+
+## Other things we could do...
+
+- build an isolation forest for all the data in the PBMC data set
+- compute predictions for all of the cells
+- look at boxplots of the predictions for each cluster (or maybe stacked density plots)
+- are the proposed clusters homogeneous with respect to the isolation forest notion of distance

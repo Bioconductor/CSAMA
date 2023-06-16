@@ -1,0 +1,85 @@
+---
+title: "SubsetAnalysis"
+author: "RG"
+date: "2023-06-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load up processed data
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(DropletTestFiles)
+library(scater)
+library(GSEABase)
+load("sce.pbmc.rda")
+load("clusters.rda")
+load("pcs.rda")
+```
+
+## Find doublets
+
+- we use *scDblFinder*
+```{r doublets, echo=TRUE}
+set.seed(1994)
+sce.pbmc = scDblFinder(sce.pbmc, dbr=0.1)
+table(sce.pbmc$scDblFinder.class)
+```
+
+## Reduce genes and samples
+
+ To perform an analysis we usually reduce the number of genes to some subset that has expression across a reasonable number of cells. And we often will also trim out cells that have two few genes expressed in them. These are likely cells which were dead, empty droplets, or droplets where the chemistry failed for some reasons.  We also filter out cells/droplets with too many reads as these are often doublets (or more I guess).  
+ 
+ There are good methods for detecting these problems, you could use them. Here I will just take the expedient of removing genes that appear in fewer than 50 cells and then cells with either the top 5% gene count or the bottom 5%.
+ 
+```{r dropstuff, echo=TRUE}
+countMat = assays(sce.pbmc)$counts
+byGene = rowSums(countMat)
+##arbitrarily require at least 50 cells to detect it at some level
+keepGene = byGene >= 50
+countMat = countMat[keepGene,]
+##drop the lower 5% and upper 5% - dead cells and doublets
+##totally arbitrary - you could use some published methods
+byCell = colSums(countMat)
+xx = quantile(byCell, c(0.05, 0.95))
+keepCells = byCell > xx[1] | byCell < xx[2]
+sce.pbmcSub = sce.pbmc[keepGene,keepCells]
+```
+
+## Now for clustering and PCA analysis
+
+```{r, echo=TRUE}
+library(scran)
+library(scuttle)
+set.seed(1000)
+Subclusters <- scran::quickCluster(sce.pbmcSub)
+save(Subclusters, file="Subclusters.rda")
+
+sc_exp_norm_trans = scuttle::computePooledFactors(sce.pbmcSub,  cluster = Subclusters) |> 
+   scuttle::logNormCounts()
+  
+
+```
+
+```{r}
+top_var_genes = scran::getTopHVGs(sc_exp_norm_trans, n = 2000)
+sc_exp_norm_trans = scran::fixedPCA(sc_exp_norm_trans, subset.row = top_var_genes)
+colData(sc_exp_norm_trans)$clusters=Subclusters
+
+save(sc_exp_norm_trans,
+       file = "sce_exp_norm_trans.rda")
+
+# PCA
+pct_var = attr(reducedDims(sc_exp_norm_trans)$PCA, "percentVar") |> round(digits = 1)
+PC1 = reducedDims(sc_exp_norm_trans)$PCA
+plot(PC1[,1], PC1[,2])
+```
+
+```{r, echo=T}
+lm1 = lm(PC1[,1]~Subclusters -1)
+summary(lm1)
+```
+##
