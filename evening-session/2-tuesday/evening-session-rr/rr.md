@@ -1,10 +1,14 @@
-# Open and reproducible research - CSAMA 2022
+# Open and reproducible research
 
 Laurent Gatto and Charlotte Soneson
 
 ## Pitch
 
-### Motivation
+![](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.y997ex9YBpOb2hp7wxBaKAHaLY%26pid%3DApi&f=1&ipt=1f220e3849ba9b03fc675b172270af21303fe6cd78037eb8c8e9bc142869e4bd&ipo=images)
+
+## Motivation
+
+### Inverse problems
 
 Inverse problems are hard
 
@@ -146,9 +150,11 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
    for publication, or to decide to perform further experiments.
 2. **Reproducibility makes it easier to write papers**: Transparency
    in your analysis makes writing papers much easier. In dynamic
-   documents (using [rmarkdown](http://rmarkdown.rstudio.com/), [juypter notebook](https://jupyter.org/) and other similar tools),
-   all results are automatically update when the data are changed. You
-   can be confident your numbers, figures and tables are up-to-date.
+   documents (using [rmarkdown](http://rmarkdown.rstudio.com/),
+   [Quarto](https://quarto.org/), [Juypter
+   notebook](https://jupyter.org/) and other similar tools), all
+   results are automatically update when the data are changed. You can
+   be confident your numbers, figures and tables are up-to-date.
 3. **Reproducibility helps reviewers see it your way**: a reproducible
    document will tick many of the boxes enumerated above. You will
    make me very happy reviewer if I can review a paper that is
@@ -177,7 +183,7 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
 
 ## Tools for RR
 
-- R markdown
+- R markdown, Quarto
 - Git/GitHub - https://happygitwithr.com/
 - Docker
 - [workflowr](https://workflowr.io/)
@@ -185,7 +191,13 @@ Florian Markowetz, [**Five selfish reasons to work reproducibly**](https://doi.o
   a recent
   [preprint](https://www.biorxiv.org/content/10.1101/2022.06.17.496207v1))
 - Makefile, [Snakemake](https://snakemake.readthedocs.io/en/stable/),
-  [targets] https://docs.ropensci.org/targets/] package
+  [targets](https://docs.ropensci.org/targets/): Pipeline tools
+  coordinate the pieces of computationally demanding analysis
+  projects. The targets package is a Make-like pipeline tool for
+  statistics and data science in R.
 - [protocols.io](https://www.protocols.io/)
 - [renv](https://rstudio.github.io/renv/articles/renv.html)
+- [rang: Reconstructing reproducible R computational environments](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0286761)
+- [switchr](https://github.com/gmbecker/switchr) for managing and
+  seamlessly switching between sets of installed R packages
 - ...

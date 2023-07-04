@@ -1,0 +1,220 @@
+---
+title: "these times they are a changin"
+author: "RG"
+date: "2023-06-13"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## AI/Ml
+
+*If your time to you is worth savin'\
+And you better start swimmin'\
+Or you'll sink like a stone\
+For the times they are a-changin'*\
+Bob Dylan\
+
+- the set of things where we have good AI/ML solutions is changing rapidly
+- notable recent advances:  alphaFold, collabFold, multimeric versions
+- large language models:  chatGPT, 
+
+## AI five years ago
+
+- machine learning was mostly split into two types of problems:
+     - classification or supervised machine learning
+     - clustering or unsupervised machine learning
+- and we could say things like: you need to decide on a distance between cases in order to do machine learning, since that is how you decide if two things are similar or not
+- and we tended to think of cases and features
+- euclidean distance and so on
+- but models like alphaFold and LLMs are way more complex and it will take some time to undertstand their actual mechanisms
+
+
+
+## alphaFold/collabFold
+![](Casp.png){width=45%}
+
+- CASP is (was?) a contest to predict protein structure from sequence
+
+- alphaFold was first, collabFold is faster and cheaper to run
+
+## alphaFold Multimer
+
+- instead of predicting the structure of a single protein can we predict the co-structure of two or more proteins
+
+- Predicted Template Modeling Score (pTM) measures the structural congruency between two folded protein structures
+
+![](Dimer.png){width=45%}
+## One more example
+
+![](Trimer.png){width=45%}
+
+## LLMs
+
+-  the model learns to predict the subsequent word in a sentence based on the preceding words. 
+- a large corpus of documents (quite broad definition of documents) is embedded into a very high dimensional space
+- a many billion parameter model is trained (real cost is millions USD)
+- the model can subsequently be fine-tuned to specific tasks
+
+## Cautionary Tales
+
+- we have all seen the amazing things that LLMs like chatGPT can do
+- and some of the things it gets amazingly wrong
+- it is basically a gigantic autocomplete mechansim, where from a single prompt one can write a book
+- it can be good at things it was trained on and variations of these models will likely revolutionize many fields (eg. patent filing, lab protocol writing, etc.)
+- **BUT** it seems to be best used by someone already expert in a field who can filter out the nonsense
+- users that are naive to a discipline likely lack the skills to fact check some of the GPT pronouncements
+
+## Cautionary Tales
+
+- lots of methods of using these models to write code 
+- but that code may not work as needed, may be inefficient
+- so here too we recommend that they are useful for experts and might be less useful for naive programmers
+- eg I have heard from many who produce complex plots that chatGPT search is very good at suggesting what parameters to tweak to obtain a desired change
+
+## For Teachers
+
+One strategy could be
+
+- encourage use of chatGPT and other LLMs **but**
+
+- ask for prompts
+
+- ask for LLM output
+
+- ask for student's synthesis
+
+## scGPT
+
+- scGPT is a foundation model designed for single-cell transcriptomics, chromatin accessibility, and protein abundance. 
+
+- model trained on single-cell data from 10 million human cells.
+
+- Each cell contains expression values for a fraction of the approximately 20,000 human genes. 
+ 
+- The model learns embeddings of this large cell × gene matrix, which provide insights into the underlying cellular states and active biological pathways. 
+ 
+## scGPT - learning tasks
+
+- they define multiple fine tuning tasks (to get to the auto-complete world)
+ 
+ Such as: 
+ 
+- Gene Expression Prediction: Within each cell, mask expression values for a subset of genes; scGPT is optimized to accurately predict the masked expression values 
+
+- Cell Type Classification
+
+- etc
+
+- doi: https://doi.org/10.1101/2023.04.30.538439
+ 
+## Other LLMs in molecular biology
+
+- sets of models based on protein function prediction
+- the language is protein sequence
+- proteins can be engineered with certain properties based on existing corpus of known sequence to function data
+ 
+## Classification
+
+- I want to spend a little time on classification
+- this is the problem of finding a set of rules to help predict the class of a new observation, for which you only have the features
+- we need a training data set in order to develop the model
+- we use tools like cross-validation; dividing our data in test, train, validate; and similar sorts of approaches.
+- I am going to introduce the subject via a method called Random Forests, due to Leo Brieman
+- *The Elements of Statistical Learning* by Hastie, Tibshirani and Friedman is a great resource for many of these tools and I base my notes here on their description
+
+## Random Forests
+
+![](RFalg.png){width=95%}
+- if the data set is large (lots of cases) you might want to do subsampling of individuals and variables
+
+- R implementation differs in some important ways - read the manual
+
+## Wikipedia Image
+
+![](WikipediaRF.png){width=75%}
+
+## Out of Bag (OOB)
+
+*For each observation $z_i = (x_i,y_i)$, construct its random forest predictor by averaging only those trees corresponding to (bootstrap) samples in which $z_i$ did not appear.*
+
+- this would apply to any other aggregate method that relies on bootstrap sampling or subsampling
+- it gives an *independent* estimate of the prediction error, since the data point was not used in building any of the trees used for prediction
+
+- When the number of variables is large, but the fraction of relevant variables small, random forests are likely to perform poorly with small m (number of features selected for each tree).
+- At each split the chance can be small that the relevant variables will be selected.
+
+## Variable Importance
+
+- At each split in each tree, the improvement in the split-criterion is the importance measure attributed to the splitting variable
+- this is accumulated over all the trees in the forest separately for each variable.
+- variable importance is not affected much (if at all) by collinearity
+- **R Implementation** The “local” (or casewise) variable importance is computed as follows: For classification, it is the
+increase in percent of times a case is OOB and misclassified when the variable is permuted. For
+regression, it is the average increase in squared OOB residuals when the variable is permuted.
+
+## Variable Importance
+
+![](VarImportance.png){width=55%}
+
+## Isolation Forests
+
+- Basic Problem: Do I have any outliers - anomalies?
+- The main idea behind Isolation forests is that outliers are typically unusual data points.  
+- Thus, they often are far (in some metric) from the majority of data points.
+- similarly to random forests, isolation forests are built out of isolation trees, and then some averaging is done.
+
+## Isolation Forests
+
+
+![](isolationForest.png){width=75%}
+
+## The ideas behind the algorithm
+
+Based on:
+https://cs.nju.edu.cn/zhouzh/zhouzh.files/publication/icdm08b.pdf?q=isolation-forest
+
+- proposed method takes advantage of two quantitative properties of anomalies: 
+    i) they are the minority consisting of fewer instances and 
+    ii) they have attribute-values that are very different from those of normal instances. 
+    
+- In other words, anomalies are ‘few and different’, which make them more susceptible to isolation than normal points.
+
+-there are only two variables in this method: the number of trees to build and the sub-sampling size.
+
+- the advantage of subsampling is that it makes the data sets small
+
+## The isolation tree algorithm
+
+- they seem to suggest just subsampling, they are working on very big data sets
+
+- **first** create a partition by first randomly selecting a feature and then selecting a value between the minimum and maximum value of the selected feature as the split. 
+
+- This creates a partition, the data points on one side of the split and those on the other. 
+
+- The algorithm recursively takes one of the resulting sides and splits it, in the same fashion 
+
+- repeats until all data points are singletons in the tree.
+
+- Outliers should manifest themselves by a smaller number of splits needed to get them to be singletons.
+
+## Isolation Forest
+
+- You create a predetermined number of such trees
+
+- Now, you take each observation in your data set and "run it through each tree" to get the depth in that tree
+
+- compute some measure of average depth 
+
+- outliers manifest themselves by smaller depth
+
+- but another way of thinking about these average depths is that they constitute some sort of distance from the observation and all the other data points in the set
+
+The isotree package in R, actually does some fancier things, among them, the fitting process returns a model that can be used for prediction. It also has methods to deal with categorical variables.
+
+
+## Some Interesting Links
+
+- https://towardsdatascience.com/large-language-models-in-molecular-biology-9eb6b65d8a30

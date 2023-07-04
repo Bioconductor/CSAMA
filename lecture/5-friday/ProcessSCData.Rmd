@@ -1,0 +1,140 @@
+---
+title: "Process SC Data"
+author: "RG"
+date: "2023-05-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Download and Process the Data
+
+FIXME:  we should update this to more modern workflows.
+Somehow there is no filtering going on, wrt, the counts matrix, which should
+be made smaller.
+
+I am not convinced that denoisePCA is doing what the author thinks it is.
+For the PCA the genes provide direction, but the variation we are modeling is wrt between cell
+distances (not about variation within gene across cells, which seems to be
+what is being used).
+
+```{r, echo=FALSE}
+library(DropletTestFiles)
+library(GSEABase)
+raw.path <- getTestFile("tenx-2.1.0-pbmc4k/1.0.0/raw.tar.gz")
+out.path <- file.path(tempdir(), "pbmc4k")
+untar(raw.path, exdir=out.path)
+
+library(DropletUtils)
+fname <- file.path(out.path, "raw_gene_bc_matrices/GRCh38")
+sce.pbmc <- read10xCounts(fname, col.names=TRUE)
+```
+
+## Some Ideas from Mardia Kent and Bibby
+
+- one measure of variable importance can be ascertained from the PCs.  For PC1, for example, any feature (gene) that has a large *loading* on PC1 is likely to be important in understanding the variation in that direction
+
+- one could look at the highly variable genes and see what their loadings are in each of the PCs
+
+
+```{r, echo=FALSE}
+library(scater)
+rownames(sce.pbmc) <- uniquifyFeatureNames(
+    rowData(sce.pbmc)$ID, rowData(sce.pbmc)$Symbol)
+
+library(EnsDb.Hsapiens.v86)
+location <- mapIds(EnsDb.Hsapiens.v86, keys=rowData(sce.pbmc)$ID, 
+    column="SEQNAME", keytype="GENEID")
+
+```
+
+```{r, echo=FALSE}
+set.seed(100)
+e.out <- emptyDrops(counts(sce.pbmc))
+sce.pbmc <- sce.pbmc[,which(e.out$FDR <= 0.001)]
+
+unfiltered <- sce.pbmc
+
+stats <- perCellQCMetrics(sce.pbmc, subsets=list(Mito=which(location=="MT")))
+high.mito <- isOutlier(stats$subsets_Mito_percent, type="higher")
+sce.pbmc <- sce.pbmc[,!high.mito]
+
+summary(high.mito)
+```
+
+scDBLfinder
+
+```{r, echo=FALSE}
+colData(unfiltered) <- cbind(colData(unfiltered), stats)
+unfiltered$discard <- high.mito
+
+gridExtra::grid.arrange(
+    plotColData(unfiltered, y="sum", colour_by="discard") +
+        scale_y_log10() + ggtitle("Total count"),
+    plotColData(unfiltered, y="detected", colour_by="discard") +
+        scale_y_log10() + ggtitle("Detected features"),
+    plotColData(unfiltered, y="subsets_Mito_percent",
+        colour_by="discard") + ggtitle("Mito percent"),
+    ncol=2
+)
+
+```
+
+```{r, echo=FALSE}
+library("scran")
+library("scater")
+set.seed(1000)
+clusters <- quickCluster(sce.pbmc)
+save(clusters, file="clusters.rda")
+sce.pbmc <- computeSumFactors(sce.pbmc, cluster=clusters)
+sce.pbmc <- logNormCounts(sce.pbmc)
+
+summary(sizeFactors(sce.pbmc))
+```
+
+##what we do - at CCB
+- drop cells with too many Mito reads
+- drop genes found in too few cells
+- drop cells with too few genes detected
+- 
+basic PCA on the 2000 most variable genes. We’ll save the top 50 PCs for each sample.
+UMAP on all the gene expression values
+
+
+```{r, echo=FALSE}
+set.seed(1001)
+dec.pbmc <- modelGeneVarByPoisson(sce.pbmc)
+top.pbmc <- getTopHVGs(dec.pbmc, prop=0.1)
+
+set.seed(10000)
+sce.pbmc <- denoisePCA(sce.pbmc, subset.row=top.pbmc, technical=dec.pbmc)
+
+set.seed(100000)
+sce.pbmc <- runTSNE(sce.pbmc, dimred="PCA")
+
+set.seed(1000000)
+sce.pbmc <- runUMAP(sce.pbmc, dimred="PCA")
+ncol(reducedDim(sce.pbmc, "PCA"))
+```
+Now let's have a look at what we got
+
+## Break
+
+```{r}
+##Extract the computed PCs
+pcs <- getDenoisedPCs(sce.pbmc, subset.row=top.pbmc, technical=dec.pbmc)
+##components is the matrix of rotated per cell 
+dim(pcs$components)
+##and rotation is the matrix of PC directions
+dim(pcs$rotation)
+```
+
+And now save the appropriate things for loading up later.
+```{r savestuff, echo=TRUE}
+save(pcs, file="pcs.rda")
+save(sce.pbmc, file="sce.pbmc.rda")
+
+
+```

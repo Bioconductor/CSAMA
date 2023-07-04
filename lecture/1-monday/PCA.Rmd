@@ -1,0 +1,575 @@
+---
+title: "PCA and Friends"
+author: "RG"
+date: "2023-05-19"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(MVT)
+library(xtable)
+library(kableExtra)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+
+```
+
+## Introduction
+
+Principal Components Analysis is a multivariate method that helps you understand the structure of data that have been collected on $N$ individuals and $p$ variables. Each individual can be represented by a point in $p$ dimensional space. Our motivating example will be test scores on $N=88$ students across $p=5$ topics.The first two exams were closed book, the last 3 open book.
+```{r data}
+data(examScor)
+head(examScor, n=3)
+```
+A motivating question is how should the exam scores be combined to give an overall score?
+One answer is to use the mean, but is there something *better*? 
+
+## Principal Components
+
+![](PointswithPCs.png){width=45%}
+
+- We will refer to the data matrix as $\bf{X}$, and each row as $\bf{x_i}$ = $(x_{i,1}, x_{i,2}, \ldots,x_{i,p})$.
+- We can see in the picture that we could rotate the coordinate axis to align differently with the data
+- There are many possible rotations, but we want to consider one where the axis are oriented towards directions of greatest variation in the point cloud.
+
+## Three important points
+
+![](PointswithPCs.png){width=45%}
+
+- If we rotate the coordinate axis, as in the plot, the relationship between the data points has not changed at all.
+
+- The data points are still described by a matrix ($\bf{X^\prime}$) that has $N$ rows and $p$ columns.
+
+- The PCs are chosen to be orthogonal, just like our original coordinate system
+
+## Other Sources
+Chapter 7 of MSMB (https://www.huber.embl.de/msmb/07-chap.html) has many other examples and a slightly different approach.
+
+They cover linear regression, other decompositions and do some really thorough explanations of the singular value decomposition that underlies this. 
+
+My main source:  *Multivariate Analysis*, Mardia, Kent, Bibby (1979)...which is still relevant and accurate today...
+
+## Simple PCs (Appendix for more details)
+
+- The PCs provide us with an alternative set of coordinates. 
+- The first PC corresponds to the direction of most variation in the $\bf{x}$'s.  Note that rescaling the $\bf{x}$'s would clearly affect the PCs.
+- After we compute the PCs we have three quantities of interest:
+  1. The variability in each of the new directions (eigenvalues).
+  2. The vectors (eigenvectors) that are used to form the new coordinates (they are linear combinations of the original points).
+  3. The new set of *features*, the rotated values.
+
+## Motivating Example
+Since we have five covariates, each student's score can be represented in 5-D space.
+The principal components give us a different coordinate system than the one based on the exam scores.
+
+```{r pca}
+v1 = prcomp(examScor)
+v1
+```
+
+## How to think about the PCs
+
+The rotation matrix, in the previous slide tells you how to compute the new, 5 dimensional values.  The first value is the linear combination where the $l_i$ come from PC1, the second from PC2, and so on.
+
+So we can compute a new $n$ by $k$ matrix, where for each of the $k$ dimensions we can compute the new value for each individual.  This gives us a set of five columns (rows are people, columns are variables) that are equivalent to the original data. The points are in some sense identical, just we have changed coordinate systems.
+
+
+## Back to the PCs
+ Let's have a look at the coefficients - these are sometimes called *rotations*.
+```{r}
+v1$rotation
+```
+- We can then see that PC1 is pretty close to the average, across all the exam scores.
+- PC2 is a contrast between the closed book and open book exams.
+- What do you think PC3 is representing?
+
+## The Rotated Variables
+
+- We can also compute the data matrix in the new reference frame - sometimes called the *rotated variables*
+```{r, echo=TRUE}
+head( v1$x, 4)
+```
+
+## The Rotated Variables
+
+- They are uncorrelated
+```{r, echo=TRUE}
+round(cor(v1$x), digits=3)
+```
+
+## The Variances
+
+
+```{r echo=TRUE}
+v1$sdev
+```
+
+- the largest SD is about 26 and the smallest close to 6
+- if the data followed a multivariate Normal distribution (it does not) these would tell us about the size of the ellipses that describe the data
+
+Notice that if we compute the SD for each column we get back the singular values.
+```{r, echo=TRUE}
+apply(v1$x, 2, sd)
+```
+
+
+
+## The Null Space
+
+- Sometimes we have $p$ columns, but the point cloud really only occupies some lower dimensional space.
+![](2Dplanein3D.png){width=30%}
+- in the rotated coordinate system we only need 2 dimensions, so one of the rotated variables will be zero 
+
+## An example of 3D data describing a 2D manifold
+```{r, echo=TRUE}
+x= rnorm(20, sd=10)
+y=rnorm(20, sd=5)
+z= x+y
+v2 = prcomp(cbind(x,y,z))
+head(v2$x, n=3)
+round(v2$sdev, digits=3)
+```
+
+## The Null Space
+
+- It would be quite unusual in a real world example where the variables are measured with error for us to find a case where one or more of the eigenvalues is exactly zero
+- So we use a cut-off of some form that says that if the variability in one direction is smaller than $\eta$ we don't think that dimension will be very helpful.
+- In our single cell analysis pipeline we will typically choose some fairly large number of PCs (eg 50) to use for clustering the data, this is a form of dimension reduction
+
+## The Effect of Outliers
+- in our example we have test scores as percentages, so this limits the effect of outliers
+- just to emphasize the point, I will use some very large values in the last 3 columns
+- 
+```{r echo=TRUE}
+ns = c(1, 2, 850,950, 999)
+ndata = rbind(examScor, ns)
+tv = prcomp(ndata)
+tv$sdev
+v1$sdev
+```
+## The Effect of Outliers
+```{r echo=T}
+tv$rotation
+v1$rotation
+```
+## The use of PCs in regression
+
+- in regression we have a response, $\bf{y}$ that we want to model in terms of matrix, $\bf{X}$ of features.
+- suppose for example that 10 students had taken the first 4 exams, but had COVID and could not take the 5th.  The instructor wants to estimate their score on the 5th exam.
+```{r, echo=TRUE}
+y = examScor[,5]
+covs = as.matrix(examScor[,1:4])
+lm1 = lm(y~covs)
+
+```
+## Regression cont'd
+```{r, eval=FALSE}
+tab_model(lm1) 
+#summary(lm1) |>
+#  xtable() |>
+#  kable()
+```
+```
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   -11.37822    6.98174  -1.630 0.106952    
+covsmechanics   0.02217    0.09895   0.224 0.823265    
+covsvectors     0.02574    0.13953   0.184 0.854092    
+covsalgebra     0.72944    0.20961   3.480 0.000802 ***
+covsanalysis    0.31293    0.13146   2.380 0.019581 *  
+```
+```
+Residual standard error: 12.75 on 83 degrees of freedom
+Multiple R-squared:  0.4793,	Adjusted R-squared:  0.4542 
+F-statistic:  19.1 on 4 and 83 DF,  p-value: 3.612e-11
+```
+## Regression on the PCs
+
+- now we are going to see what happens if instead of using the data in its original coordinate system we use the PCs
+```{r, echo=TRUE}
+pccovs = prcomp(covs)
+lm2 = lm(y~pccovs$x)
+```
+
+## Regression on the PCs
+```{r, eval=FALSE, echo=FALSE}
+summary(lm2)
+```
+```
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 42.30682    1.35892  31.133  < 2e-16 ***
+pccovs$xPC1 -0.45441    0.05918  -7.678 2.84e-11 ***
+pccovs$xPC2  0.37633    0.10885   3.457 0.000863 ***
+pccovs$xPC3  0.08628    0.14739   0.585 0.559898    
+pccovs$xPC4  0.52498    0.23109   2.272 0.025687 *  
+```
+```
+Residual standard error: 12.75 on 83 degrees of freedom
+Multiple R-squared:  0.4793,	Adjusted R-squared:  0.4542 
+F-statistic:  19.1 on 4 and 83 DF,  p-value: 3.612e-11
+```
+## Regression on the PCs
+- the fit of the model (and indeed the residuals, for example) is identical between the two
+- the data have not changed, we just changed how we referred to the data in our coordinate system
+- in the summary for `lm2` we can see that the coefficients for PC3 and PC4 are not significant
+- you can check (use the rmarkdown doc for this lesson) that indeed removing them has little impact on the fit
+- removing them could provide some benefits in terms of simplicity etc and this is a form of smoothing
+
+## Reduced Model
+
+```{r, echo=TRUE}
+lm3 = lm(y~pccovs$x[,1:3])
+```
+
+```{r, echo=FALSE, eval=FALSE}
+summary(lm3)
+```
+```
+Coefficients:
+                   Estimate Std. Error t value Pr(>|t|)    
+(Intercept)        42.30682    1.38665  30.510  < 2e-16 ***
+pccovs$x[, 1:2]PC1 -0.45441    0.06039  -7.524 5.08e-11 ***
+pccovs$x[, 1:2]PC2  0.37633    0.11107   3.388  0.00107 ** 
+---
+Residual standard error: 13.01 on 85 degrees of freedom
+Multiple R-squared:  0.4448,	Adjusted R-squared:  0.4317 
+F-statistic: 34.05 on 2 and 85 DF,  p-value: 1.378e-11
+```
+ - note that these are identical to the values for the first model with all PCs included
+
+## Caveats
+- the principal components are not scale invariant
+- changing the scale (pounds to kilograms, scaling by the variance etc) all change the set of principal components we find and hence make interpretation harder
+
+## Do we need all PCs?
+- it is useful at times to determine whether most (all?) of the important variation is 
+contained in the first $k$ PCs
+- under an assumption that we are sampling from a multivariate Normal distribution (strong but typically it doesn't need to hold that well) we can say some things
+- with real data the hypothesis that any singular value (or eigenvalue) is zero is not meaningful, we always have some amount of random variation
+- but a test of $\lambda_p = \lambda_{p-1}$ is meaningful
+- as is the more general $\lambda_p = \lambda_{p-1} = \ldots = \lambda_{k+1}$, which is equivalent to saying that the first $k$ components hold all the relevant information and after that it is just stochastic noise
+- Section 8.4.3 of Mardia Kent and Bibby...but this does not seem to be employed in the single cell field...
+
+## Now for more complicated things....
+
+- In a single cell experiment we typically have hundreds to thousands of cells.
+- We have 10's of thousands of genes....
+- So each cell is a point in some 10-40K space...but we think that the there are useful summaries
+- We want to use PCA analysis as a way to do some form of dimension reduction - to those directions where there is a lot of variation in the data.
+- outliers can greatly skew the results and we need to be careful to ensure that our analysis is not too reliant on a few observations.
+
+## The basics of the process
+- get your single cell data and do QA/QC to remove genes (rows) and cells (columns) that seem to have technical or biological reasons to be be suspect
+- log transform and size normalize the data
+- do some sort of filtering for the top K most variable genes (K and how you measure variable are parameters)
+- do PCA 
+- use the first M PCs to do clustering
+- revert back to the full count matrix and use UMAP and tSNE to visualize
+
+## Set up the data
+
+- We will examine the single cell data from workflow #3 in the OSCA book
+- http://bioconductor.org/books/3.17/OSCA.workflows/
+- This is a peripheral blood mononuclear cell (PBMC) dataset from 10X Genomics (Zheng et al. 2017). The data are publicly available from the 10X Genomics website, from which we download the raw gene/barcode count matrices, i.e., before cell calling from the CellRanger pipeline.
+- the data were processed as described in that workflow - and then we will examine a few opportunities
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library("DropletTestFiles")
+library("GSEABase")
+library("scater")
+#load("sce.pbmc.rda")
+load("sce_exp_norm_trans.rda")
+load("Subclusters.rda")
+clusters = Subclusters
+pcs = reducedDims(sc_exp_norm_trans)$PCA
+
+```
+## Variance Explained
+
+```{r, echo=TRUE}
+pct_var = attr(reducedDims(sc_exp_norm_trans)$PCA, "percentVar") |> 
+   round(digits = 1)
+pct_var
+```
+- notice that after about 12 components we are at .3 and then quickly just .2 over and over
+- think back to the earlier comment that it could be useful to test if those later values are all equal...
+
+## LM on Clusters
+<font size="3">
+```{r, echo=FALSE}
+##Subclusters is the set of clusters
+pc1 = pcs[,1]
+lm1 = lm(pc1~clusters-1)
+ tab_model(lm1, show.se=TRUE, show.ci=FALSE) 
+```
+</font>
+
+## Boxplot on Clusters
+
+```{r, echo=FALSE}
+boxplot(pc1~clusters, ylab="PC1", main="PC1 scores by Cluster Assignment")
+```
+
+## Is there info in the PCs we have not used?
+- we regress each PC in turn against the cluster labels and get the multiple R2
+- for each regression, the multiple R2 tells us about how much of the variation in that PC is explained by the clusters
+- if that value is especially low, as it is for PC6 below - then that dimension is not really reflecting the clustering
+- PC4 is also potentially interesting so we will have a look at it as well
+```{r, echo=FALSE}
+multR2 = sapply(1:9, function(x) {
+  summary(lm(pcs[,x]~ clusters - 1))$adj.r.squared
+})
+round(multR2, digits=4)
+
+```
+
+## What does this look like?
+- we plot PC4 vs PC1 
+- what is that set of unusual looking points?
+```{r, echo=FALSE}
+v1 = clusters
+cols = colors()[17*as.numeric(levels(v1))]
+cols[10] = "red"
+levels(v1) = cols
+v1 = as.character(v1)
+plot(pcs[,4], pcs[,1], xlab="PC4", ylab="PC1", col=v1)
+```
+
+## What is going on?
+
+```{r, echo=TRUE}
+clusters[pcs[,4]>15]
+table(clusters)
+```
+- so we see that somehow PC4 is capturing a large amount of variation with cluster 9 
+- we should probably try to track down what is happening there
+
+## The rotation matrix...
+
+- above we concentrated on the transformed features
+- but the rotations are also interesting
+- they tell us about the "loadings" on each of the genes for each PC
+- in the exam example we noted how the different rotations were things like the mean of the exam scores, or contrasts between exams
+```{r echo=TRUE}
+rotation = attr(reducedDims(sc_exp_norm_trans)$PCA, "rotation")
+gn = row.names(rotation)
+gn[1:10]
+```
+
+## PC4
+
+- let's pull out the gene expression values for cluster 9 and look at highly variable genes
+```{r, echo=TRUE}
+exprs9 = assays(sc_exp_norm_trans)$logcounts[, clusters==9]
+sdbyg9 = rowSds(exprs9)
+names(sdbyg9) = row.names(exprs9)
+topsdbyg9 = sort(sdbyg9,dec=TRUE)[1:50]
+topsdbyg9[1:10]
+```
+- some of these are platelet factors, the first is a sign of platelet activation
+
+## Platelets
+
+```{r, echo=FALSE}
+save(exprs9, file="exprs9.rda")
+plot(density(exprs9["PPBP",]), main="PPBP")
+
+```
+
+## One more plot
+
+```{r, echo=FALSE}
+vv = colData(sc_exp_norm_trans)
+vv = cbind(vv, clusters=clusters)
+colData(sc_exp_norm_trans) = vv
+```
+
+```{r, echo=FALSE}
+plotExpression(sc_exp_norm_trans, features=names(topsdbyg9)[1:4], x="clusters", colour_by="clusters")
+```
+
+## PC6 vs PC1
+
+```{r, echo=FALSE}
+plot(pcs[,6], pcs[,1], xlab="PC6", ylab="PC1", col=v1)
+```
+- no correlation with zero fraction
+- no correlation with sizeFactor
+- looked at the loadings in the rotation matrix, four genes really stand out JUN, DUSP1, FOS and JUNB
+
+## PC6 correlates with JUN/JUNB/FOS/DUSP1 expression
+
+```{r, echo=FALSE}
+smoothScatter(pcs[,6], assays(sc_exp_norm_trans)$logcount["JUN",])
+
+```
+## Zero fractions
+- Irizarry find a strong correlation between PC1 and the fraction of genes not detected 
+
+```{r zerofrac, echo=TRUE}
+ counts = assays(sc_exp_norm_trans)$counts
+ zeroFrac = apply(counts, 2, function(x) sum(x==0))/nrow(counts)
+ lmzf = lm(pc1~clusters-1+zeroFrac)
+```
+
+##doublets?
+```{r doublets, echo=TRUE}
+lmDoublets = lm(pc1~clusters-1+$subsets_Mito_percent)
+```
+## Results
+
+<font size="3">
+```{r}
+ tab_model(lmzf, show.stat=TRUE, show.ci=FALSE) 
+```
+</font>
+
+
+## Gene Ontology
+
+Next we are going to extract mappings to GO terms from the org.Hs.eg.db. These can then
+be used to carry out a regression analysis to see if the loadings on the PCs show any
+particular patterns with respect to particular GO terms.
+FIXME: need to be careful here and make sure we are getting not just the child, but all
+the roll-ups. And also make sure we have identified those genes that have no GO assignments - possibly lncRNA, mt(?), and so on.
+
+```{r, echo=TRUE, eval=FALSE}
+library(org.Hs.eg.db)
+library("Matrix")
+##get all the GO mappings for the gene names used in our PCA - gn
+ss1 = select(org.Hs.eg.db, keys=gn, columns=c("SYMBOL","GOALL"), keytype="SYMBOL")
+ss2 = split(ss1$GOALL, ss1$SYMBOL)
+
+##map from GO to symbol - so we can regress
+## we will require 10 genes for any GO term to be included
+## probably we should eliminate nodes with too many genes as well...
+##
+##ss3 is a list, each element of the list is the names/symbols
+## of the gene that are attached to the GO category
+ss3 = split(ss1$SYMBOL, ss1$GOALL)
+ss3len = sapply(ss3, length)
+
+
+ss4 = ss3[ss3len>9 & ss3len<50]
+##FIXME - how to create a sparse matrix from ss4
+## we are going to have columns as GO terms, rows as Genes
+##FIXME - why are there multiple matches per GO term - below
+numcols = length(ss4)
+colNames = names(ss4)
+rowLabs = unique(unlist(ss4))
+p= vector("list", length=numcols)
+names(p) = names(ss4)
+for(i in 1:numcols)
+  p[[i]] = match(unique(ss4[[i]]), rowLabs)
+
+GenesByGO = sparseMatrix(j=rep(1:numcols, sapply(p, length)), i=unlist(p),x=1,
+                         dimnames=list(Genes=rowLabs,GO=colNames))
+GBG = as.matrix(GenesByGO)
+save(GBG, file="GBG.rda")
+save(ss4, file="ss4.rda")
+```
+
+## Regress the rotation matrix on the GO categories
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(org.Hs.eg.db)
+library("Matrix")
+load("GBG.rda")
+load("ss4.rda")
+```
+
+```{r, echo=TRUE}
+rot1 = rotation[,1]
+names(rot1) = row.names(rotation)
+rot1sub = rot1[row.names(GBG)]
+lmGGO = lm(rot1sub ~ GBG[,1:1000]-1)
+```
+
+## Adjust for lots of tests
+
+- when you do lots of tests it is important that you adjust the p-values to accommodate the fact that you did a lot of tests
+
+```{r, echo=TRUE}
+ss = summary(lmGGO)
+gbg_coefs=coef(ss)
+row.names(gbg_coefs) = gsub("GBG[, 1:1000]", "", 
+                            row.names(gbg_coefs), fixed=TRUE)
+adjpvs = p.adjust(gbg_coefs[,4], method = "fdr")
+
+top10 = sort(adjpvs, dec=FALSE)[1:10]
+top10
+
+```
+
+## Top Groups
+
+ - The top hit is GO:0000028, BP, ribosomal small subunit assembly
+ - second hit  GO:0002523, BP,  leukocyte migration involved in inflammatory response
+
+```{r, echo=T}
+names(top10[1:2])
+gset1 = ss4[names(top10)[1]]
+gset1
+gset2 = ss4[names(top10)[2]]
+gset2
+
+gbg_coefs[names(top10)[1]]
+
+nn=names(top10)
+gensetsize = sapply(ss4[nn], function(x) length(x))
+gensetsize
+```
+
+## How unusual are these groups
+
+```{r, echo=FALSE}
+plot(density(gbg_coefs[,1]),xlim= c(-0.05, 0.05))
+
+abline(v=gbg_coefs[nn[1],1], col="red")
+abline(v=gbg_coefs[nn[2],1], col="blue")
+```
+
+## Look at pc6
+
+- note this is not what I want to do, but on my laptop about 1.5K is what we can do
+```{r pc6-1, echo=TRUE}
+rot6 = rotation[,6]
+names(rot6) = row.names(rotation)
+rot6sub = rot6[row.names(GBG)]
+lmGGO6 = lm(rot6sub ~ GBG[,1500:3000])
+```
+
+## Find the GO categories with the largest coefficients in the regression
+
+```{r pc6-2, echo=TRUE}
+ss6 = summary(lmGGO6)
+gbg6_coefs=coef(ss6)
+row.names(gbg6_coefs) = gsub("GBG[, 1500:3000]", "", row.names(gbg6_coefs), fixed=TRUE)
+adjpvs6 = p.adjust(gbg6_coefs[,4], method = "fdr")
+
+top10 = sort(adjpvs6, dec=FALSE)[1:10]
+top10
+
+```
+GO:0035994 - response to muscle stretch
+
+## Appendix Slides
+
+- A linear combination of $\bf{x}$ is $\sum x_i *l_i$ for some constants $l_i$
+- The linear combination is a standardized linear combination (SLC) if $\sum {l_i}^2=1$
+
+## Singular Value Decomposition
+
+Borrowed from Elements of Statistical Learning...
+The singular value decomposition (SVD) of the centered input matrix $Nxp$ matrix $\bf{X}$  
+$$ \bf{X} = \bf{UDV^T}$$
+Here $\bf{U}$ and $\bf{V}$ are $N × p$ and $p × p$ orthogonal matrices, with the columns of $\bf{U}$ spanning the column space of $\bf{X}$, and the columns of $\bf{V}$ spanning the row space. $\bf{D}$ is a $p × p$ diagonal matrix, with diagonal entries $d_1 ≥ d_2 ≥ \ldots ≥ d_p ≥ 0$ called the singular values of $\bf{X}$. If one or more values $d_j = 0$, $\bf{X}$ is singular.
+
+## Principal Components
+
+The SVD of the centered matrix $\bf{X}$ is another way of expressing the principal components of the variables in $\bf{X}$. The sample covariance matrix is given by $S = X^TX/N$, and we have
+$$X^T X = VD^2V^T,$$
+which is the eigen decomposition of $\bf{X}^T\bf{X}$ (and of $\bf{S}$, up to a factor $N$). The eigenvectors $v_j$ (columns of $\bf{V}$) are also called the principal components directions of $\bf{X}$. The first principal component direction $v_1$ has the property that $z_1 = X \cdot v_1$ has the largest sample variance amongst all normalized linear combinations of the columns of $\bf{X}$.
