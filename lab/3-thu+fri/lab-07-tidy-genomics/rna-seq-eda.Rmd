@@ -5,7 +5,7 @@ author: Michael Love
 
 This is a copy of a longer set of tutorials available here:
 
-<https://nullranges.github.io/tidy-ranges-tutorial/>
+<https://tidybiology.github.io/tidy-ranges-tutorial/>
 
 Objective: learn how to make basic EDA plots (plotting scaled counts)
 of RNA-seq data using tidy-style verbs.

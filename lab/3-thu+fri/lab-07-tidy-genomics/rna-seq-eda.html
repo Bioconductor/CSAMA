@@ -168,7 +168,7 @@ pre code {
 
 
 <p>This is a copy of a longer set of tutorials available here:</p>
-<p><a href="https://nullranges.github.io/tidy-ranges-tutorial/" class="uri">https://nullranges.github.io/tidy-ranges-tutorial/</a></p>
+<p><a href="https://tidybiology.github.io/tidy-ranges-tutorial/" class="uri">https://tidybiology.github.io/tidy-ranges-tutorial/</a></p>
 <p>Objective: learn how to make basic EDA plots (plotting scaled counts) of RNA-seq data using tidy-style verbs.</p>
 <p>The <em>tidybulk</em> Bioconductor package and associated <a href="https://stemangiola.github.io/tidytranscriptomics/post/tidy-transcriptomics-manifesto/">tidy transcriptomics</a> ecosystem (tidySummarizedExperiment, tidySingleCell, tidyseurat, etc.) provide a bridge between the <em>SummarizedExperiment</em>-style representation of matrix data with attached metadata, to the tidy-style representation of data (one row per observation). For more details on the package, check out the <a href="https://stemangiola.github.io/tidybulk/">tidybulk</a> website, and the publication: <span class="citation">@tidybulk</span>.</p>
 <p>Here we will briefly examine the difference between tidy manipulation of these matrix-style objects compared to how these objects would be manipulated in other Bioconductor workflows (e.g. DESeq2, edgeR, or limma workflows). As you will see, there are multiple ways to generate the same or similar exploratory plots and analyses. we recommend to consider which is more appropriate to your purpose. For package code, you may prefer to have fewer dependencies, going with core Bioconductor objects and packages. For scripting, the “fluent” and piped style of <em>tidybulk</em> may be preferable, and easier for others to read and modify your code at a future date.</p>
